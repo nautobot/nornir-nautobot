@@ -14,4 +14,16 @@ pip install nornir-nautobot
 
 The inventory plugin is used to gather inventory from a Nautobot instance. This queries the DCIM endpoint to gather information about the devices.  
 
-[Using Inventory](inventory/inventory.md)
+[Inventory](inventory/inventory.md)
+
+## Processor Plugin
+
+This is an opinionated plugin to help with network automation workflows with Nautobot.
+
+[Processor Plugin](processor_plugins/processor_plugins.md)
+
+## Task Plugin
+
+The task plugin helps with dispatching specific functions with multiple underlying OS.
+
+[Task Plugin](task_plugins/task_plugins.md)

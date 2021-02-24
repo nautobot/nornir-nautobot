@@ -1,0 +1,11 @@
+site_name: Nornir Nautobot Documentation
+site_url: https://nornir-nautobot.readthedocs.io
+repo_url: https://github.com/nautobot/nornir-nautobot
+theme:
+  name: readthedocs
+  navigation_depth: 3
+nav:
+  - Introduction: "index.md"
+  - Inventory Plugin: "inventory/inventory.md"
+  - Processor Plugin: "processor/processor.md"
+  - Task Plugin: "task/task.md"

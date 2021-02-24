@@ -20,10 +20,10 @@ The inventory plugin is used to gather inventory from a Nautobot instance. This 
 
 This is an opinionated plugin to help with network automation workflows with Nautobot.
 
-[Processor Plugin](processor_plugins/processor_plugins.md)
+[Processor Plugin](plugins/plugins.md)
 
 ## Task Plugin
 
 The task plugin helps with dispatching specific functions with multiple underlying OS.
 
-[Task Plugin](task_plugins/task_plugins.md)
+[Task Plugin](task/task.md)

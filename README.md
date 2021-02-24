@@ -18,3 +18,7 @@ pip install nornir-nautobot
 ## Documentation Link
 
 The documentation can be found on [Read the Docs](https://nornir-nautobot.readthedocs.io/en/latest/)
+
+## Nautobot
+
+Nautobot documentation is available at [Nautobot Read the Docs](https://nautobot.readthedocs.io/en/latest/)

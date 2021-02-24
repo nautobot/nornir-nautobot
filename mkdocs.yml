@@ -1,8 +1,9 @@
-site_name: Nornir Nautobot Documentation
-site_url: https://nornir-nautobot.readthedocs.io
-repo_url: https://github.com/nautobot/nornir-nautobot
+---
+site_name: "Nornir Nautobot Documentation"
+site_url: "https://nornir-nautobot.readthedocs.io"
+repo_url: "https://github.com/nautobot/nornir-nautobot"
 theme:
-  name: readthedocs
+  name: "readthedocs"
   navigation_depth: 3
 nav:
   - Introduction: "index.md"

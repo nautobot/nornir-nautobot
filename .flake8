@@ -1,0 +1,5 @@
+[flake8]
+# E501: Line length is enforced by Black, so flake8 doesn't need to check it
+# E302: Expected blank lines, 2 are expected. Black formats to 1, Black wins
+ignore = E501, E302
+exclude = .git,tests/

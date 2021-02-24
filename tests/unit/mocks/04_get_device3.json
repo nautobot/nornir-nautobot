@@ -1,0 +1,89 @@
+{
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 4,
+            "url": "http://nautobot-demo.com/api/dcim/devices/4/",
+            "name": "den-wan01",
+            "display_name": "den-wan01",
+            "device_type": {
+                "id": 3,
+                "url": "http://nautobot-demo.com/api/dcim/device-types/3/",
+                "manufacturer": {
+                    "id": 1,
+                    "url": "http://nautobot-demo.com/api/dcim/manufacturers/1/",
+                    "name": "Cisco",
+                    "slug": "cisco"
+                },
+                "model": "IOSv",
+                "slug": "iosv",
+                "display_name": "Cisco IOSv"
+            },
+            "device_role": {
+                "id": 3,
+                "url": "http://nautobot-demo.com/api/dcim/device-roles/3/",
+                "name": "Router",
+                "slug": "router"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 2,
+                "url": "http://nautobot-demo.com/api/dcim/platforms/2/",
+                "name": "Cisco IOS",
+                "slug": "ios"
+            },
+            "serial": "90Q1VEN47MPBMU2718KJ1",
+            "asset_tag": null,
+            "site": {
+                "id": 4,
+                "url": "http://nautobot-demo.com/api/dcim/sites/4/",
+                "name": "DEN",
+                "slug": "den"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "primary_ip": {
+                "id": 4,
+                "url": "http://nautobot-demo.com/api/ipam/ip-addresses/4/",
+                "family": 4,
+                "address": "10.16.0.2/24"
+            },
+            "primary_ip4": {
+                "id": 4,
+                "url": "http://nautobot-demo.com/api/ipam/ip-addresses/4/",
+                "family": 4,
+                "address": "10.16.0.2/24"
+            },
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [
+                {
+                    "id": 2,
+                    "url": "http://nautobot-demo.com/api/extras/tags/2/",
+                    "name": "snmp_monitoring",
+                    "slug": "snmp_monitoring",
+                    "color": "3f51b5"
+                }
+            ],
+            "custom_fields": {
+                "emulator": null
+            },
+            "config_context": {},
+            "created": "2020-12-06",
+            "last_updated": "2020-12-12T19:55:16.432666Z"
+        }
+    ]
+}

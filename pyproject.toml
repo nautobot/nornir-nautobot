@@ -1,0 +1,97 @@
+[tool.poetry]
+name = "nornir-nautobot"
+version = "1.0.0"
+description = "Nornir Nautobot"
+authors = ["Network to Code, LLC <opensource@networktocode.com>"]
+readme = "README.md"
+license = "Apache-2.0"
+keywords = ["Nautobot"]
+classifiers = [
+  "Intended Audience :: Developers",
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+]
+repository = "https://github.com/nautobot/nornir-nautobot"
+homepage = "https://nautobot.com"
+documentation = "https://nornir-nautobot.readthedocs.io"
+
+
+[tool.poetry.dependencies]
+python = "^3.6"
+nornir = "^3.0.0"
+requests = "^2.25.1"
+nornir-utils = "^0.1.1"
+nornir-napalm = "^0.1.1"
+nornir-jinja2 = "^0.1.1"
+nornir-netmiko = "^0.1.1"
+pynautobot = "^1.0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+requests_mock = "*"
+pyyaml = "*"
+black = "*"
+pylint = "*"
+pydocstyle = "*"
+yamllint = "*"
+bandit = "*"
+invoke = "*"
+toml = "*"
+flake8 = "*"
+pydantic = {version = "^1.7.2", extras = ["dotenv"]}
+
+[tool.poetry.plugins."nornir.plugins.inventory"]
+"NautobotInventory" = "nornir_nautobot.plugins.inventory.nautobot:NautobotInventory"
+
+[tool.black]
+line-length = 120
+target-version = ['py37']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | settings.py     # This is where you define files that should not be stylized by black
+                     # the root of the project
+)
+'''
+
+[tool.pylint.basic]
+# No docstrings required for private methods (Pylint default), or for test_ functions, or for inner Meta classes.
+no-docstring-rgx="^(_|test_|Meta$)"
+
+
+[tool.pylint.messages_control]
+# Line length is enforced by Black, so pylint doesn't need to check it.
+# Pylint and Black disagree about how to format multi-line arrays; Black wins.
+disable = """,
+    line-too-long,
+    bad-continuation,
+    duplicate-code,
+    """
+
+[tool.pylint.miscellaneous]
+# Don't flag TODO as a failure, let us commit with things that still need to be done in the code
+notes = """,
+    FIXME,
+    XXX,
+    """
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = "tests/"
+addopts = "-vv"

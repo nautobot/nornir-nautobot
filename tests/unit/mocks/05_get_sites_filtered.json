@@ -1,0 +1,131 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 2,
+            "url": "http://dockerrunner:8000/api/dcim/devices/2/",
+            "name": "msp-rtr01",
+            "display_name": "msp-rtr01",
+            "device_type": {
+                "id": 3,
+                "url": "http://dockerrunner:8000/api/dcim/device-types/3/",
+                "manufacturer": {
+                    "id": 2,
+                    "url": "http://dockerrunner:8000/api/dcim/manufacturers/2/",
+                    "name": "Cisco",
+                    "slug": "cisco"
+                },
+                "model": "IOSv",
+                "slug": "iosv",
+                "display_name": "Cisco IOSv"
+            },
+            "device_role": {
+                "id": 3,
+                "url": "http://dockerrunner:8000/api/dcim/device-roles/3/",
+                "name": "Router",
+                "slug": "router"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 2,
+                "url": "http://dockerrunner:8000/api/dcim/platforms/2/",
+                "name": "Cisco IOS",
+                "slug": "ios"
+            },
+            "serial": "",
+            "asset_tag": null,
+            "site": {
+                "id": 1,
+                "url": "http://dockerrunner:8000/api/dcim/sites/1/",
+                "name": "MSP",
+                "slug": "msp"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "primary_ip": null,
+            "primary_ip4": null,
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2021-02-20",
+            "last_updated": "2021-02-20T23:30:27.084758Z"
+        },
+        {
+            "id": 3,
+            "url": "http://dockerrunner:8000/api/dcim/devices/3/",
+            "name": "msp-rtr02",
+            "display_name": "msp-rtr02",
+            "device_type": {
+                "id": 3,
+                "url": "http://dockerrunner:8000/api/dcim/device-types/3/",
+                "manufacturer": {
+                    "id": 2,
+                    "url": "http://dockerrunner:8000/api/dcim/manufacturers/2/",
+                    "name": "Cisco",
+                    "slug": "cisco"
+                },
+                "model": "IOSv",
+                "slug": "iosv",
+                "display_name": "Cisco IOSv"
+            },
+            "device_role": {
+                "id": 3,
+                "url": "http://dockerrunner:8000/api/dcim/device-roles/3/",
+                "name": "Router",
+                "slug": "router"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 2,
+                "url": "http://dockerrunner:8000/api/dcim/platforms/2/",
+                "name": "Cisco IOS",
+                "slug": "ios"
+            },
+            "serial": "",
+            "asset_tag": null,
+            "site": {
+                "id": 1,
+                "url": "http://dockerrunner:8000/api/dcim/sites/1/",
+                "name": "MSP",
+                "slug": "msp"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "primary_ip": null,
+            "primary_ip4": null,
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2021-02-20",
+            "last_updated": "2021-02-20T23:30:30.902212Z"
+        }
+    ]
+}

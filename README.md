@@ -4,10 +4,10 @@
 
 ## Build Status
 
-| Branch  | Status |
-| ------- | ------ |
-| main    | TBD    |
-| develop | TBD    |
+| Branch  | Status                                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| main    | [![Build Status](https://travis-ci.com/nautobot/nornir-nautobot.svg?branch=main)](https://travis-ci.com/nautobot/nornir-nautobot)    |
+| develop | [![Build Status](https://travis-ci.com/nautobot/nornir-nautobot.svg?branch=develop)](https://travis-ci.com/nautobot/nornir-nautobot) |
 ## Overview
 
 The nornir_nautobot project intends to solve two primary use cases.

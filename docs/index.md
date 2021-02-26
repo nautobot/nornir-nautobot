@@ -20,7 +20,7 @@ The inventory plugin is used to gather inventory from a Nautobot instance. This 
 
 This is an opinionated plugin to help with network automation workflows with Nautobot.
 
-[Processor Plugin](plugins/plugins.md)
+[Processor Plugin](processor/processor.md)
 
 ## Task Plugin
 

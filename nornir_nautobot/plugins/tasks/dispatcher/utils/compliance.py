@@ -23,7 +23,6 @@ default_feature = {
     "intended": None,
 }
 
-# TODO: Update doc string examples to reflect the how the functions currently work
 def section_config(feature, device_cfg, network_os):
     """Parse feature section config from device cfg.
 
@@ -33,32 +32,30 @@ def section_config(feature, device_cfg, network_os):
     Args:
         feature (dict): Feature name and cfg lines that should be parsed.
         device_cfg (str): Device configuration.
-        network_os (str): Device network operating system.
+        network_os (str): Device network operating system that is in parser_map keys.
 
     Returns:
         list: The hash report data mapping file hashes to report data.
 
     Example:
-        >>> feature
-        ... {
+        >>> feature =  {
         ...    "name": "BGP",
-        ...    "section": [
+        ...     "section": [
         ...        "router bgp "
         ...    ]
         ... }
-        >>> print(device_cfg)
-        ... router bgp 100
+        >>> 
+        >>> device_cfg = '''router bgp 100
         ...  bgp router-id 10.6.6.5
         ... !
         ... snmp-server ifindex persist
         ... snmp-server packetsize 4096
-        ... snmp-server location BOMI/ITAJAI
-        ... access-list 1 permit 10.22.142.132
-        ... access-list 1 permit 10.22.143.189
-        >>>
-        >>> section_config(feature, device_cfg, "ios")
-        ... router bgp 100
-        ...  bgp router-id 10.6.6.5
+        ... snmp-server location SFO
+        ... access-list 1 permit 10.10.15.15
+        ... access-list 1 permit 10.10.20.20'''
+        >>> 
+        >>> section_config(feature, device_cfg, "cisco_ios")
+        'router bgp 100\n bgp router-id 10.6.6.5'
         >>>
     """
     section_starts_with = feature.get("section")
@@ -90,58 +87,56 @@ def compliance(features, backup, intended, network_os):
         features (list): List of features for particular network os.
         backup (path): running config or config backup file  to compare against intended.
         intended (path): intended config to compare against backup.
-        network_os (str): Device network operating system.
+        network_os (str): Device network operating system that is in parser_map keys.
 
     Returns:
         dict: Compliance information per feature.
 
     Example:
-        >>> features
-        ... [
+        >>> from utils.compliance import compliance
+        >>> features = [
         ...     {
         ...         "name": "hostname",
+        ...         "ordered": True,
         ...         "section": [
         ...             "hostname"
         ...         ]
         ...     },
         ...     {
         ...         "name": "ntp",
+        ...         "ordered": True,
         ...         "section": [
         ...             "ntp"
         ...         ]
-        ...     },
-        ...     {
-        ...         "name": "local_users",
-        ...         "section": [
-        ...             "username",
-        ...             "role network-limited"
-        ...         ]
         ...     }
         ... ]
-        >>> backup = "my/path/to/backup/file.cfg"
-        >>> intended = "my/path/to/intended/config.cfg"
-        >>> network_os = "aruba"
+        >>> backup = "/tmp/backup.cfg"
+        >>> intended = "/tmp/intended.cfg"
+        >>> network_os = "cisco_ios"
         >>> compliance(features, backup, intended, network_os)
         ... {
         ...     "hostname": {
-        ...         "cannot_parse": false,
-        ...         "compliant": true,
-        ...         "existing": "hostname R1",
-        ...         "golden": "hostname R1",
-        ...         "not_required": null,
-        ...         "required": null,
-        ...         "unordered_compliant": null
+        ...         "compliant": False,
+        ...         "missing": None,
+        ...         "extra": None,
+        ...         "cannot_parse": True,
+        ...         "unordered_compliant": None,
+        ...         "ordered_compliant": False,
+        ...         "actual": "",
+        ...         "intended": "hostname R1",
         ...     },
         ...     "ntp": {
-        ...         "cannot_parse": false,
-        ...         "compliant": false,
-        ...         "existing": "ntp server 192.168.1.1\nntp server 192.168.1.2 prefer",
-        ...         "golden": "ntp server 192.168.1.1\nntp server 192.168.1.5 prefer",
-        ...         "not_required": "ntp server 192.168.1.2 prefer",
-        ...         "required": "ntp server 192.168.1.5 prefer",
-        ...         "unordered_compliant": false
-        ...     }
+        ...         "compliant": False,
+        ...         "missing": "ntp server 192.168.1.5 prefer",
+        ...         "extra": "ntp server 192.168.1.2 prefer",
+        ...         "cannot_parse": True,
+        ...         "unordered_compliant": False,
+        ...         "ordered_compliant": False,
+        ...         "actual": "ntp server 192.168.1.1\nntp server 192.168.1.2 prefer",
+        ...         "intended": "ntp server 192.168.1.1\nntp server 192.168.1.5 prefer",
+        ...     },
         ... }
+        >>>
     """
     backup_cfg = open_file_config(backup)
     intended_cfg = open_file_config(intended)
@@ -157,6 +152,7 @@ def compliance(features, backup, intended, network_os):
         feature_compliance["actual"] = backup_feature
         feature_compliance["intended"] = intended_feature
 
+        # Check for ordered compliant which is accomplished with a simple exact match
         feature_compliance["ordered_compliant"] = _is_feature_ordered_compliant(intended_feature, backup_feature)
 
         if feature_compliance["ordered_compliant"]:
@@ -191,16 +187,14 @@ def _is_feature_ordered_compliant(feature_intended_cfg, feature_actual_cfg):
         bool
 
     Example:
-        >>> print(feature_intended_cfg)
-        ... router bgp 100
-        ...  bgp router-id 10.6.6.5
+        >>> feature_intended_cfg = '''router bgp 100
+        ...   bgp router-id 10.6.6.5'''
         >>>
-        >>> print(feature_actual_cfg)
-        ... router bgp 100
-        ...  bgp router-id 10.6.6.5
+        >>> feature_actual_cfg = '''router bgp 100
+        ...   bgp router-id 10.6.6.5'''
         >>>
-        >>> print(_is_feature_compliant(feature_intended_cfg, feature_actual_cfg))
-        ... True
+        >>> print(_is_feature_ordered_compliant(feature_intended_cfg, feature_actual_cfg))
+        True
         >>>
     """
     if not feature_intended_cfg and not feature_actual_cfg:
@@ -216,7 +210,7 @@ def _check_configs_differences(intended_cfg, actual_cfg, network_os):
     Args:
         intended_cfg (str): Feature intended configuration.
         actual_cfg: (str): Feature actual configuration.
-        network_os (str): Device network operating system.
+        network_os (str): Device network operating system that is in parser_map keys.
 
     Returns:
         dict: Config fragments that are missing, extra or unordered_compliant.
@@ -272,7 +266,7 @@ def find_unordered_cfg_lines(intended_cfg, actual_cfg):
         ... ntp server 10.10.10.11
         ... ntp server 10.10.10.10
         >>>
-        >>> find_unordered_compliant_cfg_lines(intended_cfg, actual_cfg)
+        >>> find_unordered_cfg_lines(intended_cfg, actual_cfg)
         ... [
         ...     ("ntp server 10.10.10.10", "ntp server 10.10.10.12"),
         ...     ("ntp server 10.10.10.12", "ntp server 10.10.10.10")
@@ -297,32 +291,31 @@ def config_section_not_parsed(features, device_cfg, network_os):
     Args:
         features (list): List of features for particular network os.
         device_cfg (str): Device configuration.
-        network_os (str): Device network operating system.
+        network_os (str): Device network operating system that is in parser_map keys.
 
     Returns:
         dict: Config that was not parsed or section not found.
 
     Example:
-        >>> features
-        ... [{
+        >>> features = [{
         ...    "name": "BGP",
+        ...    "ordered": True,
         ...    "section": [
         ...        "router bgp "
         ...    ]
         ... }]
-        >>> print(device_cfg)
-        ... router bgp 100
+        >>>
+        >>> device_cfg = '''router bgp 100
         ...  bgp router-id 10.6.6.5
         ... !
         ... access-list 1 permit 10.10.10.10
-        ... access-list 1 permit 10.10.10.11
+        ... access-list 1 permit 10.10.10.11'''
         >>>
         >>> config_section_not_parsed(features, device_cfg, network_os)
         ... {
-        ...     "remaining_cfg":
-        ...         "access-list 1 permit 10.10.10.10
-        ...          access-list 1 permit 10.10.10.11",
-        ...     "section_not_found": []
+        ...  'remaining_cfg':
+        ...     '!\naccess-list 1 permit 10.10.10.10\naccess-list 1 permit 10.10.10.11',
+        ...     'section_not_found': []
         ... }
         >>>
     """
@@ -355,10 +348,33 @@ def ntc_diff_network_config(compare_config, base_config, network_os):
     Args:
         compare_config (str): The config to evaluate against base_config.
         base_config (str): The config to compare compare_config against.
-        network_os (str): The OS per ansible_network_os.
+        network_os (str): Device network operating system that is in parser_map keys.
 
     Returns:
         base_config (str): The string of additional commands in compare_config separated by a newline.
+    
+    Example:
+        >>> compare_config = '''router bgp 100
+        ...  bgp router-id 10.6.6.5
+        ... !
+        ... snmp-server ifindex persist
+        ... snmp-server packetsize 4096
+        ... snmp-server location SFO
+        ... access-list 1 permit 10.15.20.20
+        ... access-list 1 permit 10.15.20.21'''
+        >>>
+        >>> base_config = '''router bgp 100
+        ...  bgp router-id 10.6.6.5
+        ... !
+        ... snmp-server packetsize 4096
+        ... snmp-server location SFO
+        ... access-list 1 permit 10.15.20.20
+        ... access-list 1 permit 10.15.20.21'''
+        >>>
+        >>> network_os = "cisco_ios"
+        >>> ntc_diff_network_config(compare_config, base_config, network_os)
+        'snmp-server ifindex persist'
+        >>>
     """
     os_parser = parser_map[network_os]
     compare_parser = os_parser(compare_config)

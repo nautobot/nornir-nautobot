@@ -93,7 +93,6 @@ def compliance(features, backup, intended, network_os):
         dict: Compliance information per feature.
 
     Example:
-        >>> from utils.compliance import compliance
         >>> features = [
         ...     {
         ...         "name": "hostname",

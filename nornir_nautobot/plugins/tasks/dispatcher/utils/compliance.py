@@ -23,6 +23,7 @@ default_feature = {
     "intended": None,
 }
 
+
 def section_config(feature, device_cfg, network_os):
     """Parse feature section config from device cfg.
 
@@ -44,7 +45,7 @@ def section_config(feature, device_cfg, network_os):
         ...        "router bgp "
         ...    ]
         ... }
-        >>> 
+        >>>
         >>> device_cfg = '''router bgp 100
         ...  bgp router-id 10.6.6.5
         ... !
@@ -53,9 +54,10 @@ def section_config(feature, device_cfg, network_os):
         ... snmp-server location SFO
         ... access-list 1 permit 10.10.15.15
         ... access-list 1 permit 10.10.20.20'''
-        >>> 
+        >>>
         >>> section_config(feature, device_cfg, "cisco_ios")
-        'router bgp 100\n bgp router-id 10.6.6.5'
+        ... router bgp 100
+        ...  bgp router-id 10.6.6.5
         >>>
     """
     section_starts_with = feature.get("section")
@@ -313,7 +315,9 @@ def config_section_not_parsed(features, device_cfg, network_os):
         >>> config_section_not_parsed(features, device_cfg, network_os)
         ... {
         ...  'remaining_cfg':
-        ...     '!\naccess-list 1 permit 10.10.10.10\naccess-list 1 permit 10.10.10.11',
+        ...     '!'
+        ...     'access-list 1 permit 10.10.10.10'
+        ...     'access-list 1 permit 10.10.10.11',
         ...     'section_not_found': []
         ... }
         >>>
@@ -351,7 +355,7 @@ def ntc_diff_network_config(compare_config, base_config, network_os):
 
     Returns:
         base_config (str): The string of additional commands in compare_config separated by a newline.
-    
+
     Example:
         >>> compare_config = '''router bgp 100
         ...  bgp router-id 10.6.6.5

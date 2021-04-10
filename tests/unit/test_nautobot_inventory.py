@@ -8,7 +8,7 @@ from requests.sessions import Session
 import pynautobot
 from requests_mock import Mocker
 from nornir import InitNornir
-from nornir.core.task import Task, Result
+from nornir.core.task import Task
 
 # Application Imports
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
@@ -163,7 +163,6 @@ def test_device_required_properties():
 
     # Run through Nornir tasks
     nornir_task_result = test_nornir.run(task=mock_nornir_task)
-
 
     # Verify expected result
     for task_result in nornir_task_result:

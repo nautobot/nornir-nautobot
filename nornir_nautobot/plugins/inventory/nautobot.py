@@ -32,15 +32,16 @@ def _set_host(data: Dict[str, Any], name: str, groups, host) -> Host:
             port=value.get("port"),
             username=value.get("username"),
             password=value.get("password"),
-            platform=host.get("platform", {}).get("slug"),
+            platform=host.get('data', {}).get("pynautobot_dictionary", {}).get("platform", {}).get("slug"),
             extras=value.get("extras"),
         )
+
     return Host(
         name=name,
         hostname=host["hostname"],
         username=host.get("username"),
         password=host.get("password"),
-        platform=host.get("platform", {}).get("slug"),
+        platform=host.get('data', {}).get("pynautobot_dictionary", {}).get("platform", {}).get("slug"),
         data=data,
         groups=groups,
         connection_options=connection_option,

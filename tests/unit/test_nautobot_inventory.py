@@ -145,8 +145,7 @@ def test_device_required_properties():
         Args:
             task (Task): Nornir Task
         """
-        return task.host.platform == "ios"
-        # return task.host.name
+        return task.host.platform
 
     with Mocker() as mock:
         load_api_calls(mock)
@@ -166,4 +165,4 @@ def test_device_required_properties():
 
     # Verify expected result
     for task_result in nornir_task_result:
-        assert nornir_task_result[task_result].result
+        assert nornir_task_result[task_result].result == "ios"

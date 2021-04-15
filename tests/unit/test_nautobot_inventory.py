@@ -7,6 +7,8 @@ import pytest
 from requests.sessions import Session
 import pynautobot
 from requests_mock import Mocker
+from nornir import InitNornir
+from nornir.core.task import Task
 
 # Application Imports
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
@@ -134,3 +136,33 @@ def test_filter_devices():
             expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
 
         assert test_class.devices == expected_devices
+
+
+def test_device_required_properties():
+    def mock_nornir_task(task: Task):
+        """Example to show work inside of a task.
+
+        Args:
+            task (Task): Nornir Task
+        """
+        return task.host.platform
+
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "filter_parameters": {"site": "msp"},
+                },
+            },
+        )
+
+    # Run through Nornir tasks
+    nornir_task_result = test_nornir.run(task=mock_nornir_task)
+
+    # Verify expected result
+    for task_result in nornir_task_result:
+        assert nornir_task_result[task_result].result == "ios"

@@ -24,7 +24,7 @@ from requests import Session
 logger = logging.getLogger(__name__)
 
 
-def _set_host(data: Dict[str, Any], name: str, groups, host) -> Host:
+def _set_host(data: Dict[str, Any], name: str, groups, host, host_platform) -> Host:
     connection_option = {}
     for key, value in data.get("connection_options", {}).items():
         connection_option[key] = ConnectionOptions(
@@ -32,15 +32,16 @@ def _set_host(data: Dict[str, Any], name: str, groups, host) -> Host:
             port=value.get("port"),
             username=value.get("username"),
             password=value.get("password"),
-            platform=host.get("platform", {}).get("slug"),
+            platform=host_platform,
             extras=value.get("extras"),
         )
+
     return Host(
         name=name,
         hostname=host["hostname"],
         username=host.get("username"),
         password=host.get("password"),
-        platform=host.get("platform", {}).get("slug"),
+        platform=host_platform,
         data=data,
         groups=groups,
         connection_options=connection_option,
@@ -152,7 +153,11 @@ class NautobotInventory:
 
             # Add host to hosts by name first, ID otherwise - to string
             hosts[device.name or str(device.id)] = _set_host(  # pylint: disable=unsupported-assignment-operation
-                data=host["data"], name=host["name"], groups=host["groups"], host=host
+                data=host["data"],
+                name=host["name"],
+                groups=host["groups"],
+                host=host,
+                host_platform=device.platform.slug,
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

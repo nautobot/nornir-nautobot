@@ -31,6 +31,7 @@ def dispatcher(task: Task, method: str, logger, obj, *args, **kwargs) -> Result:
     """
     if kwargs.get("default_drivers_mapping"):
         default_drivers_mapping = kwargs["default_drivers_mapping"]
+        del kwargs["default_drivers_mapping"]
     else:
         default_drivers_mapping = _DEFAULT_DRIVERS_MAPPING
 

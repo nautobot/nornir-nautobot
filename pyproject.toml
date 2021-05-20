@@ -26,6 +26,7 @@ nornir-napalm = "^0.1.1"
 nornir-jinja2 = "^0.1.1"
 nornir-netmiko = "^0.1.1"
 pynautobot = "^1.0.1"
+netutils = "^0.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

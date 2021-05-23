@@ -168,7 +168,7 @@ def test_device_required_properties():
         assert nornir_task_result[task_result].result == "ios"
 
 
-def test_nornir_nautobot_device_count(nornir_nautobot_class):
+def test_nornir_nautobot_device_count():
     # Import mock requests
     with Mocker() as mock:
         load_api_calls(mock)
@@ -227,10 +227,8 @@ def test_nornir_nautobot_device_hostname(device, expected_hostname):
 
 
 # Setup of groups for a future PR
-@pytest.mark.parametrize(
-    "device, expected_groups", [("den-dist01", []), ("den-wan01", []), ("den-dist02", [])]
-)
-def test_nornir_nautobot_device_hostname(device, expected_groups):
+@pytest.mark.parametrize("device, expected_groups", [("den-dist01", []), ("den-wan01", []), ("den-dist02", [])])
+def test_nornir_nautobot_device_groups(device, expected_groups):
     # Import mock requests
     with Mocker() as mock:
         load_api_calls(mock)

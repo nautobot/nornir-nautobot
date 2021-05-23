@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.1
+
+- (#20) Fixes inventory failure when platform is not defined for a device
 ## v2.0.0
 
 - (#18) Migrates functions to new NTC netutils library, which is removing methods previously available:

@@ -166,3 +166,80 @@ def test_device_required_properties():
     # Verify expected result
     for task_result in nornir_task_result:
         assert nornir_task_result[task_result].result == "ios"
+
+
+def test_nornir_nautobot_device_count():
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    # Verify that the length of the inventory is 3 devices
+    assert len(test_nornir.inventory.hosts) == 3
+
+
+@pytest.mark.parametrize(
+    "device, expected_platform", [("den-dist01", None), ("den-wan01", "ios"), ("den-dist02", "ios")]
+)
+def test_nornir_nautobot_device_platform(device, expected_platform):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].platform == expected_platform
+
+
+@pytest.mark.parametrize(
+    "device, expected_hostname", [("den-dist01", "10.17.1.2"), ("den-wan01", "10.16.0.2"), ("den-dist02", "10.17.1.6")]
+)
+def test_nornir_nautobot_device_hostname(device, expected_hostname):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].hostname == expected_hostname
+
+
+# Setup of groups for a future PR
+@pytest.mark.parametrize("device, expected_groups", [("den-dist01", []), ("den-wan01", []), ("den-dist02", [])])
+def test_nornir_nautobot_device_groups(device, expected_groups):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].groups == expected_groups

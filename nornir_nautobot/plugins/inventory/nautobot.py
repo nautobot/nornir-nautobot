@@ -157,7 +157,7 @@ class NautobotInventory:
                 name=host["name"],
                 groups=host["groups"],
                 host=host,
-                host_platform=device.platform.slug,
+                host_platform=getattr(device.platform, "slug", None),
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

@@ -151,19 +151,13 @@ class NautobotInventory:
             host["name"] = device.name or str(device.id)
             host["groups"] = []
 
-            # Check to see if a platform has been defined
-            if hasattr(device.platform, "slug"):
-                host_platform = device.platform.slug
-            else:
-                host_platform = None
-
             # Add host to hosts by name first, ID otherwise - to string
             hosts[device.name or str(device.id)] = _set_host(  # pylint: disable=unsupported-assignment-operation
                 data=host["data"],
                 name=host["name"],
                 groups=host["groups"],
                 host=host,
-                host_platform=host_platform,
+                host_platform=getattr(device.platform, "slug", None),
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

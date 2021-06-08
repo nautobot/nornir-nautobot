@@ -1,69 +1,15 @@
 """Pytest of Nautobot Inventory."""
 # Standard Library Imports
 from os import path
+from itertools import chain
 
 # Third Party Imports
 import pytest
 from requests.sessions import Session
 import pynautobot
-from requests_mock import Mocker
 
 # Application Imports
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
-
-# GLOBALS
-HERE = path.abspath(path.dirname(__file__))
-API_CALLS = [
-    {
-        "fixture_path": f"{HERE}/mocks/01_get_devices.json",
-        "url": "http://mock.example.com/api/dcim/devices/",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/02_get_device1.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist01",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/03_get_device2.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist02",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/04_get_device3.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-wan01",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/05_get_sites_filtered.json",
-        "url": "http://mock.example.com/api/dcim/devices/?site=msp",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/06_get_device_msp-rtr01.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr01",
-        "method": "get",
-    },
-    {
-        "fixture_path": f"{HERE}/mocks/07_get_device_msp-rtr02.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr02",
-        "method": "get",
-    },
-]
-
-# Functions for helping tests
-def load_api_calls(mock):
-    """Loads API calls for mocker
-
-    Args:
-        mock (Request Mock): Requests Mock instance
-    """
-    for api_call in API_CALLS:
-        with open(api_call["fixture_path"], "r") as _file:
-            api_call["text"] = _file.read()
-
-        mock.request(method=api_call["method"], url=api_call["url"], text=api_call["text"], complete_qs=True)
-
 
 #
 # Tests
@@ -108,29 +54,40 @@ def test_pynautobot_obj(nornir_nautobot_class):
     assert isinstance(nornir_nautobot_class.pynautobot_obj, pynautobot.api)
 
 
-def test_devices(nornir_nautobot_class):
-    # Import mock requests
-    with Mocker() as mock:
-        load_api_calls(mock)
-        pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
-        expected_devices = []
-        for device in ["den-dist01", "den-dist02", "den-wan01"]:
-            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
+def test_devices(mock_api_calls, nornir_nautobot_class):
+    pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
+    expected_devices = []
+    for device in ["den-dist01", "den-dist02", "den-wan01"]:
+        expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
 
-        assert nornir_nautobot_class.devices == expected_devices
+    assert nornir_nautobot_class.devices == expected_devices
 
 
-def test_filter_devices():
-    with Mocker() as mock:
-        load_api_calls(mock)
-        test_class = NautobotInventory(
-            nautobot_url="http://mock.example.com",
-            nautobot_token="0123456789abcdef01234567890",
-            filter_parameters={"site": "msp"},
-        )
-        pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
-        expected_devices = []
-        for device in ["msp-rtr01", "msp-rtr02"]:
-            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
+def test_filter_devices(mock_api_calls):
+    test_class = NautobotInventory(
+        nautobot_url="http://mock.example.com",
+        nautobot_token="0123456789abcdef01234567890",
+        filter_parameters={"site": "msp"},
+    )
+    pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
+    expected_devices = []
+    for device in ["msp-rtr01", "msp-rtr02"]:
+        expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
 
-        assert test_class.devices == expected_devices
+    assert test_class.devices == expected_devices
+
+
+def test_pynautobot_as_dict(nornir_no_pynb_dict, nornir_with_pynb_dict):
+    """
+    Test the pynautobot flag sets the presence of a 'pynautobot_dictionary' data attribute
+    """
+    keys_with_dict = [
+        nornir_with_pynb_dict.inventory.hosts[device].keys() for device in ["den-dist01", "den-dist02", "den-wan01"]
+    ]
+    keys_no_dict = [
+        nornir_no_pynb_dict.inventory.hosts[device].keys() for device in ["den-dist01", "den-dist02", "den-wan01"]
+    ]
+    attrs_with_dict = set(chain(*keys_with_dict))
+    attrs_no_dict = set(chain(*keys_no_dict))
+    attrs_diff = attrs_with_dict - attrs_no_dict
+    assert attrs_diff == set(["pynautobot_dictionary"])

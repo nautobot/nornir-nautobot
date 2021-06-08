@@ -1,5 +1,5 @@
 {
-    "count": 12,
+    "count": 3,
     "next": null,
     "previous": null,
     "results": [
@@ -28,12 +28,7 @@
                 "slug": "network"
             },
             "tenant": null,
-            "platform": {
-                "id": 2,
-                "url": "http://nautobot-demo.com/api/dcim/platforms/2/",
-                "name": "Cisco IOS",
-                "slug": "ios"
-            },
+            "platform": null,
             "serial": "9ZYX8XZUMP0AF69YGO5Z5",
             "asset_tag": null,
             "site": {

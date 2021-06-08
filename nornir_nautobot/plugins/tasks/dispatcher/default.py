@@ -2,7 +2,6 @@
 # pylint: disable=raise-missing-from,too-many-arguments
 
 import os
-import re
 import socket
 import jinja2
 
@@ -12,12 +11,15 @@ from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
-
+from netutils.config.compliance import compliance
+from netutils.config.clean import clean_config, sanitize_config
+from netutils.ip import is_ip
+from netutils.dns import is_fqdn_valid
+from netutils.ping import tcp_ping
 
 from nornir_nautobot.exceptions import NornirNautobotException
+from nornir_nautobot.utils.helpers import make_folder
 
-from .utils.compliance import compliance
-from .utils.functions import make_folder, hostname_resolves, test_tcp_port, is_ip
 
 RUN_COMMAND_MAPPING = {
     "default": "show run",
@@ -64,11 +66,11 @@ class NautobotNornirDriver:
         running_config = result[0].result.get("config", {}).get("running", None)
         if remove_lines:
             logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = _remove_lines(running_config, remove_lines)
+            running_config = clean_config(running_config, remove_lines)
 
         if substitute_lines:
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = _substitute_lines(running_config, substitute_lines)
+            running_config = sanitize_config(running_config, substitute_lines)
 
         make_folder(os.path.dirname(backup_file))
 
@@ -91,14 +93,14 @@ class NautobotNornirDriver:
         if is_ip(task.host.hostname):
             ip_addr = task.host.hostname
         else:
-            if not hostname_resolves(task.host.hostname):
+            if not is_fqdn_valid(task.host.hostname):
                 logger.log_failure(obj, "not an IP or resolvable.")
                 raise NornirNautobotException("not an IP or resolvable.")
             ip_addr = socket.gethostbyname(task.host.hostname)
 
         # TODO: Allow port to be configurable
         port = 22
-        if not test_tcp_port(ip_addr, port):
+        if not tcp_ping(ip_addr, port):
             logger.log_failure(obj, f"Attempting to connect to IP: {ip_addr} and port: {port} failed.")
             raise NornirNautobotException(f"Attempting to connect to IP: {ip_addr} and port: {port} failed.")
         if not task.host.username:
@@ -164,7 +166,6 @@ class NautobotNornirDriver:
             filled_template = task.run(
                 **task.host.data,
                 task=template_file,
-                name="JINJA TEMPLATE CREATION",
                 template=jinja_template,
                 path=jinja_root_path,
             )[0].result
@@ -245,60 +246,13 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
 
         if remove_lines:
             logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = _remove_lines(running_config, remove_lines)
+            running_config = clean_config(running_config, remove_lines)
         if substitute_lines:
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = _substitute_lines(running_config, substitute_lines)
+            running_config = sanitize_config(running_config, substitute_lines)
 
         make_folder(os.path.dirname(backup_file))
 
         with open(backup_file, "w") as filehandler:
             filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
-
-
-def _remove_lines(config, remove_lines):
-    """Method to remove any lines that are required to be removed.
-
-    Args:
-        config (str): A string that represent the configuration of a device.
-        remove_lines (list): A list of regex strings, that get converted to raw regex.
-
-    Returns:
-        config: The parse configuration, which is absent of any matches from remove_lines.
-    """
-    for removal in remove_lines:
-        config = re.sub(fr"{removal}", "", config, flags=re.MULTILINE)
-    return config
-
-
-def _substitute_lines(config, substitute_lines):
-    r"""Method to substitute any lines, the primary use case is removing secrets.
-
-    Args:
-        config (str): A string that represent the configuration of a device.
-        substitute_lines (list): List of dictionaries representing the replacement. Each list item is a dictionary in the
-        {
-            "regex_replacement": "<redacted_config>",
-            "regex_search": "username\\s+\\S+\\spassword\\s+5\\s+(\\S+)\\s+role\\s+\\S+"
-        }
-
-    Returns:
-        config: The parse configuration, which has the lines swapped based on regex replacements.
-    """
-    if substitute_lines:
-        new_config = ""
-
-        # Loop through the config lines
-        for line in config.split("\n"):
-            # Loop through the replacement list on each line in the config
-            for item in substitute_lines:
-                if re.match(pattern=fr"{item['regex_search']}", string=line):
-                    line = line.replace(
-                        re.match(pattern=fr"{item['regex_search']}", string=line).groups()[0], item["regex_replacement"]
-                    )
-
-                new_config += line.rstrip() + "\n"
-
-        config = new_config
-    return config

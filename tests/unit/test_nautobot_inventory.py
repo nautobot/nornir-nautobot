@@ -56,6 +56,7 @@ API_CALLS = [
 # Functions for helping tests
 def load_api_calls(mock):
     """Loads API calls for mocker
+
     Args:
         mock (Request Mock): Requests Mock instance
     """

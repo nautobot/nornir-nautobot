@@ -278,3 +278,46 @@ def test_pynautobot_as_dict(device):
         attrs_no_dict = set(nornir_no_pynb_dict.inventory.hosts[device].keys())
         attrs_diff = attrs_with_dict - attrs_no_dict
     assert attrs_diff == set(["pynautobot_dictionary"])
+
+
+@pytest.mark.parametrize("device", ["den-dist01", "den-wan01", "den-dist02"])
+def test_pynautobot_as_dict(device):
+    """
+    Test the pynautobot flag sets the presence of a 'pynautobot_dictionary' data attribute
+    """
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_with_pynb_dict = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+            logging={"enabled": False},
+        )
+        assert "pynautobot_dictionary" in list(nornir_with_pynb_dict.inventory.hosts[device].keys())
+
+
+@pytest.mark.parametrize("device", ["den-dist01", "den-wan01", "den-dist02"])
+def test_no_pynautobot_as_dict(device):
+    """
+    Test the pynautobot flag unsets the presence of a 'pynautobot_dictionary' data attribute
+    """
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_no_pynb_dict = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "pynautobot_dict": False,
+                },
+            },
+            logging={"enabled": False},
+        )
+        assert "pynautobot_dictionary" not in list(nornir_no_pynb_dict.inventory.hosts[device].keys())

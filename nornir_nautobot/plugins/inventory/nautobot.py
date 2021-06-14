@@ -49,21 +49,23 @@ def _set_host(data: Dict[str, Any], name: str, groups, host, host_platform) -> H
 
 
 # Setup connection to Nautobot
-class NautobotInventory:
+class NautobotInventory:  # pylint: disable=R0902
     """Nautobot Nornir Inventory."""
 
-    def __init__(
+    def __init__(  # pylint: disable=R0913
         self,
         nautobot_url: Union[str, None],
         nautobot_token: Union[str, None],
         ssl_verify: Union[bool, None] = True,
         filter_parameters: Union[Dict[str, Any], None] = None,
+        pynautobot_dict: Union[bool, None] = True,
     ) -> None:
         """Nautobot nornir class initialization."""
         self.nautobot_url = nautobot_url or os.getenv("NAUTOBOT_URL")
         self.nautobot_token = nautobot_token or os.getenv("NAUTOBOT_TOKEN")
         self.filter_parameters = filter_parameters
         self.ssl_verify = ssl_verify
+        self.pynautobot_dict = pynautobot_dict
         self._verify_required()
         self._api_session = None
         self._devices = None
@@ -141,7 +143,8 @@ class NautobotInventory:
             host["data"]["pynautobot_object"] = device
 
             # Create dictionary object available for filtering
-            host["data"]["pynautobot_dictionary"] = dict(device)
+            if self.pynautobot_dict:
+                host["data"]["pynautobot_dictionary"] = dict(device)
             # TODO: #3 Investigate Nornir compatability with dictionary like object
 
             # Add Primary IP address, if found. Otherwise add hostname as the device name

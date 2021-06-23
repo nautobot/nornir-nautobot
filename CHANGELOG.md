@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.3
+
+- (#24) Change import mechanism / changes deprecated function
+
 ## v2.0.1
 
 - (#20) Fixes inventory failure when platform is not defined for a device

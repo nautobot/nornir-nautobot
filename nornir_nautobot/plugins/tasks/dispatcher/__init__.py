@@ -10,12 +10,13 @@ from nornir_nautobot.exceptions import NornirNautobotException
 LOGGER = logging.getLogger(__name__)
 
 _DEFAULT_DRIVERS_MAPPING = {
-    "default": "nornir_nautobot.plugins.tasks.dispatcher.default",
-    "cisco_nxos": "nornir_nautobot.plugins.tasks.dispatcher.cisco_nxos",
-    "cisco_ios": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios",
-    "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_xr",
-    "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos",
-    "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos",
+    "default": "nornir_nautobot.plugins.tasks.dispatcher.default.NautobotNornirDriver",
+    "default_netmiko": "nornir_nautobot.plugins.tasks.dispatcher.default.NetmikoNautobotNornirDriver",
+    "cisco_nxos": "nornir_nautobot.plugins.tasks.dispatcher.cisco_nxos.NautobotNornirDriver",
+    "cisco_ios": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios.NautobotNornirDriver",
+    "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_xr.NautobotNornirDriver",
+    "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos.NautobotNornirDriver",
+    "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos.NautobotNornirDriver",
 }
 
 
@@ -45,7 +46,8 @@ def dispatcher(task: Task, method: str, logger, obj, *args, **kwargs) -> Result:
         logger.log_failure(obj, f"Unable to find the driver for {method} for platform: {task.host.platform}")
         raise NornirNautobotException()
 
-    driver_class = getattr(importlib.import_module(driver), "NautobotNornirDriver")
+    module_name, class_name = driver.rsplit(".", 1)
+    driver_class = getattr(importlib.import_module(module_name), class_name)
 
     if not driver_class:
         logger.log_failure(obj, f"Unable to locate the class {driver}")

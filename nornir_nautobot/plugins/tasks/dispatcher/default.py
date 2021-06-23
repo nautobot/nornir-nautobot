@@ -14,7 +14,7 @@ from nornir_netmiko.tasks import netmiko_send_command
 from netutils.config.compliance import compliance
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.ip import is_ip
-from netutils.dns import is_fqdn_valid
+from netutils.dns import is_fqdn_resolvable
 from netutils.ping import tcp_ping
 
 from nornir_nautobot.exceptions import NornirNautobotException
@@ -93,7 +93,7 @@ class NautobotNornirDriver:
         if is_ip(task.host.hostname):
             ip_addr = task.host.hostname
         else:
-            if not is_fqdn_valid(task.host.hostname):
+            if not is_fqdn_resolvable(task.host.hostname):
                 logger.log_failure(obj, "not an IP or resolvable.")
                 raise NornirNautobotException("not an IP or resolvable.")
             ip_addr = socket.gethostbyname(task.host.hostname)

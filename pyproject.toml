@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir-nautobot"
-version = "2.0.3"
+version = "2.1.0"
 description = "Nornir Nautobot"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"

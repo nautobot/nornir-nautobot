@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.0
+
+- (#26) Updates in poetry packaging for pre 1.0.0 dependencies in Nornir to allow all new up to 1.0.0 releases
+
 ## v2.0.3
 
 - (#24) Change import mechanism / changes deprecated function

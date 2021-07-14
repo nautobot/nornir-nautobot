@@ -53,6 +53,8 @@ jobs:
         - "poetry config virtualenvs.create false"
         - "poetry config installer.parallel false"
         - "poetry install"
+      script:
+        - "invoke integration-tests"
       env:
         matrix:
           - "NAUTOBOT_VER=1.0.1"

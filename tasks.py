@@ -309,6 +309,7 @@ def integration_tests(context, nautobot_version="1.0.3"):
     # Run Integration Tests
     exit_value = 0
     env_vars = {"NAUTOBOT_URL": "http://localhost:8000", "NAUTOBOT_TOKEN": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+    context.run("echo $NAUTOBOT_URL", pty=True, env=env_vars)
     output = context.run("python tests/integration/integration_output.py", pty=True, env=env_vars)
 
     if "Hosts found: 208" not in output.stdout:
@@ -322,6 +323,8 @@ def integration_tests(context, nautobot_version="1.0.3"):
     if "Data Test: True" not in output.stdout:
         print("Did not get the proper data result on the device test")
         exit_value += 1
+
+    sys.exit(exit_value)
 
 
 @task

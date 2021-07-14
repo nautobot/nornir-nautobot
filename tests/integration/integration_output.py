@@ -3,15 +3,8 @@
 import os
 
 # Third Party Imports
-import pytest
-from requests.sessions import Session
 from nornir import InitNornir
-import pynautobot
 from nornir import InitNornir
-from nornir.core.task import Task
-
-# Application Imports
-from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
 
 #
 # Tests

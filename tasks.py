@@ -315,10 +315,11 @@ def integration_tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCA
     if "Platform test: True" not in output.stdout:
         print("Did not get the proper platform result on the device test")
         exit_value += 1
-    
+
     if "Data Test: True" not in output.stdout:
         print("Did not get the proper data result on the device test")
         exit_value += 1
+
 
 @task
 def tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):

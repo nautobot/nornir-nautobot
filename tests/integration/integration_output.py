@@ -4,7 +4,6 @@ import os
 
 # Third Party Imports
 from nornir import InitNornir
-from nornir import InitNornir
 
 #
 # Tests
@@ -12,6 +11,7 @@ from nornir import InitNornir
 
 
 def integration_host_list():
+    """Integration tests."""
     my_nornir = InitNornir(
         inventory={
             "plugin": "NautobotInventory",

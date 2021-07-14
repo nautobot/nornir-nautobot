@@ -282,6 +282,7 @@ def compose_docker(context, nautobot_version):
     context.run("docker container ls | grep nautobot", pty=True)
 
     # Load mock data into the container
+    context.run("echo Loading Mock Data")
     context.run("docker exec -it nautobot load-mock-data", pty=True)
 
     # Check for the container version running the latest, pip upgrade it
@@ -310,6 +311,7 @@ def integration_tests(context, nautobot_version="1.0.3"):
     exit_value = 0
     env_vars = {"NAUTOBOT_URL": "http://localhost:8000", "NAUTOBOT_TOKEN": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
     context.run("echo $NAUTOBOT_URL", pty=True, env=env_vars)
+    context.run("echo $NAUTOBOT_TOKEN", pty=True, env=env_vars)
     output = context.run("python tests/integration/integration_output.py", pty=True, env=env_vars)
 
     if "Hosts found: 208" not in output.stdout:

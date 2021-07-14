@@ -269,8 +269,14 @@ def lint(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
 
 
 def compose_docker(context, nautobot_version):
+    """Bring up the proper docker container image.
+
+    Args:
+        context (obj): Used to run specific commands
+        nautobot_version (str): Version of the Nautobot server to run
+    """
     # Get the container and execute it
-    context.run("docker run -itd --name nautobot -p 8000:8000 networktocode/nautobot-lab", pty=True)
+    context.run(f"docker run -itd --name nautobot -p 8000:8000 networktocode/nautobot-lab:{nautobot_version}", pty=True)
 
     # Verify the contents of Docker running
     context.run("docker container ls | grep nautobot", pty=True)
@@ -290,7 +296,7 @@ def compose_docker(context, nautobot_version):
 
 @task
 def integration_tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL, nautobot_version="1.0.3"):
-    """Runs Integration tests
+    """Runs Integration tests.
 
     Args:
         context (obj): Used to run specific commands

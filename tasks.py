@@ -295,14 +295,11 @@ def compose_docker(context, nautobot_version):
 
 
 @task
-def integration_tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL, nautobot_version="1.0.3"):
+def integration_tests(context, nautobot_version="1.0.3"):
     """Runs Integration tests.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
-        local (bool): Define as `True` to execute locally
         nautobot_version (str): Version of Nautobot to test
     """
     # Spin up Docker Container

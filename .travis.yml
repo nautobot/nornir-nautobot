@@ -46,6 +46,21 @@ jobs:
       script:
         - "invoke pylint"
 
+    - stage: "integration"
+      before_script:
+        - "pip install --upgrade pip wheel"
+        - "pip install invoke poetry toml"
+        - "poetry config virtualenvs.create false"
+        - "poetry config installer.parallel false"
+        - "poetry install"
+      env:
+        matrix:
+          - "NAUTOBOT_VER=1.0.1"
+          - "NAUTOBOT_VER=1.0.2"
+          - "NAUTOBOT_VER=1.0.3"
+          - "NAUTOBOT_VER=1.1.0-beta.2"
+          - "NAUTOBOT_VER=latest"
+
     - stage: "deploy-github"
       before_script:
         - "pip install poetry"

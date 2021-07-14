@@ -1,6 +1,7 @@
 """Tasks for use with Invoke."""
 import os
 import sys
+import time
 from distutils.util import strtobool
 from invoke import task
 
@@ -266,6 +267,58 @@ def lint(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
 
     print("All linting has passed!")
 
+
+def compose_docker(context, nautobot_version):
+    # Get the container and execute it
+    context.run("docker run -itd --name nautobot -p 8000:8000 networktocode/nautobot-lab", pty=True)
+
+    # Verify the contents of Docker running
+    context.run("docker container ls | grep nautobot", pty=True)
+
+    # Load mock data into the container
+    context.run("docker exec -it nautobot load-mock-data", pty=True)
+
+    # Check for the container version running the latest, pip upgrade it
+    if nautobot_version == "latest":
+        context.run(
+            "docker exec -it nautobot pip install git+https://github.com/nautobot/nautobot.git@develop", pty=True
+        )
+        context.run("docker exec -it nautobot nautobot-server post_upgrade", pty=True)
+        context.run("docker stop nautobot", pty=True)
+        context.run("docker start nautobot", pty=True)
+
+
+@task
+def integration_tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL, nautobot_version="1.0.3"):
+    """Runs Integration tests
+
+    Args:
+        context (obj): Used to run specific commands
+        name (str): Used to name the docker image
+        image_ver (str): Define image version
+        local (bool): Define as `True` to execute locally
+        nautobot_version (str): Version of Nautobot to test
+    """
+    # Spin up Docker Container
+    compose_docker(context, nautobot_version=nautobot_version)
+    time.sleep(20)
+
+    # Run Integration Tests
+    exit_value = 0
+    env_vars = {"NAUTOBOT_URL": "http://localhost:8000", "NAUTOBOT_TOKEN": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+    output = context.run("python tests/integration/integration_output.py", pty=True, env=env_vars)
+
+    if "Hosts found: 208" not in output.stdout:
+        print("Did not find the proper number of hosts in integration tests.")
+        exit_value += 1
+
+    if "Platform test: True" not in output.stdout:
+        print("Did not get the proper platform result on the device test")
+        exit_value += 1
+    
+    if "Data Test: True" not in output.stdout:
+        print("Did not get the proper data result on the device test")
+        exit_value += 1
 
 @task
 def tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):

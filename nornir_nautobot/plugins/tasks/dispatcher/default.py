@@ -164,7 +164,7 @@ class NautobotNornirDriver:
         """
         try:
             filled_template = task.run(
-                **task.host.data,
+                **task.host,
                 task=template_file,
                 template=jinja_template,
                 path=jinja_root_path,

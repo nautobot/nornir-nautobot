@@ -78,7 +78,9 @@ jobs:
           PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Build Container"
         run: "invoke build --nocache"
-      - name: "Linting: Pylint"
+        env:
+          PYTHON_VER: "${{ matrix.python-version }}"
+      - name: "Run Tests"
         run: "invoke pytest"
         env:
           PYTHON_VER: "${{ matrix.python-version }}"

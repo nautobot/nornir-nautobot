@@ -3,7 +3,6 @@ name: CI
 
 on:
   - push
-  - pull_request
 
 jobs:
   lint:
@@ -42,6 +41,8 @@ jobs:
         run: "pip install invoke poetry toml"
       - name: "Build Container"
         run: "invoke build --nocache"
+    needs:
+      - lint
   pylint:
     runs-on: ubuntu-20.04
     steps:
@@ -55,6 +56,9 @@ jobs:
         run: "pip install invoke poetry toml"
       - name: "Linting: Pylint"
         run: "invoke pylint"
+    needs:
+      - lint
+      - build
   pytest:
     strategy:
       fail-fast: true
@@ -76,3 +80,7 @@ jobs:
         run: "invoke pytest"
         env:
           PYTHON_VER: ${{ matrix.python-version }}
+    needs:
+      - lint
+      - build
+      - pytest

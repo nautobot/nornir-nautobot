@@ -1,9 +1,6 @@
 ---
 name: CI
-
-on:
-  - push
-
+on: [push]
 jobs:
   lint:
     env:
@@ -83,4 +80,4 @@ jobs:
     needs:
       - lint
       - build
-      - pytest
+

@@ -81,3 +81,4 @@ jobs:
     needs:
       - "lint"
       - "build"
+      - "pylint"

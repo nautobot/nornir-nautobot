@@ -52,6 +52,8 @@ jobs:
           python-version: "3.9"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
+      - name: "Build Container"
+        run: "invoke build"
       - name: "Linting: Pylint"
         run: "invoke pylint"
     needs:
@@ -74,6 +76,8 @@ jobs:
         run: "pip install invoke poetry toml"
         env:
           PYTHON_VER: "${{ matrix.python-version }}"
+      - name: "Build Container"
+        run: "invoke build --nocache"
       - name: "Linting: Pylint"
         run: "invoke pytest"
         env:

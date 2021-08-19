@@ -1,11 +1,12 @@
 ---
-name: CI
-on: [push]
+name: "CI"
+on: 
+  - "push"
 jobs:
   lint:
     env:
       INVOKE_LOCAL: "True"
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-20.04"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -26,7 +27,7 @@ jobs:
       - name: "Linting: yamllint"
         run: "invoke yamllint"
   build:
-    runs-on: ubuntu-latest
+    runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -39,9 +40,9 @@ jobs:
       - name: "Build Container"
         run: "invoke build --nocache"
     needs:
-      - lint
+      - "lint"
   pylint:
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-20.04"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -54,14 +55,14 @@ jobs:
       - name: "Linting: Pylint"
         run: "invoke pylint"
     needs:
-      - lint
-      - build
+      - "lint"
+      - "build"
   pytest:
     strategy:
       fail-fast: true
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"]
-    runs-on: ubuntu-20.04
+    runs-on: "ubuntu-20.04"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -72,12 +73,11 @@ jobs:
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
         env:
-          PYTHON_VER: ${{ matrix.python-version }}
+          PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Linting: Pylint"
         run: "invoke pytest"
         env:
-          PYTHON_VER: ${{ matrix.python-version }}
+          PYTHON_VER: "${{ matrix.python-version }}"
     needs:
-      - lint
-      - build
-
+      - "lint"
+      - "build"

@@ -6,8 +6,7 @@
 
 | Branch  | Status                                                                                                                               |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| main    | [![Build Status](https://travis-ci.com/nautobot/nornir-nautobot.svg?branch=main)](https://travis-ci.com/nautobot/nornir-nautobot)    |
-| develop | [![Build Status](https://travis-ci.com/nautobot/nornir-nautobot.svg?branch=develop)](https://travis-ci.com/nautobot/nornir-nautobot) |
+| develop | [![CI](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg)](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml) |
 ## Overview
 
 The nornir_nautobot project intends to solve two primary use cases.

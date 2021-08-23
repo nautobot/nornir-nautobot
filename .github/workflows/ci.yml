@@ -38,7 +38,7 @@ jobs:
       - name: "Install Python Packages for Setup"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
-        run: "invoke build --nocache"
+        run: "invoke build"
     needs:
       - "lint"
   pylint:
@@ -77,7 +77,7 @@ jobs:
         env:
           PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Build Container"
-        run: "invoke build --nocache"
+        run: "invoke build"
         env:
           PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Run Tests"

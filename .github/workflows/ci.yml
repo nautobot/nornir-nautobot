@@ -115,6 +115,11 @@ jobs:
           tag: "${{ github.ref }}"
           overwrite: true
           file_glob: true
+    needs:
+      - "lint"
+      - "build"
+      - "pylint"
+      - "pytest"
   publish_pypi:
     name: "Push Package to PyPI"
     runs-on: "ubuntu-20.04"
@@ -127,3 +132,8 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
+    needs:
+      - "lint"
+      - "build"
+      - "pylint"
+      - "pytest"

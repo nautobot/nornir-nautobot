@@ -102,7 +102,6 @@ jobs:
         run: "invoke build"
     needs:
       - "bandit"
-      - "black"
       - "pydocstyle"
       - "flake8"
       - "yamllint"
@@ -122,11 +121,6 @@ jobs:
       - name: "Linting: Pylint"
         run: "invoke pylint"
     needs:
-      - "bandit"
-      - "black"
-      - "pydocstyle"
-      - "flake8"
-      - "yamllint"
       - "build"
   pytest:
     strategy:
@@ -150,12 +144,6 @@ jobs:
       - name: "Run Tests"
         run: "invoke pytest"
     needs:
-      - "bandit"
-      - "black"
-      - "pydocstyle"
-      - "flake8"
-      - "yamllint"
-      - "build"
       - "pylint"
   publish_gh:
     name: "Publish to GitHub"
@@ -199,11 +187,4 @@ jobs:
           user: "__token__"
           password: "${{ secrets.PYPI_API_TOKEN }}"
     needs:
-      - "bandit"
-      - "black"
-      - "pydocstyle"
-      - "flake8"
-      - "yamllint"
-      - "build"
-      - "pylint"
       - "pytest"

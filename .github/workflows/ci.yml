@@ -27,7 +27,7 @@ jobs:
       - name: "Linting: yamllint"
         run: "invoke yamllint"
   build:
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"

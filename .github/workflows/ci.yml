@@ -2,8 +2,9 @@
 name: "CI"
 on:
   - "push"
+  - "pull_request"
 jobs:
-  lint:
+  black:
     env:
       INVOKE_LOCAL: "True"
     runs-on: "ubuntu-20.04"
@@ -15,17 +16,77 @@ jobs:
         with:
           python-version: "3.9"
       - name: "Install Python Packages for Linting"
-        run: "pip install --upgrade pip wheel invoke toml black bandit pydocstyle flake8 yamllint"
+        run: "pip install --upgrade pip wheel invoke toml black"
       - name: "Linting: Black"
         run: "invoke black"
+  bandit:
+    runs-on: "ubuntu-20.04"
+    env:
+      INVOKE_LOCAL: "True"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+      - name: "Install Python Packages for Linting"
+        run: "pip install --upgrade pip wheel invoke toml bandit"
       - name: "Linting: Bandit"
         run: "invoke bandit"
+    needs:
+      - "black"
+  pydocstyle:
+    runs-on: "ubuntu-20.04"
+    env:
+      INVOKE_LOCAL: "True"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+      - name: "Install Python Packages for Linting"
+        run: "pip install --upgrade pip wheel invoke toml pydocstyle"
       - name: "Linting: pydocstyle"
         run: "invoke pydocstyle"
+    needs:
+      - "black"
+  flake8:
+    runs-on: "ubuntu-20.04"
+    env:
+      INVOKE_LOCAL: "True"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+      - name: "Install Python Packages for Linting"
+        run: "pip install --upgrade pip wheel invoke toml flake8"
       - name: "Linting: flake8"
         run: "invoke flake8"
+    needs:
+      - "black"
+  yamllint:
+    runs-on: "ubuntu-20.04"
+    env:
+      INVOKE_LOCAL: "True"
+    steps:
+      - name: "Check out repository code"
+        uses: "actions/checkout@v2"
+      - name: "Set up Python"
+        uses: "actions/setup-python@v2"
+        with:
+          python-version: "3.9"
+      - name: "Install Python Packages for Linting"
+        run: "pip install --upgrade pip wheel invoke toml yamllint"
       - name: "Linting: yamllint"
         run: "invoke yamllint"
+    needs:
+      - "black"
   build:
     runs-on: "ubuntu-20.04"
     steps:
@@ -40,7 +101,11 @@ jobs:
       - name: "Build Container"
         run: "invoke build"
     needs:
-      - "lint"
+      - "bandit"
+      - "black"
+      - "pydocstyle"
+      - "flake8"
+      - "yamllint"
   pylint:
     runs-on: "ubuntu-20.04"
     steps:
@@ -57,7 +122,11 @@ jobs:
       - name: "Linting: Pylint"
         run: "invoke pylint"
     needs:
-      - "lint"
+      - "bandit"
+      - "black"
+      - "pydocstyle"
+      - "flake8"
+      - "yamllint"
       - "build"
   pytest:
     strategy:
@@ -65,6 +134,8 @@ jobs:
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"]
     runs-on: "ubuntu-20.04"
+    env:
+      PYTHON_VER: "${{ matrix.python-version }}"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -74,18 +145,16 @@ jobs:
           python-version: "3.9"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
-        env:
-          PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Build Container"
         run: "invoke build"
-        env:
-          PYTHON_VER: "${{ matrix.python-version }}"
       - name: "Run Tests"
         run: "invoke pytest"
-        env:
-          PYTHON_VER: "${{ matrix.python-version }}"
     needs:
-      - "lint"
+      - "bandit"
+      - "black"
+      - "pydocstyle"
+      - "flake8"
+      - "yamllint"
       - "build"
       - "pylint"
   publish_gh:
@@ -112,13 +181,10 @@ jobs:
         with:
           repo_token: "${{ secrets.NTC_GITHUB_TOKEN }}"
           file: "dist/*"
-          tag: "${{ github.ref }}"
+          tag: "$RELEASE_VERSION"
           overwrite: true
           file_glob: true
     needs:
-      - "lint"
-      - "build"
-      - "pylint"
       - "pytest"
   publish_pypi:
     name: "Push Package to PyPI"
@@ -133,7 +199,11 @@ jobs:
           user: "__token__"
           password: "${{ secrets.PYPI_API_TOKEN }}"
     needs:
-      - "lint"
+      - "bandit"
+      - "black"
+      - "pydocstyle"
+      - "flake8"
+      - "yamllint"
       - "build"
       - "pylint"
       - "pytest"

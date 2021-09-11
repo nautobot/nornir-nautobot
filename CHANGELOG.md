@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.1.1
+
+- (#31) Migrate from Travis-CI to GitHub Actions for CI
+- (#32) Fix data population when generating configurations from the dispatcher
+
 ## v2.1.0
 
 - (#26) Updates in poetry packaging for pre 1.0.0 dependencies in Nornir to allow all new up to 1.0.0 releases

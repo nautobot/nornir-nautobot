@@ -158,10 +158,8 @@ jobs:
           python-version: "3.9"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
-      - name: "Set env"
-        run: "echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})"
       - name: "Run Poetry Version"
-        run: "poetry version $RELEASE_VERSION"
+        run: "poetry version ${GITHUB_REF:10}"
       - name: "Run Poetry Build"
         run: "poetry build"
       - name: "Upload binaries to release"
@@ -169,7 +167,7 @@ jobs:
         with:
           repo_token: "${{ secrets.NTC_GITHUB_TOKEN }}"
           file: "dist/*"
-          tag: "$RELEASE_VERSION"
+          tag: "${GITHUB_REF:10}"
           overwrite: true
           file_glob: true
     needs:

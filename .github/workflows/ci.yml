@@ -148,7 +148,7 @@ jobs:
   publish_gh:
     name: "Publish to GitHub"
     runs-on: "ubuntu-20.04"
-    if: "startsWith(github.ref, 'refs/tags/v')"
+    # if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -164,6 +164,8 @@ jobs:
         run: "poetry version $RELEASE_VERSION"
       - name: "Run Poetry Build"
         run: "poetry build"
+      - name: "Display files"
+        run: "ls -al ./dist/"
       - name: "Upload binaries to release"
         uses: "svenstaro/upload-release-action@v2"
         with:

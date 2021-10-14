@@ -192,7 +192,7 @@ def test_nornir_nautobot_with_defaults():
     """
     with Mocker() as mock:
         load_api_calls(mock)
-        nr = InitNornir(
+        nr_obj = InitNornir(
             inventory={
                 "plugin": "NautobotInventory",
                 "options": {
@@ -203,11 +203,11 @@ def test_nornir_nautobot_with_defaults():
             },
             logging={"enabled": False},
         )
-        nr.inventory.defaults.username = "username"
-        nr.inventory.defaults.password = "password"
+        nr_obj.inventory.defaults.username = "username"
+        nr_obj.inventory.defaults.password = "password"
 
-        assert nr.inventory.hosts["den-dist01"].username == nr.inventory.defaults.username
-        assert nr.inventory.hosts["den-dist02"].password == nr.inventory.defaults.password
+        assert nr_obj.inventory.hosts["den-dist01"].username == nr_obj.inventory.defaults.username
+        assert nr_obj.inventory.hosts["den-dist02"].password == nr_obj.inventory.defaults.password
 
 
 @pytest.mark.parametrize(

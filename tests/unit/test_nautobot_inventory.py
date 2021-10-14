@@ -186,6 +186,30 @@ def test_nornir_nautobot_device_count():
     assert len(test_nornir.inventory.hosts) == 3
 
 
+def test_nornir_nautobot_with_defaults():
+    """
+    Tests that nornir defaults are getting applied to NautobotInventory hosts
+    """
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nr_obj = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "pynautobot_dict": False,
+                },
+            },
+            logging={"enabled": False},
+        )
+        nr_obj.inventory.defaults.username = "username"
+        nr_obj.inventory.defaults.password = "password"
+
+        assert nr_obj.inventory.hosts["den-dist01"].username == nr_obj.inventory.defaults.username
+        assert nr_obj.inventory.hosts["den-dist02"].password == nr_obj.inventory.defaults.password
+
+
 @pytest.mark.parametrize(
     "device, expected_platform", [("den-dist01", None), ("den-wan01", "ios"), ("den-dist02", "ios")]
 )

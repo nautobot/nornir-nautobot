@@ -24,7 +24,8 @@ from requests import Session
 logger = logging.getLogger(__name__)
 
 
-def _set_host(data: Dict[str, Any], name: str, groups, host, host_platform) -> Host:
+def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults) -> Host:
+    host_platform = getattr(data["pynautobot_object"].platform, "slug", None)
     connection_option = {}
     for key, value in data.get("connection_options", {}).items():
         connection_option[key] = ConnectionOptions(
@@ -44,6 +45,7 @@ def _set_host(data: Dict[str, Any], name: str, groups, host, host_platform) -> H
         platform=host_platform,
         data=data,
         groups=groups,
+        defaults=defaults,
         connection_options=connection_option,
     )
 
@@ -160,7 +162,7 @@ class NautobotInventory:  # pylint: disable=R0902
                 name=host["name"],
                 groups=host["groups"],
                 host=host,
-                host_platform=getattr(device.platform, "slug", None),
+                defaults=defaults,
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

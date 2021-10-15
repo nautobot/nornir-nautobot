@@ -6,12 +6,12 @@ Nornir Inventory takes several configuration options, but can be executed withou
 
 There are two required parameters that may be loaded either through configuration or through the environment. 
 
-| Parameter         | Required | Default | Environment Variable |
-| ----------------- | -------- | ------- | -------------------- |
-| nautobot_url      | True     |         | NAUTOBOT_URL         |
-| nautobot_token    | True     |         | NAUTOBOT_TOKEN       |
-| filter_parameters | False    |         |                      |
-| ssl_verify        | False    | True    |                      |
+| Option            | Parameter         | Value                                                                                           | Default             | Environment Variable |
+| ----------------- | ----------------- | ----------------------------------------------------------------------------------------------- | ------------------- | -------------------- |
+| Nautobot URL      | nautobot_url      | Required: String - The base url of Nautobot (`http://localhost:8000` or `https://nautobot_url`) | env(NAUTOBOT_URL)   | NAUTOBOT_URL         |
+| Nautobot Token    | nautobot_token    | Required: String - The token to authenticate to Nautobot API                                    | env(NAUTOBOT_TOKEN) | NAUTOBOT_TOKEN       |
+| SSL Verify        | ssl_verify        | Boolean - True or False to verify SSL                                                           | True                |                      |
+| Filter Parameters | filter_parameters | Dictionary - Key/value pairs corresponding to Nautobot API searches                             | {}                  |                      |
 
 ## Using Inventory
 
@@ -27,22 +27,9 @@ nornir_obj = InitNornir(
 )
 ```
 
-### Initialization via Configuration
+## Construct
 
-This example shows providing configuration options to set the URL statically, load the configuration of the TOKEN via the environment. This also has SSL verification disabled if required.
-
-```python
-my_nornir = InitNornir(
-    inventory={
-        "plugin": "NautobotInventory",
-        "options": {
-            "nautobot_url": "http://nautobot.example.com",
-            "nautobot_token": os.getenv("NAUTBOT_TOKEN"),
-            "ssl_verify": False,
-        },
-    },
-)
-```
+Pynautobot will provide for the basic information that is required for Nornir to be able to leverage the inventory. The pynautobot object will also be made available at `host.data.pynautobot_object` to be able to access information provided from the _dcim devices_ endpoint.
 
 ## Filtering
 

@@ -7,6 +7,8 @@ import pytest
 from requests.sessions import Session
 import pynautobot
 from requests_mock import Mocker
+from nornir import InitNornir
+from nornir.core.task import Task
 
 # Application Imports
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
@@ -134,3 +136,177 @@ def test_filter_devices():
             expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
 
         assert test_class.devices == expected_devices
+
+
+def test_device_required_properties():
+    def mock_nornir_task(task: Task):
+        """Example to show work inside of a task.
+
+        Args:
+            task (Task): Nornir Task
+        """
+        return task.host.platform
+
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "filter_parameters": {"site": "msp"},
+                },
+            },
+        )
+
+    # Run through Nornir tasks
+    nornir_task_result = test_nornir.run(task=mock_nornir_task)
+
+    # Verify expected result
+    for task_result in nornir_task_result:
+        assert nornir_task_result[task_result].result == "ios"
+
+
+def test_nornir_nautobot_device_count():
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    # Verify that the length of the inventory is 3 devices
+    assert len(test_nornir.inventory.hosts) == 3
+
+
+def test_nornir_nautobot_with_defaults():
+    """
+    Tests that nornir defaults are getting applied to NautobotInventory hosts
+    """
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nr_obj = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "pynautobot_dict": False,
+                },
+            },
+            logging={"enabled": False},
+        )
+        nr_obj.inventory.defaults.username = "username"
+        nr_obj.inventory.defaults.password = "password"
+
+        assert nr_obj.inventory.hosts["den-dist01"].username == nr_obj.inventory.defaults.username
+        assert nr_obj.inventory.hosts["den-dist02"].password == nr_obj.inventory.defaults.password
+
+
+@pytest.mark.parametrize(
+    "device, expected_platform", [("den-dist01", None), ("den-wan01", "ios"), ("den-dist02", "ios")]
+)
+def test_nornir_nautobot_device_platform(device, expected_platform):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].platform == expected_platform
+
+
+@pytest.mark.parametrize(
+    "device, expected_hostname", [("den-dist01", "10.17.1.2"), ("den-wan01", "10.16.0.2"), ("den-dist02", "10.17.1.6")]
+)
+def test_nornir_nautobot_device_hostname(device, expected_hostname):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].hostname == expected_hostname
+
+
+# Setup of groups for a future PR
+@pytest.mark.parametrize("device, expected_groups", [("den-dist01", []), ("den-wan01", []), ("den-dist02", [])])
+def test_nornir_nautobot_device_groups(device, expected_groups):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts[device].groups == expected_groups
+
+
+@pytest.mark.parametrize("device", ["den-dist01", "den-wan01", "den-dist02"])
+def test_pynautobot_as_dict(device):
+    """
+    Test the pynautobot flag sets the presence of a 'pynautobot_dictionary' data attribute
+    """
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_with_pynb_dict = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+            logging={"enabled": False},
+        )
+        assert "pynautobot_dictionary" in list(nornir_with_pynb_dict.inventory.hosts[device].keys())
+
+
+@pytest.mark.parametrize("device", ["den-dist01", "den-wan01", "den-dist02"])
+def test_no_pynautobot_as_dict(device):
+    """
+    Test the pynautobot flag unsets the presence of a 'pynautobot_dictionary' data attribute
+    """
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_no_pynb_dict = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "pynautobot_dict": False,
+                },
+            },
+            logging={"enabled": False},
+        )
+        assert "pynautobot_dictionary" not in list(nornir_no_pynb_dict.inventory.hosts[device].keys())

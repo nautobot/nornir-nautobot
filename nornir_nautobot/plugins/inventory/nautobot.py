@@ -24,7 +24,8 @@ from requests import Session
 logger = logging.getLogger(__name__)
 
 
-def _set_host(data: Dict[str, Any], name: str, groups, host) -> Host:
+def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults) -> Host:
+    host_platform = getattr(data["pynautobot_object"].platform, "slug", None)
     connection_option = {}
     for key, value in data.get("connection_options", {}).items():
         connection_option[key] = ConnectionOptions(
@@ -32,37 +33,41 @@ def _set_host(data: Dict[str, Any], name: str, groups, host) -> Host:
             port=value.get("port"),
             username=value.get("username"),
             password=value.get("password"),
-            platform=host.get("platform", {}).get("slug"),
+            platform=host_platform,
             extras=value.get("extras"),
         )
+
     return Host(
         name=name,
         hostname=host["hostname"],
         username=host.get("username"),
         password=host.get("password"),
-        platform=host.get("platform", {}).get("slug"),
+        platform=host_platform,
         data=data,
         groups=groups,
+        defaults=defaults,
         connection_options=connection_option,
     )
 
 
 # Setup connection to Nautobot
-class NautobotInventory:
+class NautobotInventory:  # pylint: disable=R0902
     """Nautobot Nornir Inventory."""
 
-    def __init__(
+    def __init__(  # pylint: disable=R0913
         self,
         nautobot_url: Union[str, None],
         nautobot_token: Union[str, None],
         ssl_verify: Union[bool, None] = True,
         filter_parameters: Union[Dict[str, Any], None] = None,
+        pynautobot_dict: Union[bool, None] = True,
     ) -> None:
         """Nautobot nornir class initialization."""
         self.nautobot_url = nautobot_url or os.getenv("NAUTOBOT_URL")
         self.nautobot_token = nautobot_token or os.getenv("NAUTOBOT_TOKEN")
         self.filter_parameters = filter_parameters
         self.ssl_verify = ssl_verify
+        self.pynautobot_dict = pynautobot_dict
         self._verify_required()
         self._api_session = None
         self._devices = None
@@ -140,7 +145,8 @@ class NautobotInventory:
             host["data"]["pynautobot_object"] = device
 
             # Create dictionary object available for filtering
-            host["data"]["pynautobot_dictionary"] = dict(device)
+            if self.pynautobot_dict:
+                host["data"]["pynautobot_dictionary"] = dict(device)
             # TODO: #3 Investigate Nornir compatability with dictionary like object
 
             # Add Primary IP address, if found. Otherwise add hostname as the device name
@@ -152,7 +158,11 @@ class NautobotInventory:
 
             # Add host to hosts by name first, ID otherwise - to string
             hosts[device.name or str(device.id)] = _set_host(  # pylint: disable=unsupported-assignment-operation
-                data=host["data"], name=host["name"], groups=host["groups"], host=host
+                data=host["data"],
+                name=host["name"],
+                groups=host["groups"],
+                host=host,
+                defaults=defaults,
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

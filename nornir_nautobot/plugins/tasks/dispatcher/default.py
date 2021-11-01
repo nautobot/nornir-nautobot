@@ -3,6 +3,7 @@
 
 import os
 import socket
+from typing import Optional
 import jinja2
 
 from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
@@ -147,7 +148,13 @@ class NautobotNornirDriver:
 
     @staticmethod
     def generate_config(
-        task: Task, logger, obj, jinja_template: str, jinja_root_path: str, output_file_location: str
+        task: Task,
+        logger,
+        obj,
+        jinja_template: str,
+        jinja_root_path: str,
+        output_file_location: str,
+        jinja_filters: Optional[dict] = None,
     ) -> Result:
         """A small wrapper around template_file Nornir task.
 
@@ -157,6 +164,7 @@ class NautobotNornirDriver:
             obj (Device): A Nautobot Device Django ORM object instance.
             jinja_template (str): The file location of the actual Jinja template.
             jinja_root_path (str): The file folder where the file will be saved to.
+            jinja_filters (dict): The filters which will be added to the jinja2 environment.
             output_file_location (str): The filename where the file will be saved to.
 
         Returns:
@@ -168,6 +176,7 @@ class NautobotNornirDriver:
                 task=template_file,
                 template=jinja_template,
                 path=jinja_root_path,
+                jinja_filters=jinja_filters,
             )[0].result
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, jinja2.exceptions.UndefinedError):  # pylint: disable=no-else-raise

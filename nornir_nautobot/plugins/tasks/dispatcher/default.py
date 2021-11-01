@@ -154,7 +154,7 @@ class NautobotNornirDriver:
         jinja_template: str,
         jinja_root_path: str,
         output_file_location: str,
-        jinja_filters: Optional[dict],
+        jinja_filters: Optional[dict]=None,
     ) -> Result:
         """A small wrapper around template_file Nornir task.
 

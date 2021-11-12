@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.2.0
+
+- (#41) Added jinja2 filter pass to generate config
+- (#42) Added Cisco ASA mapping to default mapping
+
+## v2.1.2
+
+- (#40) Fix nornir inventory defaults
+
 ## v2.1.1
 
 - (#31) Migrate from Travis-CI to GitHub Actions for CI

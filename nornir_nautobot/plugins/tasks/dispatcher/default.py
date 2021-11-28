@@ -41,7 +41,7 @@ class NautobotNornirDriver:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             backup_file (str): The file location of where the back configuration should be saved.
             remove_lines (list): A list of regex lines to remove configurations.
@@ -85,7 +85,7 @@ class NautobotNornirDriver:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
 
         Returns:
@@ -121,7 +121,7 @@ class NautobotNornirDriver:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             features (dict): A dictionary describing the configurations required.
             backup_file (str): The file location of where the back configuration should be saved.
@@ -160,7 +160,7 @@ class NautobotNornirDriver:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             jinja_template (str): The file location of the actual Jinja template.
             jinja_root_path (str): The file folder where the file will be saved to.
@@ -217,7 +217,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.

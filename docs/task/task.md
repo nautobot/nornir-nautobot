@@ -39,6 +39,6 @@ task.run(
 )
 ```
 
-The dispatcher expects the two primary objects, the `obj` and `logger` objects. The `obj` object should be a Device model instance. The logger should be `NornirLogger` instance which is imported from `nornir_nautobot.utils.logger`. This logging object optionally takes in a Nautobot job_result object. This is for use within the Nautobot platform Jobs. 
+The dispatcher expects the two primary objects, the `obj` and `logger` objects. The `obj` object should be a Device model instance. The logger should be `NornirLogger` instance which is imported from `nornir_nautobot.utils.logger`. This logging object optionally takes in a Nautobot Job object named nautobot_job. This is for use within the Nautobot platform Jobs. 
 
 Each task will raise a `NornirNautobotException` for known issues. Using a custom processor, the user can predict when it was an well known error.

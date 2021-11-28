@@ -8,7 +8,7 @@ class NornirLogger:
 
     def __init__(self, name, nautobot_job=None, debug=False, job_result=None):
         """Initialize the object."""
-        self.job_result = job_result
+        self.job_result = job_result or nautobot_job
         self.logger = logging.getLogger(name)
         self.debug = debug
         self.nautobot_job = nautobot_job or job_result

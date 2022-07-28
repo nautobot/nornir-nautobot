@@ -6,7 +6,7 @@ import socket
 from typing import Optional
 import jinja2
 
-from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
+from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file

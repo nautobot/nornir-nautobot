@@ -8,7 +8,7 @@ import jinja2
 
 try:
     from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
-except:
+except ImportError:
     from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 from nornir.core.exceptions import NornirSubTaskError

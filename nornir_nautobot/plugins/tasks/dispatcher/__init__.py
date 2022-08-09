@@ -15,7 +15,7 @@ _DEFAULT_DRIVERS_MAPPING = {
     "cisco_asa": "nornir_nautobot.plugins.tasks.dispatcher.cisco_asa.NautobotNornirDriver",
     "cisco_nxos": "nornir_nautobot.plugins.tasks.dispatcher.cisco_nxos.NautobotNornirDriver",
     "cisco_ios": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios.NautobotNornirDriver",
-    "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_xr.NautobotNornirDriver",
+    "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios_xr.NautobotNornirDriver",
     "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos.NautobotNornirDriver",
     "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos.NautobotNornirDriver",
 }

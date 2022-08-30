@@ -63,6 +63,8 @@ class NautobotNornirDriver:
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"Failed with a unknown issue. `{exc.result.exception}`")
             raise NornirNautobotException()
+        finally:
+            task.host.close_connection("napalm")
 
         if result[0].failed:
             logger.log_failure(obj, f"Failed with a unknown issue. `{str(result.exception)}`")
@@ -246,6 +248,8 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
 
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
             raise NornirNautobotException()
+        finally:
+            task.host.close_connection("netmiko")
 
         if result[0].failed:
             return result

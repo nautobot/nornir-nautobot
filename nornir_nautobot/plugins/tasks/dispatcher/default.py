@@ -58,10 +58,14 @@ class NautobotNornirDriver:
             result = task.run(task=napalm_get, getters=["config"], retrieve="running")
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{exc.result.exception}`")
-            raise NornirNautobotException("`get_config` method failed with an unexpected issue: `{exc.result.exception}`")
+            raise NornirNautobotException(
+                "`get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            )
 
         if result[0].failed:
-            logger.log_failure(obj, f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`")
+            logger.log_failure(
+                obj, f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`"
+            )
             return result
 
         running_config = result[0].result.get("config", {}).get("running", None)
@@ -136,8 +140,12 @@ class NautobotNornirDriver:
             raise NornirNautobotException(f"Backup file Not Found at location: `{backup_file}`, preemptively failed.")
 
         if not os.path.exists(intended_file):
-            logger.log_failure(obj, f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed.")
-            raise NornirNautobotException(f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed.")
+            logger.log_failure(
+                obj, f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            )
+            raise NornirNautobotException(
+                f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            )
 
         try:
             feature_data = compliance(features, backup_file, intended_file, platform)
@@ -184,22 +192,30 @@ class NautobotNornirDriver:
                     obj,
                     f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``")
+                raise NornirNautobotException(
+                    f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
                 logger.log_failure(
                     obj,
                     f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``")
+                raise NornirNautobotException(
+                    f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
                 logger.log_failure(
                     obj,
                     f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``")
+                raise NornirNautobotException(
+                    f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateError):
                 logger.log_failure(obj, f"There was an issue general Jinja error: ``{str(exc.result.exception)}``")
-                raise NornirNautobotException(f"There was an issue general Jinja error: ``{str(exc.result.exception)}``")
+                raise NornirNautobotException(
+                    f"There was an issue general Jinja error: ``{str(exc.result.exception)}``"
+                )
             raise
 
         make_folder(os.path.dirname(output_file_location))

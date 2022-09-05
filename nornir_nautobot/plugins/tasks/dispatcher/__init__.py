@@ -44,8 +44,12 @@ def dispatcher(task: Task, method: str, logger, obj, *args, **kwargs) -> Result:
     logger.log_debug(f"Found driver {driver}")
 
     if not driver:
-        logger.log_failure(obj, f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed.")
-        raise NornirNautobotException(f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed.")
+        logger.log_failure(
+            obj, f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed."
+        )
+        raise NornirNautobotException(
+            f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed."
+        )
 
     module_name, class_name = driver.rsplit(".", 1)
     driver_class = getattr(importlib.import_module(module_name), class_name)

@@ -982,7 +982,7 @@ test = ["pytest"]
 name = "typed-ast"
 version = "1.5.4"
 description = "a fork of Python 2 and 3 ast modules with type comment support"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -1053,7 +1053,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "b3a6efbecdf8fc05356cfe1b8c228c1ae7be210dda6f46657d6b3445bd8771aa"
+content-hash = "cfe7051fbd80da740fa4d581fd4a4cbf4db8c82f9ef4c63bd58c10677fa25557"
 
 [metadata.files]
 appdirs = [

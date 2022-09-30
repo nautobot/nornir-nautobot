@@ -34,7 +34,6 @@ RUN_COMMAND_MAPPING = {
     "juniper_junos": "show configuration | display set",
     "arista_eos": "show run",
 }
-MINUTES_TO_CONFIRM = 10
 
 
 class NautobotNornirDriver:
@@ -302,7 +301,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 task=napalm_configure,
                 configuration=config,
                 replace=True,
-                revert_in=MINUTES_TO_CONFIRM,
+                revert_in=int(os.getenv("NORNIR_NAUTOBOT_REVERT_IN_MINUTES")),
             )
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")

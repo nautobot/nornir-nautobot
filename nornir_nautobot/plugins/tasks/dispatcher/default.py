@@ -310,4 +310,3 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
         logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
         logger.log_success(obj, "Config provision ended")
         return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
-

@@ -9,8 +9,11 @@ keywords = ["Nautobot"]
 classifiers = [
   "Intended Audience :: Developers",
   "Development Status :: 5 - Production/Stable",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
 ]
 repository = "https://github.com/nautobot/nornir-nautobot"
 homepage = "https://nautobot.com"
@@ -18,7 +21,7 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 nornir = "^3.0.0"
 requests = "^2.25.1"
 nornir-utils = "^0"

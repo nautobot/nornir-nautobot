@@ -4,6 +4,7 @@
 import os
 import socket
 from typing import Optional
+
 import jinja2
 
 try:
@@ -11,20 +12,19 @@ try:
 except ImportError:
     from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
+from netutils.config.clean import clean_config, sanitize_config
+from netutils.config.compliance import compliance
+from netutils.dns import is_fqdn_resolvable
+from netutils.ip import is_ip
+from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
-from netutils.config.compliance import compliance
-from netutils.config.clean import clean_config, sanitize_config
-from netutils.ip import is_ip
-from netutils.dns import is_fqdn_resolvable
-from netutils.ping import tcp_ping
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
-
 
 RUN_COMMAND_MAPPING = {
     "default": "show run",
@@ -79,7 +79,7 @@ class NautobotNornirDriver:
 
         make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w") as filehandler:
+        with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
 
@@ -207,7 +207,7 @@ class NautobotNornirDriver:
             raise
 
         make_folder(os.path.dirname(output_file_location))
-        with open(output_file_location, "w") as filehandler:
+        with open(output_file_location, "w", encoding="utf8") as filehandler:
             filehandler.write(filled_template)
         return Result(host=task.host, result={"config": filled_template})
 
@@ -266,6 +266,6 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
 
         make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w") as filehandler:
+        with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})

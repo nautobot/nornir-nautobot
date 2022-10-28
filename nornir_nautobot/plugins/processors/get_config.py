@@ -3,7 +3,6 @@
 import hashlib
 import logging
 import os
-
 from pathlib import Path
 
 from nornir.core.inventory import Host
@@ -24,9 +23,9 @@ class GetConfig(BaseProcessor):
 
     def __init__(self) -> None:
         """Initialize the processor and ensure some variables are properly initialized."""
-        self.current_md5 = dict()
-        self.previous_md5 = dict()
-        self.config_filename = dict()
+        self.current_md5 = {}
+        self.previous_md5 = {}
+        self.config_filename = {}
         self.config_dir = None
         self.existing_config_hostnames = None
 
@@ -76,7 +75,7 @@ class GetConfig(BaseProcessor):
         self.config_filename[host.name] = f"{self.config_dir}/{task.host.name}.{self.config_extension}"
 
         if os.path.exists(self.config_filename[host.name]):
-            current_config = Path(self.config_filename[host.name]).read_text()
+            current_config = Path(self.config_filename[host.name]).read_text(encoding="utf-8")
             self.previous_md5[host.name] = hashlib.md5(current_config.encode("utf-8")).hexdigest()  # nosec
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
@@ -121,7 +120,7 @@ class GetConfig(BaseProcessor):
             self.existing_config_hostnames.remove(host.name)
 
         # Save configuration to file and verify the new MD5
-        with open(self.config_filename[host.name], "w") as config_:
+        with open(self.config_filename[host.name], "w", encoding="utf-8") as config_:
             config_.write(conf)
 
         host.data["has_config"] = True

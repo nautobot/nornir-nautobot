@@ -2,6 +2,7 @@
 import os
 import sys
 from distutils.util import strtobool
+
 from invoke import task
 
 try:
@@ -12,7 +13,7 @@ except ImportError:
 
 def project_ver():
     """Find version from pyproject.toml to use for docker image tagging."""
-    with open("pyproject.toml") as file:
+    with open("pyproject.toml", encoding="utf-8") as file:
         return toml.load(file)["tool"]["poetry"].get("version", "latest")
 
 
@@ -32,7 +33,7 @@ def is_truthy(arg):
 
 
 # Can be set to a separate Python version to be used for launching or building image
-PYTHON_VER = os.getenv("PYTHON_VER", "3.6")
+PYTHON_VER = os.getenv("PYTHON_VER", "3.7")
 # Name of the docker image/image
 NAME = os.getenv("IMAGE_NAME", f"nornir-nautobot-py{PYTHON_VER}")
 # Tag for the image

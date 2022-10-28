@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.0
+
+- (#67) fix pylint, tests, and drop py36 support #67
+
 ## v2.2.0
 
 - (#41) Added jinja2 filter pass to generate config

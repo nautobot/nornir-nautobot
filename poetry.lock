@@ -497,6 +497,14 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "mkdocs-version-annotations"
+version = "1.0.0"
+description = "MkDocs plugin to add custom admonitions for documenting version differences"
+category = "dev"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[[package]]
 name = "mkdocstrings"
 version = "0.19.0"
 description = "Automatic documentation from sources, for MkDocs."
@@ -1272,7 +1280,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "flake8 (<5)", "pytest-co
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "98cce16484f5237c9e2bef951c2989838e950718aa3cbf4116e08b3e5b4ffff1"
+content-hash = "ec13a46f05e3087e3e65fc00310e62c03d16eedd246a2811cf1ea1cb2e8afd48"
 
 [metadata.files]
 astroid = []
@@ -1332,6 +1340,7 @@ mkdocs = []
 mkdocs-autorefs = []
 mkdocs-material = []
 mkdocs-material-extensions = []
+mkdocs-version-annotations = []
 mkdocstrings = []
 mkdocstrings-python = []
 mypy-extensions = []

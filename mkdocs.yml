@@ -60,12 +60,12 @@ plugins:
 
 nav:
   - Overview: "index.md"
-  - Inventory: 
+  - Inventory:
       - Inventory Overview: "inventory/inventory.md"
       - Common Issues: "inventory/common_issues.md"
   - Processor Plugin: "processor/processor.md"
   - Task Plugin: "task/task.md"
-  - Developer Guide: 
+  - Developer Guide:
       - Contributing: "dev/CONTRIBUTING.md"
       - Changelog: "dev/CHANGELOG.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

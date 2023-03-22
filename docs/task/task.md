@@ -1,3 +1,7 @@
+---
+hide:
+  - navigation
+---
 # Task Plugins
 
 The only task plugin currently is the "dispatcher" plugin. This plugin dispatches to the more specific OS specific functions. To demonstrate the primary components of the code:

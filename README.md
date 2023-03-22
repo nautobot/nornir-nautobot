@@ -1,31 +1,43 @@
-# nornir_nautobot
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+<div style="text-align: center;"> 
+  <h1>Nornir Nautobot</h1>
+</div>  
+<p align="center">
+  <a href="https://github.com/nautobot/nornir-nautobot/actions"><img src="https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/v/nornir-nautobot"></a>
+  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/dm/nornir-nautobot"></a>
+  <br>
+</p>
 
-## Build Status
 
-| Branch  | Status                                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| develop | [![CI](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg)](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml) |
-## Overview
-
-The nornir_nautobot project intends to solve two primary use cases.
+Nornir-Nautobot is a set of utilities to help interact with Nautobot via Nornir. The nornir_nautobot project intends to solve two primary use cases.
 
 * Providing a Nornir inventory that leverages Nautobot's API.
 * A set of opinionated Nornir plugins.
 
 The set of plugins intend to provide mechanisms to include common networking workflows that will help enable network automation. As an example, there are method to get configurations or test network connectivity. Over time this will include functions to perform actions such as get vlans, neighbors, protocols, etc.
 
-## Getting Started
+# Installation
+
+To install Nornir Nautobot install via Python PIP:
 
 ```shell
 pip install nornir-nautobot
 ```
+## Inventory
 
-## Documentation Link
+The inventory plugin is used to gather inventory from a Nautobot instance. This queries the DCIM endpoint to gather information about the devices.  
 
-The documentation can be found on [Read the Docs](https://nornir-nautobot.readthedocs.io/en/latest/)
+[Inventory](inventory/inventory.md)
 
-## Nautobot
+## Processor Plugin
 
-Nautobot documentation is available at [Nautobot Read the Docs](https://nautobot.readthedocs.io/en/latest/)
+This is an opinionated plugin to help with network automation workflows with Nautobot.
+
+[Processor Plugin](processor/processor.md)
+
+## Task Plugin
+
+The task plugin helps with dispatching specific functions with multiple underlying OS.
+
+[Task Plugin](task/task.md)

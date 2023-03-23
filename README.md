@@ -1,14 +1,7 @@
-
-<div style="text-align: center;"> 
-  <h1>Nornir Nautobot</h1>
-</div>  
-<p align="center">
-  <a href="https://github.com/nautobot/nornir-nautobot/actions"><img src="https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/v/nornir-nautobot"></a>
-  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/dm/nornir-nautobot"></a>
-  <br>
-</p>
-
+# Nornir Nautobot
+[![GitHub Actions](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nautobot/nornir-nautobot/actions)
+[![PyPI Version](https://img.shields.io/pypi/v/nornir-nautobot)](https://pypi.org/project/nornir-nautobot/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/nornir-nautobot)](https://pypi.org/project/nornir-nautobot/)
 
 Nornir-Nautobot is a set of utilities to help interact with Nautobot via Nornir. The nornir_nautobot project intends to solve two primary use cases.
 
@@ -28,16 +21,16 @@ pip install nornir-nautobot
 
 The inventory plugin is used to gather inventory from a Nautobot instance. This queries the DCIM endpoint to gather information about the devices.  
 
-[Inventory](inventory/inventory.md)
+[Inventory](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/inventory/inventory/)
 
 ## Processor Plugin
 
 This is an opinionated plugin to help with network automation workflows with Nautobot.
 
-[Processor Plugin](processor/processor.md)
+[Processor Plugin](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/processor/processor/)
 
 ## Task Plugin
 
 The task plugin helps with dispatching specific functions with multiple underlying OS.
 
-[Task Plugin](task/task.md)
+[Task Plugin](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/task/task/)

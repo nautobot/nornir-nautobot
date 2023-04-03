@@ -6,6 +6,7 @@ import pynautobot
 
 # Third Party Imports
 import pytest
+import requests
 from requests.sessions import Session
 from requests_mock import Mocker
 from nornir import InitNornir
@@ -99,7 +100,7 @@ def test_nornir_nautobot_missing_token():
 
 def test_api_session(nornir_nautobot_class):
     expected_headers = {
-        "User-Agent": "python-requests/2.28.1",
+        "User-Agent": f"python-requests/{requests.__version__}",
         "Accept-Encoding": "gzip, deflate",
         "Accept": "*/*",
         "Connection": "keep-alive",

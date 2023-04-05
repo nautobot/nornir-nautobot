@@ -18,6 +18,7 @@ _DEFAULT_DRIVERS_MAPPING = {
     "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios_xr.NautobotNornirDriver",
     "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos.NautobotNornirDriver",
     "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos.NautobotNornirDriver",
+    "mikrotik_routeros": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros.NautobotNornirDriver",
 }
 
 

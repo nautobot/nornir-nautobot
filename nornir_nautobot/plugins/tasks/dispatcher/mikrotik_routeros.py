@@ -22,6 +22,7 @@ GET_MAJOR_VERSION_REGEX = re.compile(r"version:\s+(\d+)\.\d+\.\d+")
 GET_CONFIG_ROS = "export terse"
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
+
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
 
@@ -41,7 +42,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        task.host.platform = NETMIKO_DEVICE_TYPE #Patch for platform_slug mapping (temporal)
+        task.host.platform = NETMIKO_DEVICE_TYPE  # Patch for platform_slug mapping (temporal)
         logger.log_debug(f"Analyzing Software Version for {task.host.name} on {task.host.platform}")
         command = GET_VERSION_COMMAND
         try:

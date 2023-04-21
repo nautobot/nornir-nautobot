@@ -1,7 +1,6 @@
 """network_importer driver for Mikrotik Router OS."""
 
 import os
-import re
 
 try:
     from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
@@ -18,8 +17,7 @@ from nornir_nautobot.utils.helpers import make_folder
 from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
 
 GET_VERSION_COMMAND = "system resource print"
-GET_MAJOR_VERSION_REGEX = re.compile(r"version:\s+(\d+)\.\d+\.\d+")
-GET_CONFIG_ROS = "export terse"
+GET_CONFIG_COMMAND = "export terse"
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 
@@ -43,7 +41,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        task.host.platform = NETMIKO_DEVICE_TYPE  # Patch for platform_slug mapping (temporal)
+        task.host.platform = NETMIKO_DEVICE_TYPE
         logger.log_debug(f"Analyzing Software Version for {task.host.name} on {task.host.platform}")
         command = GET_VERSION_COMMAND
         try:
@@ -63,10 +61,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         if result[0].failed:
             return result
 
-        search_result = re.search(GET_MAJOR_VERSION_REGEX, result[0].result)
-        major_version = search_result.group(1)
+        major_version = result[0].result.split()[3].split('.')[0]
 
-        command = GET_CONFIG_ROS
+        command = GET_CONFIG_COMMAND
         if major_version > "6":
             command += " show-sensitive"
 

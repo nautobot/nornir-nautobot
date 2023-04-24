@@ -7,7 +7,7 @@ import json
 import socket
 from typing import Optional
 import jinja2
-from dispatcher.schema import api_resources
+from .schema import api_resources
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable

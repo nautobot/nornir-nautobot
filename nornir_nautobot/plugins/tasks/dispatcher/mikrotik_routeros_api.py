@@ -21,6 +21,7 @@ from nornir_jinja2.plugins.tasks import template_file
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
+
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Default collection of Nornir Tasks based on Napalm."""
 
@@ -53,11 +54,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                 config_data[mikrotik_resource["endpoint"]] = resource.get()
             except:
                 logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{Exception.NameError}`")
-                raise NornirNautobotException(
-                f"`get_config` method failed with an unexpected issue: `{Exception}`"
-            )
+                raise NornirNautobotException(f"`get_config` method failed with an unexpected issue: `{Exception}`")
 
-        connection.disconnect() 
+        connection.disconnect()
         running_config = json.dumps(config_data, indent=4)
         if remove_lines:
             logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
@@ -136,7 +135,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             raise NornirNautobotException(
                 f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
             )
-        
+
         try:
             intended_config = json.loads(intended_file)
         except Exception as error:
@@ -147,7 +146,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             backup_config = json.loads(backup_file)
         except Exception as error:
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
-            raise NornirNautobotException(f"Failed to open backup config File: {str(error)}")         
+            raise NornirNautobotException(f"Failed to open backup config File: {str(error)}")
 
         cleaned_intended = {
             mikrotik_resource["endpoint"]: [
@@ -174,15 +173,15 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     feature_backup = cleaned_backup[mikrotik_resource["endpoint"]]
                     ddiff = DeepDiff(feature_intended, feature_backup, ignore_order=True)
                     feature_data[mikrotik_resource["compliance_rule_name"]] = {
-                        'actual': feature_backup,
-                        'cannot_parse': True,
-                        'compliant': True if ddiff == {} else False,
-                        'extra': ddiff.get("iterable_item_added", {}),
-                        'intended': feature_intended,
-                        'missing': ddiff.get("iterable_item_removed", {}),
-                        'ordered_compliant': True,
-                        'unordered_compliant': True,
-                     }
+                        "actual": feature_backup,
+                        "cannot_parse": True,
+                        "compliant": True if ddiff == {} else False,
+                        "extra": ddiff.get("iterable_item_added", {}),
+                        "intended": feature_intended,
+                        "missing": ddiff.get("iterable_item_removed", {}),
+                        "ordered_compliant": True,
+                        "unordered_compliant": True,
+                    }
         except Exception as error:  # pylint: disable=broad-except
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
             raise NornirNautobotException(f"UNKNOWN Failure of: {str(error)}")

@@ -25,13 +25,8 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
 
     @staticmethod
-    def get_config( # pylint: disable=R0913
-        task: Task,
-        logger,
-        obj,
-        backup_file: str,
-        remove_lines: list,
-        substitute_lines: list
+    def get_config(  # pylint: disable=R0913
+        task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 
@@ -56,14 +51,20 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 logger.log_failure(obj, f"Failed with an authentication issue: `{exc.result.exception}`")
-                raise NornirNautobotException(f"Failed with an authentication issue: `{exc.result.exception}`") # pylint: disable=W0707
+                raise NornirNautobotException(  # pylint: disable=W0707
+                    f"Failed with an authentication issue: `{exc.result.exception}`"
+                )
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
                 logger.log_failure(obj, f"Failed with a timeout issue. `{exc.result.exception}`")
-                raise NornirNautobotException(f"Failed with a timeout issue. `{exc.result.exception}`") # pylint: disable=W0707
+                raise NornirNautobotException(  # pylint: disable=W0707
+                    f"Failed with a timeout issue. `{exc.result.exception}`"
+                )
 
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException(f"Failed with an unknown issue. `{exc.result.exception}`") # pylint: disable=W0707
+            raise NornirNautobotException(  # pylint: disable=W0707
+                f"Failed with an unknown issue. `{exc.result.exception}`"
+            )
 
         if result[0].failed:
             return result
@@ -81,7 +82,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException(f"Failed with an unknown issue. `{exc.result.exception}`") # pylint: disable=W0707
+            raise NornirNautobotException(  # pylint: disable=W0707
+                f"Failed with an unknown issue. `{exc.result.exception}`"
+            )
 
         if result[0].failed:
             return result

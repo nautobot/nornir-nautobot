@@ -1,7 +1,8 @@
 ---
-dev_addr: "0.0.0.0:8002"
+dev_addr: "127.0.0.1:8002"
 site_name: "Nornir Nautobot Documentation"
-site_url: "https://nornir-nautobot.readthedocs.io"
+edit_uri: "edit/develop/docs"
+site_url: "https://docs.nautobot.com/projects/nornir-nautobot/en/latest/"
 repo_url: "https://github.com/nautobot/nornir-nautobot"
 copyright: "Copyright &copy; Network To Code"
 theme:

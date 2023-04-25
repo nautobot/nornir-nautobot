@@ -27,7 +27,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
     @staticmethod
     def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
-        
+
         This accounts for Mikrotik Router OS config scrubbing behavior since ROS >= 7.X.
 
         Args:
@@ -61,7 +61,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         if result[0].failed:
             return result
 
-        major_version = result[0].result.split()[3].split('.')[0]
+        major_version = result[0].result.split()[3].split(".")[0]
 
         command = GET_CONFIG_COMMAND
         if major_version > "6":

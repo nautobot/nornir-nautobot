@@ -1,32 +1,37 @@
-"""default network_importer driver for Juniper."""
+"""default network_importer API-based driver for Mikrotik RouterOS."""
 
-from .default import NautobotNornirDriver as DefaultNautobotNornirDriver
-import routeros_api
 import os
 import json
-import socket
 from typing import Optional
+import socket
 import jinja2
-from .platform_settings.api_schemas import mikrotik_resources
+
+import routeros_api
 from deepdiff import DeepDiff
+
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.ping import tcp_ping
+
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
+
 from nornir_jinja2.plugins.tasks import template_file
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
+
+from .default import NautobotNornirDriver as DefaultNautobotNornirDriver
+from .platform_settings.api_schemas import mikrotik_resources
 
 
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Default collection of Nornir Tasks based on Napalm."""
 
     @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result: # pylint: disable=R0913
         """Get the latest configuration from the device.
 
         Args:
@@ -53,8 +58,8 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                 resource = api.get_resource(mikrotik_resource["endpoint"])
                 config_data[mikrotik_resource["endpoint"]] = resource.get()
             except:
-                logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{Exception.NameError}`")
-                raise NornirNautobotException(f"`get_config` method failed with an unexpected issue: `{Exception}`")
+                logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{Exception}`")
+                raise NornirNautobotException(f"`get_config` method failed with an unexpected issue: `{Exception}`") # pylint: disable=W0707
 
         connection.disconnect()
         running_config = json.dumps(config_data, indent=4)
@@ -89,25 +94,25 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         else:
             if not is_fqdn_resolvable(task.host.hostname):
                 logger.log_failure(obj, "There was not an IP or resolvable, preemptively failed.")
-                raise NornirNautobotException("There was not an IP or resolvable, preemptively failed.")
+                raise NornirNautobotException("There was not an IP or resolvable, preemptively failed.") # pylint: disable=W0707
             ip_addr = socket.gethostbyname(task.host.hostname)
 
         # TODO: Allow port to be configurable, allow ssl as well
         port = 8728
         if not tcp_ping(ip_addr, port):
             logger.log_failure(obj, f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.")
-            raise NornirNautobotException(f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.")
+            raise NornirNautobotException(f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.") # pylint: disable=W0707
         if not task.host.username:
             logger.log_failure(obj, "There was no username defined, preemptively failed.")
-            raise NornirNautobotException("There was no username defined, preemptively failed.")
+            raise NornirNautobotException("There was no username defined, preemptively failed.") # pylint: disable=W0707
         if not task.host.password:
             logger.log_failure(obj, "There was no password defined, preemptively failed.")
-            raise NornirNautobotException("There was no password defined, preemptively failed.")
+            raise NornirNautobotException("There was no password defined, preemptively failed.") # pylint: disable=W0707
 
         return Result(host=task.host)
 
     @staticmethod
-    def compliance_config(
+    def compliance_config( # pylint: disable=R0913,R0914
         task: Task, logger, obj, features: str, backup_file: str, intended_file: str, platform: str
     ) -> Result:
         """Compare two configurations against each other.
@@ -126,13 +131,13 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         """
         if not os.path.exists(backup_file):
             logger.log_failure(obj, f"Backup file Not Found at location: `{backup_file}`, preemptively failed.")
-            raise NornirNautobotException(f"Backup file Not Found at location: `{backup_file}`, preemptively failed.")
+            raise NornirNautobotException(f"Backup file Not Found at location: `{backup_file}`, preemptively failed.") # pylint: disable=W0707
 
         if not os.path.exists(intended_file):
             logger.log_failure(
                 obj, f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
             )
-            raise NornirNautobotException(
+            raise NornirNautobotException( # pylint: disable=W0707
                 f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
             )
 
@@ -140,13 +145,13 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             intended_config = json.loads(intended_file)
         except Exception as error:
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
-            raise NornirNautobotException(f"Failed to open intended config File: {str(error)}")
+            raise NornirNautobotException(f"Failed to open intended config File: {str(error)}") # pylint: disable=W0707
 
         try:
             backup_config = json.loads(backup_file)
         except Exception as error:
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
-            raise NornirNautobotException(f"Failed to open backup config File: {str(error)}")
+            raise NornirNautobotException(f"Failed to open backup config File: {str(error)}") # pylint: disable=W0707
 
         cleaned_intended = {
             mikrotik_resource["endpoint"]: [
@@ -175,7 +180,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     feature_data[mikrotik_resource["compliance_rule_name"]] = {
                         "actual": feature_backup,
                         "cannot_parse": True,
-                        "compliant": True if ddiff == {} else False,
+                        "compliant": not bool(ddiff),
                         "extra": ddiff.get("iterable_item_added", {}),
                         "intended": feature_intended,
                         "missing": ddiff.get("iterable_item_removed", {}),
@@ -184,11 +189,11 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     }
         except Exception as error:  # pylint: disable=broad-except
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
-            raise NornirNautobotException(f"UNKNOWN Failure of: {str(error)}")
+            raise NornirNautobotException(f"UNKNOWN Failure of: {str(error)}") # pylint: disable=W0707
         return Result(host=task.host, result={"feature_data": feature_data})
 
     @staticmethod
-    def generate_config(
+    def generate_config( # pylint: disable=R0913
         task: Task,
         logger,
         obj,
@@ -225,7 +230,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     obj,
                     f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(
+                raise NornirNautobotException( # pylint: disable=W0707
                     f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
                 )
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
@@ -233,7 +238,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     obj,
                     f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(
+                raise NornirNautobotException( # pylint: disable=W0707
                     f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``"
                 )
             elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
@@ -241,12 +246,12 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                     obj,
                     f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException(
+                raise NornirNautobotException( # pylint: disable=W0707
                     f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
                 )
             elif isinstance(exc.result.exception, jinja2.TemplateError):
                 logger.log_failure(obj, f"There was an issue general Jinja error: ``{str(exc.result.exception)}``")
-                raise NornirNautobotException(
+                raise NornirNautobotException( # pylint: disable=W0707
                     f"There was an issue general Jinja error: ``{str(exc.result.exception)}``"
                 )
             raise

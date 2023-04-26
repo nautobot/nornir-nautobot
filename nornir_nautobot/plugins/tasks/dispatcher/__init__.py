@@ -19,6 +19,7 @@ _DEFAULT_DRIVERS_MAPPING = {
     "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos.NautobotNornirDriver",
     "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos.NautobotNornirDriver",
     "mikrotik_routeros_api": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros_api.NautobotNornirDriver",
+    "ruckus_fastiron": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_fastiron.NautobotNornirDriver",
 }
 
 

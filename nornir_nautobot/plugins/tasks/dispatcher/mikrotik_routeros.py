@@ -25,6 +25,57 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
 
     @staticmethod
+    def _remove_lines(logger, _running_config: str, remove_lines: list) -> str:
+        """Removes lines in configuration as specified in Remove Lines list.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            remove_lines (list): A list of regex lines to remove configurations.
+
+        Returns:
+            Result: Clean running configuration if remove lines set.
+        """
+        if not remove_lines:
+            return _running_config
+        logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+        return clean_config(_running_config, remove_lines)
+
+    @staticmethod
+    def _substitute_lines(logger, _running_config: str, substitute_lines: list) -> str:
+        """Substitutes lines in configuration as specified in substitute Lines list.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+
+        Returns:
+            Result: running configuration with substitutions.
+        """
+        if not substitute_lines:
+            return _running_config
+        logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+        return sanitize_config(_running_config, substitute_lines)
+
+    @staticmethod
+    def _save_file(logger, backup_file: str, _running_config: str) -> None:
+        """Saves Running Configuration to a specified file.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            backup_file (str): String representing backup file path.
+
+        Returns:
+            Result: Running Config is saved into backup file path.
+        """
+        make_folder(os.path.dirname(backup_file))
+        logger.log_debug(f"Saving Configuration to file: {backup_file}")
+        with open(backup_file, "w", encoding="utf8") as filehandler:
+            filehandler.write(_running_config)
+
+    @staticmethod
     def get_config(  # pylint: disable=R0913
         task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
@@ -89,17 +140,10 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         if result[0].failed:
             return result
 
-        running_config = result[0].result
+        _running_config = result[0].result
 
-        if remove_lines:
-            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = clean_config(running_config, remove_lines)
-        if substitute_lines:
-            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = sanitize_config(running_config, substitute_lines)
+        _running_config = NautobotNornirDriver._remove_lines(logger, _running_config, remove_lines)
+        _running_config = NautobotNornirDriver._substitute_lines(logger, _running_config, substitute_lines)
+        NautobotNornirDriver._save_file(logger, backup_file, _running_config)
 
-        make_folder(os.path.dirname(backup_file))
-
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
-        return Result(host=task.host, result={"config": running_config})
+        return Result(host=task.host, result={"config": _running_config})

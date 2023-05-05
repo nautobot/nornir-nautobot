@@ -54,9 +54,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                 config_data[mikrotik_resource["endpoint"]] = resource.get()
             except Exception as error:
                 logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{error}`")
-                raise NornirNautobotException(
+                raise NornirNautobotException(  # pylint: disable=W0707
                     f"`get_config` method failed with an unexpected issue: `{error}`"
-                )  # pylint: disable=W0707
+                )
 
         connection.disconnect()
         running_config = json.dumps(config_data, indent=4)

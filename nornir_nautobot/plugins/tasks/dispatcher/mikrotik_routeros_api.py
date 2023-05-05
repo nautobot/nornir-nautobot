@@ -2,23 +2,16 @@
 
 import os
 import json
-from typing import Optional
 import socket
-import jinja2
 
 import routeros_api
-from deepdiff import DeepDiff
 
 from netutils.config.clean import clean_config, sanitize_config
-from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.ping import tcp_ping
 
-from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
-
-from nornir_jinja2.plugins.tasks import template_file
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
@@ -59,10 +52,10 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             try:
                 resource = api.get_resource(mikrotik_resource["endpoint"])
                 config_data[mikrotik_resource["endpoint"]] = resource.get()
-            except:
-                logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{Exception}`")
+            except Exception as error:
+                logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{error}`")
                 raise NornirNautobotException(
-                    f"`get_config` method failed with an unexpected issue: `{Exception}`"
+                    f"`get_config` method failed with an unexpected issue: `{error}`"
                 )  # pylint: disable=W0707
 
         connection.disconnect()

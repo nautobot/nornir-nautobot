@@ -4,7 +4,7 @@ import os
 import json
 import socket
 
-import routeros_api # pylint: disable=E0401
+import routeros_api  # pylint: disable=E0401
 
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.dns import is_fqdn_resolvable
@@ -24,7 +24,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Default collection of Nornir Tasks based on Napalm."""
 
     @staticmethod
-    def get_config( # pylint: disable=R0913
+    def get_config(  # pylint: disable=R0913
         task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device.

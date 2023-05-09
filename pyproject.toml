@@ -30,7 +30,6 @@ nornir-jinja2 = "^0"
 nornir-netmiko = "^0"
 pynautobot = "^1.0.1"
 netutils = "^1"
-routeros-api = "^0.17.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

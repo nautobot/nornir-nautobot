@@ -33,7 +33,7 @@ ROUTEROS_API_ENDPOINTS = [
     "/system/ntp/client",
     "/ip/dns",
     "/snmp/community",
-    "/system/logging/action"
+    "/system/logging/action",
 ]  
 
 RUN_COMMAND_MAPPING = {

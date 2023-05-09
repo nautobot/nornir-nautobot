@@ -1,19 +1,15 @@
 """network_importer driver for Mikrotik Router OS."""
 
-import os
-
 try:
     from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
 except ImportError:
     from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
-from netutils.config.clean import clean_config, sanitize_config
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder
 from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
 
 GET_VERSION_COMMAND = "system resource print"

@@ -17,7 +17,7 @@ from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
 from .default import NautobotNornirDriver as DefaultNautobotNornirDriver
-from .platform_settings.api_schemas import mikrotik_resources
+from .default import RUN_COMMAND_MAPPING
 
 
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
@@ -48,10 +48,10 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         config_data = {}
         api = connection.get_api()
 
-        for mikrotik_resource in mikrotik_resources:
+        for endpoint in RUN_COMMAND_MAPPING["mikrotik_routeros_api"]:
             try:
-                resource = api.get_resource(mikrotik_resource["endpoint"])
-                config_data[mikrotik_resource["endpoint"]] = resource.get()
+                resource = api.get_resource(endpoint)
+                config_data[endpoint] = resource.get()
             except Exception as error:
                 logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{error}`")
                 raise NornirNautobotException(  # pylint: disable=W0707

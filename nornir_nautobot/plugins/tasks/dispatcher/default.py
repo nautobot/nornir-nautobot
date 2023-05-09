@@ -26,6 +26,16 @@ from nornir_netmiko.tasks import netmiko_send_command
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
+ROUTEROS_API_ENDPOINTS = [
+    "/system/identity",
+    "/interface",
+    "/ip/address",
+    "/system/ntp/client",
+    "/ip/dns",
+    "/snmp/community",
+    "/system/logging/action"
+]  
+
 RUN_COMMAND_MAPPING = {
     "default": "show run",
     "cisco_nxos": "show run",
@@ -34,6 +44,7 @@ RUN_COMMAND_MAPPING = {
     "juniper_junos": "show configuration | display set",
     "arista_eos": "show run",
     "ruckus_fastiron": "show running-config",
+    "mikrotik_routeros_api": ROUTEROS_API_ENDPOINTS,
 }
 
 

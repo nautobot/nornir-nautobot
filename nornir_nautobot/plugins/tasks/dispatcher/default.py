@@ -34,7 +34,7 @@ ROUTEROS_API_ENDPOINTS = [
     "/ip/dns",
     "/snmp/community",
     "/system/logging/action",
-]  
+]
 
 RUN_COMMAND_MAPPING = {
     "default": "show run",

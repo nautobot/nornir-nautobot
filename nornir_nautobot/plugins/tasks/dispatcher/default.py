@@ -25,31 +25,13 @@ from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
-
-ROUTEROS_API_ENDPOINTS = [
-    "/system/identity",
-    "/interface",
-    "/ip/address",
-    "/system/ntp/client",
-    "/ip/dns",
-    "/snmp/community",
-    "/system/logging/action",
-]
-
-RUN_COMMAND_MAPPING = {
-    "default": "show run",
-    "cisco_nxos": "show run",
-    "cisco_ios": "show run",
-    "cisco_xr": "show run",
-    "juniper_junos": "show configuration | display set",
-    "arista_eos": "show run",
-    "ruckus_fastiron": "show running-config",
-    "mikrotik_routeros_api": ROUTEROS_API_ENDPOINTS,
-}
+from .platform_settings.configuration import COMMAND_MAPPINGS
 
 
 class NautobotNornirDriver:
     """Default collection of Nornir Tasks based on Napalm."""
+
+    RUN_COMMAND_MAPPING = COMMAND_MAPPINGS
 
     @staticmethod
     def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
@@ -259,7 +241,9 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = RUN_COMMAND_MAPPING.get(task.host.platform, RUN_COMMAND_MAPPING["default"])
+        command = NautobotNornirDriver.RUN_COMMAND_MAPPING.get(
+            task.host.platform, NautobotNornirDriver.RUN_COMMAND_MAPPING["default"]
+        )
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)

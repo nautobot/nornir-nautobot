@@ -17,7 +17,6 @@ from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
 from .default import NautobotNornirDriver as DefaultNautobotNornirDriver
-from .default import RUN_COMMAND_MAPPING
 
 
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
@@ -48,7 +47,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         config_data = {}
         api = connection.get_api()
 
-        for endpoint in RUN_COMMAND_MAPPING["mikrotik_routeros_api"]:
+        for endpoint in NautobotNornirDriver.RUN_COMMAND_MAPPING["mikrotik_routeros_api"]:
             try:
                 resource = api.get_resource(endpoint)
                 config_data[endpoint] = resource.get()

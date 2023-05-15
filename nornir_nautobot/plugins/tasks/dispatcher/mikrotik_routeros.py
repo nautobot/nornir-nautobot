@@ -19,6 +19,8 @@ NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
+    
+    config_command = "export terse"
 
     @staticmethod
     def get_config(  # pylint: disable=R0913
@@ -67,7 +69,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
 
         major_version = result[0].result.split()[3].split(".")[0]
 
-        command = GET_CONFIG_COMMAND
+        command = NautobotNornirDriver.config_command
         if major_version > "6":
             command += " show-sensitive"
 

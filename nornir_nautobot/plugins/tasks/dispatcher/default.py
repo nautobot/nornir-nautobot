@@ -34,7 +34,6 @@ RUN_COMMAND_MAPPING = {
     "juniper_junos": "show configuration | display set",
     "arista_eos": "show run",
     "ruckus_fastiron": "show running-config",
-    "mikrotik_routeros": "export terse",
 }
 
 

@@ -1050,7 +1050,11 @@ version = "0.17.0"
 description = "Python API to RouterBoard devices produced by MikroTik."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3"
+files = [
+    {file = "RouterOS-api-0.17.0.tar.gz", hash = "sha256:1b9898460ecc4667b54e477d495b74c2f24ae0aac4c90dd0e62f23ec7eae8252"},
+    {file = "RouterOS_api-0.17.0-py2.py3-none-any.whl", hash = "sha256:bf38da94a570875eaa87ff537558f765a4697dbce1a9753070194b687f441bf0"},
+]
 
 [package.dependencies]
 six = "*"

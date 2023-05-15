@@ -13,7 +13,6 @@ from nornir_nautobot.exceptions import NornirNautobotException
 from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
 
 GET_VERSION_COMMAND = "system resource print"
-GET_CONFIG_COMMAND = "export terse"
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 

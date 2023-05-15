@@ -19,7 +19,7 @@ NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
-    
+
     config_command = "export terse"
 
     @staticmethod

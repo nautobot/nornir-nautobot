@@ -25,13 +25,12 @@ from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
-from .platform_settings.configuration import COMMAND_MAPPINGS
 
 
 class NautobotNornirDriver:
     """Default collection of Nornir Tasks based on Napalm."""
 
-    RUN_COMMAND_MAPPING = COMMAND_MAPPINGS
+    config_command = "show run"
 
     @staticmethod
     def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
@@ -225,6 +224,8 @@ class NautobotNornirDriver:
 class NetmikoNautobotNornirDriver(NautobotNornirDriver):
     """Default collection of Nornir Tasks based on Netmiko."""
 
+    config_command = "show run"
+
     @staticmethod
     def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
         """Get the latest configuration from the device using Netmiko.
@@ -241,9 +242,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = NautobotNornirDriver.RUN_COMMAND_MAPPING.get(
-            task.host.platform, NautobotNornirDriver.RUN_COMMAND_MAPPING["default"]
-        )
+        command = NetmikoNautobotNornirDriver.config_command
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)

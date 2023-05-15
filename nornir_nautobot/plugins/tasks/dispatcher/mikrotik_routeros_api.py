@@ -22,6 +22,16 @@ from .default import NautobotNornirDriver as DefaultNautobotNornirDriver
 class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Default collection of Nornir Tasks based on Napalm."""
 
+    config_command = [
+        "/system/identity",
+        "/interface",
+        "/ip/address",
+        "/system/ntp/client",
+        "/ip/dns",
+        "/snmp/community",
+        "/system/logging/action",
+    ]
+
     @staticmethod
     def get_config(  # pylint: disable=R0913
         task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
@@ -47,7 +57,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         config_data = {}
         api = connection.get_api()
 
-        for endpoint in NautobotNornirDriver.RUN_COMMAND_MAPPING["mikrotik_routeros_api"]:
+        for endpoint in NautobotNornirDriver.config_command:
             try:
                 resource = api.get_resource(endpoint)
                 config_data[endpoint] = resource.get()

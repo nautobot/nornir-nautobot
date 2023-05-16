@@ -312,13 +312,17 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_success(obj, "Config provision starting")
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
+        if revert_in is not None:
+            revert_in = int(revert_in)
 
         try:
             push_result = task.run(
                 task=napalm_configure,
                 configuration=config,
                 replace=True,
-                revert_in=int(os.getenv("NORNIR_NAUTOBOT_REVERT_IN_MINUTES")),
+                revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")

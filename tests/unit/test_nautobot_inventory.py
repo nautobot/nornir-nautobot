@@ -2,10 +2,12 @@
 # Standard Library Imports
 from os import path
 
+import pynautobot
+
 # Third Party Imports
 import pytest
+import requests
 from requests.sessions import Session
-import pynautobot
 from requests_mock import Mocker
 from nornir import InitNornir
 from nornir.core.task import Task
@@ -53,15 +55,16 @@ API_CALLS = [
     },
 ]
 
+
 # Functions for helping tests
 def load_api_calls(mock):
-    """Loads API calls for mocker
+    """Loads API calls for mocker.
 
     Args:
         mock (Request Mock): Requests Mock instance
     """
     for api_call in API_CALLS:
-        with open(api_call["fixture_path"], "r") as _file:
+        with open(api_call["fixture_path"], "r", encoding="utf-8") as _file:
             api_call["text"] = _file.read()
 
         mock.request(method=api_call["method"], url=api_call["url"], text=api_call["text"], complete_qs=True)
@@ -97,7 +100,7 @@ def test_nornir_nautobot_missing_token():
 
 def test_api_session(nornir_nautobot_class):
     expected_headers = {
-        "User-Agent": "python-requests/2.25.1",
+        "User-Agent": f"python-requests/{requests.__version__}",
         "Accept-Encoding": "gzip, deflate",
         "Accept": "*/*",
         "Connection": "keep-alive",

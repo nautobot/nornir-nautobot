@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir-nautobot"
-version = "2.2.2"
+version = "2.3.0"
 description = "Nornir Nautobot"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
@@ -9,8 +9,11 @@ keywords = ["Nautobot"]
 classifiers = [
   "Intended Audience :: Developers",
   "Development Status :: 5 - Production/Stable",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
 ]
 repository = "https://github.com/nautobot/nornir-nautobot"
 homepage = "https://nautobot.com"
@@ -18,7 +21,7 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 nornir = "^3.0.0"
 requests = "^2.25.1"
 nornir-utils = "^0"
@@ -41,6 +44,12 @@ invoke = "*"
 toml = "*"
 flake8 = "*"
 pydantic = {version = "^1.7.2", extras = ["dotenv"]}
+# documentation dependencies
+mkdocs = "1.3.1"
+mkdocs-material = "8.3.9"
+mkdocstrings = "0.19"
+mkdocstrings-python = "0.7.1"
+mkdocs-version-annotations = "1.0.0"
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "NautobotInventory" = "nornir_nautobot.plugins.inventory.nautobot:NautobotInventory"

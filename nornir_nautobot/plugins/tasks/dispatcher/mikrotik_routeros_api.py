@@ -1,6 +1,7 @@
 """default network_importer API-based driver for Mikrotik RouterOS."""
 
 import os
+import ssl
 import json
 import socket
 
@@ -32,9 +33,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         "/system/logging/action",
     ]
 
-    @staticmethod
-    def get_config(  # pylint: disable=R0913
-        task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    @classmethod
+    def get_config(  # pylint: disable=R0913,R0914
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device.
 
@@ -51,13 +52,25 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        connection = routeros_api.RouterOsApiPool(  # inventory, secrets to be integrated
-            obj.primary_ip4.host, username=task.host.username, password=task.host.password, plaintext_login=True
+        sslctx = ssl.create_default_context()
+        sslctx.set_ciphers("ADH-AES256-GCM-SHA384:ADH-AES256-SHA256:@SECLEVEL=0")
+        connection = routeros_api.RouterOsApiPool(
+            task.host.hostname,
+            username=task.host.username,
+            password=task.host.password,
+            use_ssl=True,
+            ssl_context=sslctx,
+            plaintext_login=True,
         )
         config_data = {}
-        api = connection.get_api()
-
-        for endpoint in NautobotNornirDriver.config_command:
+        try:
+            api = connection.get_api()
+        except Exception as error:
+            logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{error}`")
+            raise NornirNautobotException(  # pylint: disable=W0707
+                f"`get_config` method failed with an unexpected issue: `{error}`"
+            )
+        for endpoint in cls.config_command:
             try:
                 resource = api.get_resource(endpoint)
                 config_data[endpoint] = resource.get()
@@ -106,7 +119,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             ip_addr = socket.gethostbyname(task.host.hostname)
 
         # TODO: Allow port to be configurable, allow ssl as well
-        port = 8728
+        port = 8729
         if not tcp_ping(ip_addr, port):
             logger.log_failure(obj, f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.")
             raise NornirNautobotException(

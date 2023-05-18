@@ -32,8 +32,10 @@ class NautobotNornirDriver:
 
     config_command = "show run"
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device.
 
         Args:
@@ -226,8 +228,10 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
 
     config_command = "show run"
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
         Args:
@@ -242,7 +246,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = NetmikoNautobotNornirDriver.config_command
+        command = cls.config_command
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)

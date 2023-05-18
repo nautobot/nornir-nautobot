@@ -12,7 +12,6 @@ from nornir_netmiko.tasks import netmiko_send_command
 from nornir_nautobot.exceptions import NornirNautobotException
 from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
 
-GET_VERSION_COMMAND = "system resource print"
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 
@@ -20,10 +19,11 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
     """Driver for Mikrotik Router OS."""
 
     config_command = "export terse"
+    version_command = "system resource print"
 
-    @staticmethod
-    def get_config(  # pylint: disable=R0913
-        task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    @classmethod
+    def get_config(  # pylint: disable=R0913,R0914
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 
@@ -42,9 +42,8 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         """
         task.host.platform = NETMIKO_DEVICE_TYPE
         logger.log_debug(f"Analyzing Software Version for {task.host.name} on {task.host.platform}")
-        command = GET_VERSION_COMMAND
         try:
-            result = task.run(task=netmiko_send_command, command_string=GET_VERSION_COMMAND)
+            result = task.run(task=netmiko_send_command, command_string=cls.version_command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 logger.log_failure(obj, f"Failed with an authentication issue: `{exc.result.exception}`")
@@ -68,7 +67,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
 
         major_version = result[0].result.split()[3].split(".")[0]
 
-        command = NautobotNornirDriver.config_command
+        command = cls.config_command
         if major_version > "6":
             command += " show-sensitive"
 

@@ -30,7 +30,7 @@ nornir-jinja2 = "^0"
 nornir-netmiko = "^0"
 pynautobot = "^1.0.1"
 netutils = "^1"
-routeros-api = "^0.17.0"
+routeros-api = {version = "^0.17.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -51,6 +51,9 @@ mkdocs-material = "8.3.9"
 mkdocstrings = "0.19"
 mkdocstrings-python = "0.7.1"
 mkdocs-version-annotations = "1.0.0"
+
+[tool.poetry.extras]
+mikrotik_driver = ["routeros-api"]
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "NautobotInventory" = "nornir_nautobot.plugins.inventory.nautobot:NautobotInventory"

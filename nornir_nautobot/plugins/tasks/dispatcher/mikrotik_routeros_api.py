@@ -5,7 +5,10 @@ import ssl
 import json
 import socket
 
-import routeros_api  # pylint: disable=E0401
+try:
+    import routeros_api  # pylint: disable=E0401
+except ImportError:
+    routeros_api = None
 
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.dns import is_fqdn_resolvable
@@ -54,14 +57,19 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         sslctx = ssl.create_default_context()
         sslctx.set_ciphers("ADH-AES256-GCM-SHA384:ADH-AES256-SHA256:@SECLEVEL=0")
-        connection = routeros_api.RouterOsApiPool(
-            task.host.hostname,
-            username=task.host.username,
-            password=task.host.password,
-            use_ssl=True,
-            ssl_context=sslctx,
-            plaintext_login=True,
-        )
+        try:
+            connection = routeros_api.RouterOsApiPool(
+                task.host.hostname,
+                username=task.host.username,
+                password=task.host.password,
+                use_ssl=True,
+                ssl_context=sslctx,
+                plaintext_login=True,
+            )
+        except AttributeError:
+            raise NornirNautobotException(  # pylint: disable=W0707
+                "`routeros_api` module missing, check your environment"
+            )
         config_data = {}
         try:
             api = connection.get_api()

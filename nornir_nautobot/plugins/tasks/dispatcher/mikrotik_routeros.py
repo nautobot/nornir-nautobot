@@ -87,8 +87,8 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
 
         _running_config = result[0].result
 
-        _running_config = NautobotNornirDriver._remove_lines(logger, _running_config, remove_lines)
-        _running_config = NautobotNornirDriver._substitute_lines(logger, _running_config, substitute_lines)
-        NautobotNornirDriver._save_file(logger, backup_file, _running_config)
+        _running_config = cls._remove_lines(logger, _running_config, remove_lines)
+        _running_config = cls._substitute_lines(logger, _running_config, substitute_lines)
+        cls._save_file(logger, backup_file, _running_config)
 
         return Result(host=task.host, result={"config": _running_config})

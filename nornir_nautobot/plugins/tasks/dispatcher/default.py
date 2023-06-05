@@ -20,7 +20,7 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
-from nornir_napalm.plugins.tasks import napalm_get
+from nornir_napalm.plugins.tasks import napalm_get, napalm_configure
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
@@ -286,3 +286,48 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
         with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
+
+    @staticmethod
+    def provision_config(
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Push candidate configuration to the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The candidate config.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing the running configuration
+                { "config: <running configuration> }
+        """
+        logger.log_success(obj, "Config provision starting")
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
+        if revert_in is not None:
+            revert_in = int(revert_in)
+
+        try:
+            push_result = task.run(
+                task=napalm_configure,
+                configuration=config,
+                replace=True,
+                revert_in=revert_in,
+            )
+        except NornirSubTaskError as exc:
+            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
+            raise NornirNautobotException()
+
+        logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.log_success(obj, "Config provision ended")
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})

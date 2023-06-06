@@ -21,6 +21,8 @@ _DEFAULT_DRIVERS_MAPPING = {
     "mikrotik_routeros_api": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros_api.NautobotNornirDriver",
     "ruckus_fastiron": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_fastiron.NautobotNornirDriver",
     "mikrotik_routeros": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros.NautobotNornirDriver",
+    "ruckus_smartzone_api": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_smartzone_api.NautobotNornirDriver",
+    "ruckus_access_point": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_smartzone_api.NautobotNornirDriver",
 }
 
 

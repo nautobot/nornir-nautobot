@@ -26,22 +26,16 @@ from nornir_netmiko.tasks import netmiko_send_command
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
-RUN_COMMAND_MAPPING = {
-    "default": "show run",
-    "cisco_nxos": "show run",
-    "cisco_ios": "show run",
-    "cisco_xr": "show run",
-    "juniper_junos": "show configuration | display set",
-    "arista_eos": "show run",
-    "ruckus_fastiron": "show running-config",
-}
-
 
 class NautobotNornirDriver:
     """Default collection of Nornir Tasks based on Napalm."""
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    config_command = "show run"
+
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device.
 
         Args:
@@ -283,8 +277,12 @@ class NautobotNornirDriver:
 class NetmikoNautobotNornirDriver(NautobotNornirDriver):
     """Default collection of Nornir Tasks based on Netmiko."""
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    config_command = "show run"
+
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
         Args:
@@ -299,7 +297,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = RUN_COMMAND_MAPPING.get(task.host.platform, RUN_COMMAND_MAPPING["default"])
+        command = cls.config_command
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)

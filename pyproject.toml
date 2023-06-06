@@ -31,6 +31,7 @@ nornir-netmiko = "^0"
 pynautobot = "^1.0.1"
 netutils = "^1"
 routeros-api = {version = "^0.17.0", optional = true}
+httpx = "^0.24.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

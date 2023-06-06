@@ -28,6 +28,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
 
     config_command = [
         "/system/identity",
+        "/user",
         "/interface",
         "/ip/address",
         "/system/ntp/client",

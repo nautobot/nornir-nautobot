@@ -18,6 +18,11 @@ _DEFAULT_DRIVERS_MAPPING = {
     "cisco_xr": "nornir_nautobot.plugins.tasks.dispatcher.cisco_ios_xr.NautobotNornirDriver",
     "juniper_junos": "nornir_nautobot.plugins.tasks.dispatcher.juniper_junos.NautobotNornirDriver",
     "arista_eos": "nornir_nautobot.plugins.tasks.dispatcher.arista_eos.NautobotNornirDriver",
+    "mikrotik_routeros_api": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros_api.NautobotNornirDriver",
+    "ruckus_fastiron": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_fastiron.NautobotNornirDriver",
+    "mikrotik_routeros": "nornir_nautobot.plugins.tasks.dispatcher.mikrotik_routeros.NautobotNornirDriver",
+    "ruckus_smartzone_api": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_smartzone_api.NautobotNornirDriver",
+    "ruckus_access_point": "nornir_nautobot.plugins.tasks.dispatcher.ruckus_smartzone_api.NautobotNornirDriver",
 }
 
 
@@ -44,21 +49,25 @@ def dispatcher(task: Task, method: str, logger, obj, *args, **kwargs) -> Result:
     logger.log_debug(f"Found driver {driver}")
 
     if not driver:
-        logger.log_failure(obj, f"Unable to find the driver for {method} for platform: {task.host.platform}")
-        raise NornirNautobotException()
+        logger.log_failure(
+            obj, f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed."
+        )
+        raise NornirNautobotException(
+            f"Unable to find the driver for {method} for platform: {task.host.platform}, preemptively failed."
+        )
 
     module_name, class_name = driver.rsplit(".", 1)
     driver_class = getattr(importlib.import_module(module_name), class_name)
 
     if not driver_class:
-        logger.log_failure(obj, f"Unable to locate the class {driver}")
-        raise NornirNautobotException()
+        logger.log_failure(obj, f"Unable to locate the class {driver}, preemptively failed.")
+        raise NornirNautobotException(f"Unable to locate the class {driver}, preemptively failed.")
 
     try:
         driver_task = getattr(driver_class, method)
     except AttributeError:
-        logger.log_failure(obj, f"Unable to locate the method {method} for {driver}")
-        raise NornirNautobotException()
+        logger.log_failure(obj, f"Unable to locate the method {method} for {driver}, preemptively failed.")
+        raise NornirNautobotException(f"Unable to locate the method {method} for {driver}, preemptively failed.")
 
     result = task.run(task=driver_task, logger=logger, obj=obj, *args, **kwargs)
 

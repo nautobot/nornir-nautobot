@@ -20,27 +20,22 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
-from nornir_napalm.plugins.tasks import napalm_get
+from nornir_napalm.plugins.tasks import napalm_get, napalm_configure
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
 
-RUN_COMMAND_MAPPING = {
-    "default": "show run",
-    "cisco_nxos": "show run",
-    "cisco_ios": "show run",
-    "cisco_xr": "show run",
-    "juniper_junos": "show configuration | display set",
-    "arista_eos": "show run",
-}
-
 
 class NautobotNornirDriver:
     """Default collection of Nornir Tasks based on Napalm."""
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    config_command = "show run"
+
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device.
 
         Args:
@@ -61,11 +56,15 @@ class NautobotNornirDriver:
         try:
             result = task.run(task=napalm_get, getters=["config"], retrieve="running")
         except NornirSubTaskError as exc:
-            logger.log_failure(obj, f"Failed with a unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException()
+            logger.log_failure(obj, f"`get_config` method failed with an unexpected issue: `{exc.result.exception}`")
+            raise NornirNautobotException(
+                "`get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            )
 
         if result[0].failed:
-            logger.log_failure(obj, f"Failed with a unknown issue. `{str(result.exception)}`")
+            logger.log_failure(
+                obj, f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`"
+            )
             return result
 
         running_config = result[0].result.get("config", {}).get("running", None)
@@ -99,15 +98,15 @@ class NautobotNornirDriver:
             ip_addr = task.host.hostname
         else:
             if not is_fqdn_resolvable(task.host.hostname):
-                logger.log_failure(obj, "not an IP or resolvable.")
-                raise NornirNautobotException("not an IP or resolvable.")
+                logger.log_failure(obj, "There was not an IP or resolvable, preemptively failed.")
+                raise NornirNautobotException("There was not an IP or resolvable, preemptively failed.")
             ip_addr = socket.gethostbyname(task.host.hostname)
 
         # TODO: Allow port to be configurable
         port = 22
         if not tcp_ping(ip_addr, port):
-            logger.log_failure(obj, f"Attempting to connect to IP: {ip_addr} and port: {port} failed.")
-            raise NornirNautobotException(f"Attempting to connect to IP: {ip_addr} and port: {port} failed.")
+            logger.log_failure(obj, f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.")
+            raise NornirNautobotException(f"Could not connect to IP: {ip_addr} and port: {port}, preemptively failed.")
         if not task.host.username:
             logger.log_failure(obj, "There was no username defined, preemptively failed.")
             raise NornirNautobotException("There was no username defined, preemptively failed.")
@@ -136,18 +135,22 @@ class NautobotNornirDriver:
             Result: Nornir Result object with a feature_data key of the compliance data.
         """
         if not os.path.exists(backup_file):
-            logger.log_failure(obj, f"Backup file Not Found at location: `{backup_file}`")
-            raise NornirNautobotException()
+            logger.log_failure(obj, f"Backup file Not Found at location: `{backup_file}`, preemptively failed.")
+            raise NornirNautobotException(f"Backup file Not Found at location: `{backup_file}`, preemptively failed.")
 
         if not os.path.exists(intended_file):
-            logger.log_failure(obj, f"Intended config file NOT Found at location: `{intended_file}`")
-            raise NornirNautobotException()
+            logger.log_failure(
+                obj, f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            )
+            raise NornirNautobotException(
+                f"Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            )
 
         try:
             feature_data = compliance(features, backup_file, intended_file, platform)
         except Exception as error:  # pylint: disable=broad-except
             logger.log_failure(obj, f"UNKNOWN Failure of: {str(error)}")
-            raise NornirNautobotException()
+            raise NornirNautobotException(f"UNKNOWN Failure of: {str(error)}")
         return Result(host=task.host, result={"feature_data": feature_data})
 
     @staticmethod
@@ -188,22 +191,30 @@ class NautobotNornirDriver:
                     obj,
                     f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException()
+                raise NornirNautobotException(
+                    f"There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
                 logger.log_failure(
                     obj,
                     f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException()
+                raise NornirNautobotException(
+                    f"There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
                 logger.log_failure(
                     obj,
                     f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``",
                 )
-                raise NornirNautobotException()
+                raise NornirNautobotException(
+                    f"There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
+                )
             elif isinstance(exc.result.exception, jinja2.TemplateError):
                 logger.log_failure(obj, f"There was an issue general Jinja error: ``{str(exc.result.exception)}``")
-                raise NornirNautobotException()
+                raise NornirNautobotException(
+                    f"There was an issue general Jinja error: ``{str(exc.result.exception)}``"
+                )
             raise
 
         make_folder(os.path.dirname(output_file_location))
@@ -211,12 +222,67 @@ class NautobotNornirDriver:
             filehandler.write(filled_template)
         return Result(host=task.host, result={"config": filled_template})
 
+    @staticmethod
+    def _remove_lines(logger, _running_config: str, remove_lines: list) -> str:
+        """Removes lines in configuration as specified in Remove Lines list.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            remove_lines (list): A list of regex lines to remove configurations.
+
+        Returns:
+            Result: Clean running configuration if remove lines set.
+        """
+        if not remove_lines:
+            return _running_config
+        logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+        return clean_config(_running_config, remove_lines)
+
+    @staticmethod
+    def _substitute_lines(logger, _running_config: str, substitute_lines: list) -> str:
+        """Substitutes lines in configuration as specified in substitute Lines list.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+
+        Returns:
+            Result: running configuration with substitutions.
+        """
+        if not substitute_lines:
+            return _running_config
+        logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+        return sanitize_config(_running_config, substitute_lines)
+
+    @staticmethod
+    def _save_file(logger, backup_file: str, _running_config: str) -> None:
+        """Saves Running Configuration to a specified file.
+
+        Args:
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            _running_config (str): a device running configuration.
+            backup_file (str): String representing backup file path.
+
+        Returns:
+            Result: Running Config is saved into backup file path.
+        """
+        make_folder(os.path.dirname(backup_file))
+        logger.log_debug(f"Saving Configuration to file: {backup_file}")
+        with open(backup_file, "w", encoding="utf8") as filehandler:
+            filehandler.write(_running_config)
+
 
 class NetmikoNautobotNornirDriver(NautobotNornirDriver):
     """Default collection of Nornir Tasks based on Netmiko."""
 
-    @staticmethod
-    def get_config(task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list) -> Result:
+    config_command = "show run"
+
+    @classmethod
+    def get_config(
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
         Args:
@@ -231,21 +297,21 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
                 { "config: <running configuration> }
         """
         logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = RUN_COMMAND_MAPPING.get(task.host.platform, RUN_COMMAND_MAPPING["default"])
+        command = cls.config_command
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 logger.log_failure(obj, f"Failed with an authentication issue: `{exc.result.exception}`")
-                raise NornirNautobotException()
+                raise NornirNautobotException(f"Failed with an authentication issue: `{exc.result.exception}`")
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
                 logger.log_failure(obj, f"Failed with a timeout issue. `{exc.result.exception}`")
-                raise NornirNautobotException()
+                raise NornirNautobotException(f"Failed with a timeout issue. `{exc.result.exception}`")
 
             logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException()
+            raise NornirNautobotException(f"Failed with an unknown issue. `{exc.result.exception}`")
 
         if result[0].failed:
             return result
@@ -255,7 +321,7 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
             logger.log_failure(obj, "Discovered `ERROR: % Invalid input detected at` in the output")
-            raise NornirNautobotException()
+            raise NornirNautobotException("Discovered `ERROR: % Invalid input detected at` in the output")
 
         if remove_lines:
             logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
@@ -269,3 +335,48 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
         with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
+
+    @staticmethod
+    def provision_config(
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Push candidate configuration to the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The candidate config.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing the running configuration
+                { "config: <running configuration> }
+        """
+        logger.log_success(obj, "Config provision starting")
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
+        if revert_in is not None:
+            revert_in = int(revert_in)
+
+        try:
+            push_result = task.run(
+                task=napalm_configure,
+                configuration=config,
+                replace=True,
+                revert_in=revert_in,
+            )
+        except NornirSubTaskError as exc:
+            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
+            raise NornirNautobotException()
+
+        logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.log_success(obj, "Config provision ended")
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})

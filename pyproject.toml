@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir-nautobot"
-version = "2.3.0"
+version = "2.4.0"
 description = "Nornir Nautobot"
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
@@ -25,11 +25,13 @@ python = "^3.7"
 nornir = "^3.0.0"
 requests = "^2.25.1"
 nornir-utils = "^0"
-nornir-napalm = "^0"
+nornir-napalm = ">=0.4.0 <1.0.0"
 nornir-jinja2 = "^0"
 nornir-netmiko = "^0"
 pynautobot = "^1.0.1"
 netutils = "^1"
+routeros-api = {version = "^0.17.0", optional = true}
+httpx = "^0.24.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -44,6 +46,15 @@ invoke = "*"
 toml = "*"
 flake8 = "*"
 pydantic = {version = "^1.7.2", extras = ["dotenv"]}
+# documentation dependencies
+mkdocs = "1.3.1"
+mkdocs-material = "8.3.9"
+mkdocstrings = "0.19"
+mkdocstrings-python = "0.7.1"
+mkdocs-version-annotations = "1.0.0"
+
+[tool.poetry.extras]
+mikrotik_driver = ["routeros-api"]
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "NautobotInventory" = "nornir_nautobot.plugins.inventory.nautobot:NautobotInventory"

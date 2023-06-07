@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.4.0
+
+- (#61) Be more clear on error messages by @itdependsnetworks
+- (#66) Add basic typing to the methods in logger by @KalleDK
+- (#75) Documentation refactor by @susanhooks
+- (#77) added ICX/Fastiron Nornir Driver by @pato23arg
+- (#78) Fix RTD docs build by @cmsirbu
+- (#83) Adds provision_config method by @joewesch
+- (#76) Mikrotik RouterOS CLI Support by @pato23arg
+- (#79) Mikrotik RouterOS API support by @pato23arg
+- (#85) Ruckus Smartzone WLC and Access Point Driver by @pato23arg
+
+## New Contributors
+* @KalleDK made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/66
+* @susanhooks made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/75
+* @pato23arg made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/77
+* @cmsirbu made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/78
+* @joewesch made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/83
+
 ## v2.3.0
 
 - (#67) fix pylint, tests, and drop py36 support #67

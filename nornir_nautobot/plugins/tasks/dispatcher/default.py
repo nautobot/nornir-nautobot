@@ -76,10 +76,11 @@ class NautobotNornirDriver:
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
-        make_folder(os.path.dirname(backup_file))
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
 
     @staticmethod
@@ -330,10 +331,11 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
-        make_folder(os.path.dirname(backup_file))
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
 
     @staticmethod

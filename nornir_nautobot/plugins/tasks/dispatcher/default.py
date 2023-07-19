@@ -297,8 +297,7 @@ class NautobotNornirDriver:
             NornirNautobotException: Other exception.
 
         Returns:
-            Result: Nornir Result object with a dict as a result containing the running configuration
-                { "config: <running configuration> }
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         logger.log_success(obj, "Config provision starting")
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
@@ -342,8 +341,7 @@ class NautobotNornirDriver:
             NornirNautobotException: Other exception.
 
         Returns:
-            Result: Nornir Result object with a dict as a result containing the running configuration
-                { "config: <running configuration> }
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         logger.log_success(obj, "Config merge starting")
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.

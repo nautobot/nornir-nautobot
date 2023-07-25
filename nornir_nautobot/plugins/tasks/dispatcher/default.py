@@ -1,6 +1,7 @@
 """default driver for the network_importer."""
 # pylint: disable=raise-missing-from,too-many-arguments
 
+import logging
 import os
 import socket
 from typing import Optional
@@ -25,6 +26,9 @@ from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
+
+
+_logger = logging.getLogger(__name__)
 
 
 class NautobotNornirDriver:
@@ -276,8 +280,15 @@ class NautobotNornirDriver:
         with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(_running_config)
 
+    def provision_config(self, *args, **kwargs):
+        """This method is being deprecated. Please use replace_config instead."""
+        _logger.warning(
+            "WARNING: The method 'provision_config()' will be removed in the next major release. Please use 'replace_config()' instead."
+        )
+        return self.replace_config(*args, **kwargs)
+
     @staticmethod
-    def provision_config(
+    def replace_config(
         task: Task,
         logger,
         obj,

@@ -3,6 +3,7 @@
 ## v2.5.0
 
 - (#93) Updates Nornir-Netmiko to 1.0.0 release
+- (#97) Adds Jinja Environment execution option
 
 ## v2.4.0
 

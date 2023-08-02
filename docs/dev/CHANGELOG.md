@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.5.0
+
+- (#93) Updates Nornir-Netmiko to 1.0.0 release
+- (#97) Adds Jinja Environment option to generate_config
+
 ## v2.4.0
 
 - (#61) Be more clear on error messages by @itdependsnetworks

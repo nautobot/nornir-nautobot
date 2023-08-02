@@ -162,6 +162,7 @@ class NautobotNornirDriver:
         jinja_root_path: str,
         output_file_location: str,
         jinja_filters: Optional[dict] = None,
+        jinja_env: Optional[jinja2.Environment] = None,
     ) -> Result:
         """A small wrapper around template_file Nornir task.
 
@@ -172,6 +173,7 @@ class NautobotNornirDriver:
             jinja_template (str): The file location of the actual Jinja template.
             jinja_root_path (str): The file folder where the file will be saved to.
             jinja_filters (dict): The filters which will be added to the jinja2 environment.
+            jinja_env (jinja2.Environment): The jinja2 environment to use. If not provided, nornir will create one.
             output_file_location (str): The filename where the file will be saved to.
 
         Returns:
@@ -184,6 +186,7 @@ class NautobotNornirDriver:
                 template=jinja_template,
                 path=jinja_root_path,
                 jinja_filters=jinja_filters,
+                jinja_env=jinja_env,
             )[0].result
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, jinja2.exceptions.UndefinedError):  # pylint: disable=no-else-raise

@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.6.0
+
+- (#96) Changes backup_file to be conditional for get_config
+- (#98) Adds merge_config method
+
 ## v2.5.0
 
 - (#93) Updates Nornir-Netmiko to 1.0.0 release

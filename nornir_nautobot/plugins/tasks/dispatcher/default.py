@@ -1,6 +1,7 @@
 """default driver for the network_importer."""
 # pylint: disable=raise-missing-from,too-many-arguments
 
+import logging
 import os
 import socket
 from typing import Optional
@@ -25,6 +26,9 @@ from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
+
+
+_logger = logging.getLogger(__name__)
 
 
 class NautobotNornirDriver:
@@ -76,10 +80,11 @@ class NautobotNornirDriver:
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
-        make_folder(os.path.dirname(backup_file))
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
 
     @staticmethod
@@ -276,6 +281,101 @@ class NautobotNornirDriver:
         with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(_running_config)
 
+    def provision_config(self, *args, **kwargs):
+        """This method is being deprecated. Please use replace_config instead."""
+        _logger.warning(
+            "WARNING: The method 'provision_config()' will be removed in the next major release. Please use 'replace_config()' instead."
+        )
+        return self.replace_config(*args, **kwargs)
+
+    @staticmethod
+    def replace_config(
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Push candidate configuration to the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The candidate config.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+        """
+        logger.log_success(obj, "Config provision starting")
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
+        if revert_in is not None:
+            revert_in = int(revert_in)
+
+        try:
+            push_result = task.run(
+                task=napalm_configure,
+                configuration=config,
+                replace=True,
+                revert_in=revert_in,
+            )
+        except NornirSubTaskError as exc:
+            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
+            raise NornirNautobotException()
+
+        logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.log_success(obj, "Config provision ended")
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+
+    @staticmethod
+    def merge_config(
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Send configuration to merge on the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The config set.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+        """
+        logger.log_success(obj, "Config merge starting")
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
+        if revert_in is not None:
+            revert_in = int(revert_in)
+
+        try:
+            push_result = task.run(
+                task=napalm_configure,
+                configuration=config,
+                replace=False,
+                revert_in=revert_in,
+            )
+        except NornirSubTaskError as exc:
+            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
+            raise NornirNautobotException()
+
+        logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.log_success(obj, "Config merge ended")
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+
 
 class NetmikoNautobotNornirDriver(NautobotNornirDriver):
     """Default collection of Nornir Tasks based on Netmiko."""
@@ -333,53 +433,9 @@ class NetmikoNautobotNornirDriver(NautobotNornirDriver):
             logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
-        make_folder(os.path.dirname(backup_file))
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
 
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
-
-    @staticmethod
-    def provision_config(
-        task: Task,
-        logger,
-        obj,
-        config: str,
-    ) -> Result:
-        """Push candidate configuration to the device.
-
-        Args:
-            task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
-            obj (Device): A Nautobot Device Django ORM object instance.
-            config (str): The candidate config.
-
-        Raises:
-            NornirNautobotException: Authentication error.
-            NornirNautobotException: Timeout error.
-            NornirNautobotException: Other exception.
-
-        Returns:
-            Result: Nornir Result object with a dict as a result containing the running configuration
-                { "config: <running configuration> }
-        """
-        logger.log_success(obj, "Config provision starting")
-        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
-        revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
-        if revert_in is not None:
-            revert_in = int(revert_in)
-
-        try:
-            push_result = task.run(
-                task=napalm_configure,
-                configuration=config,
-                replace=True,
-                revert_in=revert_in,
-            )
-        except NornirSubTaskError as exc:
-            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException()
-
-        logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
-        logger.log_success(obj, "Config provision ended")
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})

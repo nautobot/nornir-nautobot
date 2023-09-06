@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults) -> Host:
-    host_platform = getattr(data["pynautobot_object"].platform, "slug", None)
+    host_platform = getattr(data["pynautobot_object"].platform, "network_driver", None)
     connection_option = {}
     for key, value in data.get("connection_options", {}).items():
         connection_option[key] = ConnectionOptions(
@@ -106,6 +106,7 @@ class NautobotInventory:  # pylint: disable=R0902
         """
         if self._pynautobot_obj is None:
             self._pynautobot_obj = pynautobot.api(self.nautobot_url, token=self.nautobot_token)
+            self.api_session.params = {"depth": 1}
             self._pynautobot_obj.http_session = self.api_session
 
         return self._pynautobot_obj
@@ -120,8 +121,8 @@ class NautobotInventory:  # pylint: disable=R0902
             else:
                 try:
                     self._devices = self.pynautobot_obj.dcim.devices.filter(**self.filter_parameters)
-                except pynautobot.core.query.RequestError:
-                    print("Error in the query filters. Please verify the parameters.")
+                except pynautobot.core.query.RequestError as err:
+                    print(f"Error in the query filters: {err.error}. Please verify the parameters.")
                     sys.exit(1)
 
         return self._devices
@@ -151,7 +152,7 @@ class NautobotInventory:  # pylint: disable=R0902
 
             # Add Primary IP address, if found. Otherwise add hostname as the device name
             host["hostname"] = (
-                str(ipaddress.IPv4Interface(device.primary_ip.address).ip) if device["primary_ip"] else device["name"]
+                str(ipaddress.IPv4Interface(device.primary_ip4.address).ip) if device["primary_ip4"] else device["name"]
             )
             host["name"] = device.name or str(device.id)
             host["groups"] = []

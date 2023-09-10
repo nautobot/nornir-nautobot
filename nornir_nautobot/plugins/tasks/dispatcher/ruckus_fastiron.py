@@ -1,9 +1,9 @@
-"""network_importer driver for Ruckus ICX/FastIron Switches."""
+"""nornir dispatcher for Ruckus ICX/FastIron Switches."""
 
-from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
+from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 
 
-class NautobotNornirDriver(DefaultNautobotNornirDriver):
+class NetmikoRuckusFastiron(NetmikoDefault):
     """Driver for Ruckus ICX/FastIron Switches."""
 
     config_command = "show running-config"

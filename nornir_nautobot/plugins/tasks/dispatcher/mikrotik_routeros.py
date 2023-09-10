@@ -1,21 +1,114 @@
-"""network_importer driver for Mikrotik Router OS."""
+"""nornir dispatcher for Mikrotik Router OS."""
+# pylint: disable=raise-missing-from
+
+import os
+import ssl
+import json
 
 try:
-    from netmiko.ssh_exception import NetmikoAuthenticationException, NetmikoTimeoutException
+    import routeros_api  # pylint: disable=E0401
 except ImportError:
-    from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
+    routeros_api = None
+
+from netutils.config.clean import clean_config, sanitize_config
+
+from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
+from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin, NetmikoDefault
+from nornir_nautobot.utils.helpers import make_folder
 
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
 
-class NautobotNornirDriver(DefaultNautobotNornirDriver):
+class ApiMikrotikRouteros(DispatcherMixin):
+    """Default collection of Nornir Tasks based on Napalm."""
+
+    tcp_port = 8729
+
+    config_command = [
+        "/system/identity",
+        "/user",
+        "/interface",
+        "/ip/address",
+        "/system/ntp/client",
+        "/ip/dns",
+        "/snmp/community",
+        "/system/logging/action",
+    ]
+
+    @classmethod
+    def get_config(  # pylint: disable=R0913,R0914
+        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    ) -> Result:
+        """Get the latest configuration from the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            backup_file (str): The file location of where the back configuration should be saved.
+            remove_lines (list): A list of regex lines to remove configurations.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing the running configuration
+                { "config: <running configuration> }
+        """
+        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        if not routeros_api:
+            error_msg = "E1020: The `routeros_api` is not installed in this environment."
+            logger.log_error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        sslctx = ssl.create_default_context()
+        sslctx.set_ciphers("ADH-AES256-GCM-SHA384:ADH-AES256-SHA256:@SECLEVEL=0")
+        connection = routeros_api.RouterOsApiPool(
+            task.host.hostname,
+            username=task.host.username,
+            password=task.host.password,
+            use_ssl=True,
+            ssl_context=sslctx,
+            plaintext_login=True,
+        )
+        config_data = {}
+        try:
+            api = connection.get_api()
+        except Exception as error:
+            error_msg = f"E1021: `get_config` method failed with an unexpected issue: `{error}`"
+            logger.log_error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+        for endpoint in cls.config_command:
+            try:
+                resource = api.get_resource(endpoint)
+                config_data[endpoint] = resource.get()
+            except Exception as error:
+                error_msg = f"E1022: `get_config` method failed with an unexpected issue: `{error}`"
+                logger.log_error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+        connection.disconnect()
+        running_config = json.dumps(config_data, indent=4)
+        if remove_lines:
+            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+            running_config = clean_config(running_config, remove_lines)
+
+        if substitute_lines:
+            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+            running_config = sanitize_config(running_config, substitute_lines)
+
+        make_folder(os.path.dirname(backup_file))
+
+        with open(backup_file, "w", encoding="utf8") as filehandler:
+            filehandler.write(running_config)
+        return Result(host=task.host, result={"config": running_config})
+
+
+class NetmikoMikrotekRouteros(NetmikoDefault):
     """Driver for Mikrotik Router OS."""
 
     config_command = "export terse"
@@ -46,21 +139,18 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             result = task.run(task=netmiko_send_command, command_string=cls.version_command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                logger.log_failure(obj, f"Failed with an authentication issue: `{exc.result.exception}`")
-                raise NornirNautobotException(  # pylint: disable=W0707
-                    f"Failed with an authentication issue: `{exc.result.exception}`"
-                )
+                error_msg = f"E1017: Failed with an authentication issue: `{exc.result.exception}`"
+                logger.log_error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
-                logger.log_failure(obj, f"Failed with a timeout issue. `{exc.result.exception}`")
-                raise NornirNautobotException(  # pylint: disable=W0707
-                    f"Failed with a timeout issue. `{exc.result.exception}`"
-                )
+                error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
+                logger.log_error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
 
-            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
-            raise NornirNautobotException(  # pylint: disable=W0707
-                f"Failed with an unknown issue. `{exc.result.exception}`"
-            )
+            error_msg = f"E1016: Failed with an unknown issue. `{exc.result.exception}`"
+            logger.log_error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
 
         if result[0].failed:
             return result
@@ -77,7 +167,7 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         try:
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
-            logger.log_failure(obj, f"Failed with an unknown issue. `{exc.result.exception}`")
+            logger.log_error(f"Failed with an unknown issue. `{exc.result.exception}`", extra={"object": obj})
             raise NornirNautobotException(  # pylint: disable=W0707
                 f"Failed with an unknown issue. `{exc.result.exception}`"
             )

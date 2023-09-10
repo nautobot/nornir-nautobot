@@ -1,7 +1,7 @@
 """Tasks for use with Invoke."""
 import os
 import sys
-from distutils.util import strtobool
+from distutils.util import strtobool  # pylint: disable=deprecated-module
 
 from invoke import task
 
@@ -9,12 +9,6 @@ try:
     import toml
 except ImportError:
     sys.exit("Please make sure to `pip install toml` or enable the Poetry shell and run `poetry install`.")
-
-
-def project_ver():
-    """Find version from pyproject.toml to use for docker image tagging."""
-    with open("pyproject.toml", encoding="utf-8") as file:
-        return toml.load(file)["tool"]["poetry"].get("version", "latest")
 
 
 def is_truthy(arg):
@@ -32,26 +26,31 @@ def is_truthy(arg):
     return bool(strtobool(arg))
 
 
+PYPROJECT_CONFIG = toml.load("pyproject.toml")
+TOOL_CONFIG = PYPROJECT_CONFIG["tool"]["poetry"]
+
 # Can be set to a separate Python version to be used for launching or building image
-PYTHON_VER = os.getenv("PYTHON_VER", "3.7")
+PYTHON_VER = os.getenv("PYTHON_VER", "3.11")
 # Name of the docker image/image
-NAME = os.getenv("IMAGE_NAME", f"nornir-nautobot-py{PYTHON_VER}")
+IMAGE_NAME = os.getenv("IMAGE_NAME", TOOL_CONFIG["name"])
 # Tag for the image
-IMAGE_VER = os.getenv("IMAGE_VER", project_ver())
+IMAGE_VER = os.getenv("IMAGE_VER", f"{TOOL_CONFIG['version']}-py{PYTHON_VER}")
 # Gather current working directory for Docker commands
 PWD = os.getcwd()
 # Local or Docker execution provide "local" to run locally without docker execution
 INVOKE_LOCAL = is_truthy(os.getenv("INVOKE_LOCAL", False))  # pylint: disable=W1508
+# Get project name from the toml file
+PROJECT_NAME = PYPROJECT_CONFIG["tool"]["poetry"]["name"]
+# Get current project version from the toml file
+PROJECT_VERSION = PYPROJECT_CONFIG["tool"]["poetry"]["version"]
 
 
-def run_cmd(context, exec_cmd, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
+def run_cmd(context, exec_cmd, local=INVOKE_LOCAL, port=None):
     """Wrapper to run the invoke task commands.
 
     Args:
         context ([invoke.task]): Invoke task object.
         exec_cmd ([str]): Command to run.
-        name ([str], optional): Image name to use if exec_env is `docker`. Defaults to NAME.
-        image_ver ([str], optional): Version of image to use if exec_env is `docker`. Defaults to IMAGE_VER.
         local (bool): Define as `True` to execute locally
 
     Returns:
@@ -61,229 +60,215 @@ def run_cmd(context, exec_cmd, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCA
         print(f"LOCAL - Running command {exec_cmd}")
         result = context.run(exec_cmd, pty=True)
     else:
-        print(f"DOCKER - Running command: {exec_cmd} container: {name}:{image_ver}")
-        result = context.run(f"docker run -it -v {PWD}:/local {name}:{image_ver} sh -c '{exec_cmd}'", pty=True)
+        print(f"DOCKER - Running command: {exec_cmd} container: {IMAGE_NAME}:{IMAGE_VER}")
+        if port:
+            result = context.run(
+                f"docker run -it -p {port} -v {PWD}:/local {IMAGE_NAME}:{IMAGE_VER} sh -c '{exec_cmd}'", pty=True
+            )
+        else:
+            result = context.run(
+                f"docker run -it -v {PWD}:/local {IMAGE_NAME}:{IMAGE_VER} sh -c '{exec_cmd}'", pty=True
+            )
 
     return result
 
 
 @task
-def build(
-    context, name=NAME, python_ver=PYTHON_VER, image_ver=IMAGE_VER, nocache=False, forcerm=False
-):  # pylint: disable=too-many-arguments
-    """Builds an image with the provided name and python version.
+def build(context, nocache=False, forcerm=False, hide=False):  # pylint: disable=too-many-arguments
+    """Build a Docker image.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        python_ver (str): Define the Python version docker image to build from
-        image_ver (str): Define image version
         nocache (bool): Do not use cache when building the image
         forcerm (bool): Always remove intermediate containers
+        hide (bool): Hide output of Docker image build
     """
-    print(f"Building image {name}:{image_ver}")
-    command = f"docker build --tag {name}:{image_ver} --build-arg PYTHON_VER={python_ver} -f Dockerfile ."
+    print(f"Building image {IMAGE_NAME}:{IMAGE_VER}")
+    command = f"docker build --tag {IMAGE_NAME}:{IMAGE_VER} --build-arg PYTHON_VER={PYTHON_VER} -f Dockerfile ."
 
     if nocache:
         command += " --no-cache"
     if forcerm:
         command += " --force-rm"
 
-    result = context.run(command, hide=True)
+    result = context.run(command, hide=hide)
     if result.exited != 0:
-        print(f"Failed to build image {name}:{image_ver}\nError: {result.stderr}")
+        print(f"Failed to build image {IMAGE_NAME}:{IMAGE_VER}\nError: {result.stderr}")
 
 
 @task
-def clean_image(context, name=NAME, image_ver=IMAGE_VER):
-    """Removes the specific image.
+def clean(context):
+    """Remove the project specific image.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
     """
-    print(f"Attempting to forcefully remove image {name}:{image_ver}")
-    context.run(f"docker rmi {name}:{image_ver} --force")
-    print(f"Successfully removed image {name}:{image_ver}")
+    print(f"Attempting to forcefully remove image {IMAGE_NAME}:{IMAGE_VER}")
+    context.run(f"docker rmi {IMAGE_NAME}:{IMAGE_VER} --force")
+    print(f"Successfully removed image {IMAGE_NAME}:{IMAGE_VER}")
 
 
 @task
-def rebuild_image(context, name=NAME, python_ver=PYTHON_VER, image_ver=IMAGE_VER):
-    """Cleans the image and then rebuild image without using cache.
+def rebuild(context):
+    """Clean the Docker image and then rebuild without using cache.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        python_ver (str): Define the Python version docker image to build from
-        image_ver (str): Define image version
     """
-    clean_image(context, name, image_ver)
-    build(context, name, python_ver, image_ver)
+    clean(context)
+    build(context)
 
 
 @task
-def pytest(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs pytest for the specified name and Python version.
+def coverage(context, local=INVOKE_LOCAL):
+    """Run the coverage report against pytest.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Will use the container version docker image
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
-    # Install python module
+    exec_cmd = "coverage run --source=nornir_nautobot -m pytest"
+    run_cmd(context, exec_cmd, local)
+    run_cmd(context, "coverage report", local)
+    run_cmd(context, "coverage html", local)
+
+
+@task
+def pytest(context, local=INVOKE_LOCAL):
+    """Run pytest for the specified name and Python version.
+
+    Args:
+        context (obj): Used to run specific commands
+        local (bool): Define as `True` to execute locally
+    """
     exec_cmd = "pytest -vv"
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def black(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs black to check that Python files adherence to black standards.
+def black(context, local=INVOKE_LOCAL):
+    """Run black to check that Python files adherence to black standards.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = "black --check --diff ."
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def flake8(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs flake8 for the specified name and Python version.
+def flake8(context, local=INVOKE_LOCAL):
+    """Run flake8 for the specified name and Python version.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = "flake8 ."
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def pylint(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs pylint for the specified name and Python version.
+def pylint(context, local=INVOKE_LOCAL):
+    """Run pylint for the specified name and Python version.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = 'find . -name "*.py" | xargs pylint'
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def yamllint(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs yamllint to validate formatting adheres to NTC defined YAML standards.
+def yamllint(context, local=INVOKE_LOCAL):
+    """Run yamllint to validate formatting adheres to NTC defined YAML standards.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = "yamllint ."
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def pydocstyle(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs pydocstyle to validate docstring formatting adheres to NTC defined standards.
+def pydocstyle(context, local=INVOKE_LOCAL):
+    """Run pydocstyle to validate docstring formatting adheres to NTC defined standards.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = "pydocstyle ."
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def bandit(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs bandit to validate basic static code security analysis.
+def bandit(context, local=INVOKE_LOCAL):
+    """Run bandit to validate basic static code security analysis.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    # pty is set to true to properly run the docker commands due to the invocation process of docker
-    # https://docs.pyinvoke.org/en/latest/api/runners.html - Search for pty for more information
     exec_cmd = "bandit --recursive ./ --configfile .bandit.yml"
-    run_cmd(context, exec_cmd, name, image_ver, local)
+    run_cmd(context, exec_cmd, local)
 
 
 @task
-def cli(context, name=NAME, image_ver=IMAGE_VER):
-    """Enters the image to perform troubleshooting or dev work.
+def mypy(context, local=INVOKE_LOCAL):
+    """Run mypy to validate typing-hints.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
+        local (bool): Define as `True` to execute locally
     """
-    dev = f"docker run -it -v {PWD}:/local {name}:{image_ver} /bin/bash"
+    exec_cmd = "mypy ./nornir_nautobot"
+    run_cmd(context, exec_cmd, local)
+
+
+@task
+def cli(context):
+    """Enter the image to perform troubleshooting or dev work.
+
+    Args:
+        context (obj): Used to run specific commands
+    """
+    dev = f"docker run -it -v {PWD}:/local {IMAGE_NAME}:{IMAGE_VER} /bin/bash"
     context.run(f"{dev}", pty=True)
 
 
 @task
-def lint(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs all tests for the specified name and Python version.
+def tests(context, local=INVOKE_LOCAL):
+    """Run all tests for the specified name and Python version.
 
     Args:
         context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
         local (bool): Define as `True` to execute locally
     """
-    black(context, name, image_ver, local)
-    flake8(context, name, image_ver, local)
-    pylint(context, name, image_ver, local)
-    yamllint(context, name, image_ver, local)
-    pydocstyle(context, name, image_ver, local)
-    bandit(context, name, image_ver, local)
+    black(context, local)
+    flake8(context, local)
+    pylint(context, local)
+    yamllint(context, local)
+    pydocstyle(context, local)
+    bandit(context, local)
+    # mypy(context, local)
+    pytest(context, local)
 
-    print("All linting has passed!")
+    print("All tests have passed!")
 
 
 @task
-def tests(context, name=NAME, image_ver=IMAGE_VER, local=INVOKE_LOCAL):
-    """Runs all tests for the specified name and Python version.
+def clean_container(context):
+    """Remove stopped containers that source for image `nornir_nautobot:`."""
+    exec_cmd = """docker container rm $(docker container ls -a | grep -E "^\S+\s+nornir_nautobot:" | awk 'NR>1 {print $1}')"""  # noqa: W605 # pylint:disable=anomalous-backslash-in-string
+    run_cmd(context, exec_cmd, local=True)
 
-    Args:
-        context (obj): Used to run specific commands
-        name (str): Used to name the docker image
-        image_ver (str): Define image version
-        local (bool): Define as `True` to execute locally
-    """
-    black(context, name, image_ver, local)
-    flake8(context, name, image_ver, local)
-    pylint(context, name, image_ver, local)
-    yamllint(context, name, image_ver, local)
-    pydocstyle(context, name, image_ver, local)
-    bandit(context, name, image_ver, local)
-    pytest(context, name, image_ver, local)
 
-    print("All tests have passed!")
+@task
+def docs(context, local=INVOKE_LOCAL):
+    """Build and serve docs locally for development."""
+    exec_cmd = "mkdocs serve -v --dev-addr=0.0.0.0:8001"
+    run_cmd(context, exec_cmd, local, port="8001:8001")

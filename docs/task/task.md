@@ -12,7 +12,7 @@ The only task plugin currently is the "dispatcher" plugin. This plugin dispatche
     try:
         driver_task = getattr(driver_class, method)
     except AttributeError:
-        logger.log_failure(obj, f"Unable to locate the method {method} for {driver}")
+        logger.log_error(obj, f"Unable to locate the method {method} for {driver}")
         raise NornirNautobotException()
 
     result = task.run(task=driver_task, *args, **kwargs)
@@ -24,8 +24,8 @@ The only task plugin currently is the "dispatcher" plugin. This plugin dispatche
 class NautobotNornirDriver:
     """Default collection of Nornir Tasks based on Napalm."""
 
-    @staticmethod
-    def get_config(task: Task, backup_file: str, *args, **kwargs) -> Result:
+    @classmethod
+    def get_config(cls, task: Task, backup_file: str, *args, **kwargs) -> Result:
 ```
 
 ## Calling Dispatcher

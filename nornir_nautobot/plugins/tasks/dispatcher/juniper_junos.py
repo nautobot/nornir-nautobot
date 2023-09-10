@@ -1,9 +1,13 @@
-"""default network_importer driver for Juniper."""
+"""nornir dispatcher for Juniper Junos."""
 
-from .default import NetmikoNautobotNornirDriver as DefaultNautobotNornirDriver
+from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
 
 
-class NautobotNornirDriver(DefaultNautobotNornirDriver):
-    """Collection of Nornir Tasks specific to Juniper Junos devices."""
+class NapalmJuniperJunos(NapalmDefault):
+    """Collection of Napalm Nornir Tasks specific to Juniper JUNOS devices."""
+
+
+class NetmikoJuniperJunos(NetmikoDefault):
+    """Collection of Netmiko Nornir Tasks specific to Juniper JUNOS devices."""
 
     config_command = "show configuration | display set"

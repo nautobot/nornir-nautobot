@@ -48,10 +48,17 @@ For each of the examples the locations correspond to the first three letters of 
 
 ### Filtering Example: Select from single location
 
-To filter from a single location you can use the filter location to get the devices at a single location based on the **name** for the location:
+To filter from a single location you can use the filter location to get the devices at a single location based on the **Primary Key** for the location:
+
+> NOTE: Location names do not guarantee uniqueness in Nautobot 2.0.
+> 
+> See this document for more information:
+> 
+> https://docs.nautobot.com/projects/core/en/next/development/apps/api/platform-features/uniquely-identify-objects/
+
 
 ```python
-location = "msp"
+location = "db913e3b-cbe0-4463-addc-816ba6a20100"
 
 my_nornir = InitNornir(
     inventory={
@@ -81,10 +88,10 @@ dict_keys(['msp-rtr01', 'msp-rtr02'])
 
 ### Filter Example: Multiple Locations
 
-To search within multiple locations, pass a list of location names. In the example below, it is the same as the previous example with a list passed in instead of a single string.
+To search within multiple locations, pass a list of location Primary Keys. In the example below, it is the same as the previous example with a list passed in instead of a single string.
 
 ```python
-location = ["msp", "grb"]
+location = ["db913e3b-cbe0-4463-addc-816ba6a20100", "6f09aa66-96be-4b4d-955a-9c98e488f0e6"]
 
 my_nornir = InitNornir(
     inventory={
@@ -116,7 +123,7 @@ dict_keys(['grb-rtr01', 'msp-rtr01', 'msp-rtr02'])
 The negative filters also are supported. These are all of the filters possible. Here we will search for devices **not** at _MSP_:
 
 ```python
-not_location = "msp"
+not_location = "db913e3b-cbe0-4463-addc-816ba6a20100"
 
 my_nornir = InitNornir(
     inventory={

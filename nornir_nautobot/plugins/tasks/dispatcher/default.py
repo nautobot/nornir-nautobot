@@ -268,7 +268,8 @@ class NapalmDefault(DispatcherMixin):
         if result[0].failed:
             # TODO: investigate this, is there a better way to handle? recursive function?
             logger.log_error(
-                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`", extra={"object": obj}
+                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`",
+                extra={"object": obj},
             )
             return result
 

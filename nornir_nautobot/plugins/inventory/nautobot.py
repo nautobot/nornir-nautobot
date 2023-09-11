@@ -152,7 +152,11 @@ class NautobotInventory:  # pylint: disable=R0902
 
             # Add Primary IP address, if found. Otherwise add hostname as the device name
             host["hostname"] = (
-                str(ipaddress.IPv4Interface(device.primary_ip4.address).ip) if device["primary_ip4"] else device["name"]
+                str(ipaddress.IPv4Interface(device.primary_ip4.address).ip)
+                if device["primary_ip4"]
+                else str(ipaddress.IPv6Interface(device.primary_ip6.address).ip)
+                if device["primary_ip6"]
+                else device["name"]
             )
             host["name"] = device.name or str(device.id)
             host["groups"] = []

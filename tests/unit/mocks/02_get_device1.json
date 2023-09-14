@@ -7,7 +7,7 @@
             "id": 5,
             "url": "http://nautobot-demo.com/api/dcim/devices/5/",
             "name": "den-dist01",
-            "display_name": "den-dist01",
+            "display": "den-dist01",
             "device_type": {
                 "id": 3,
                 "url": "http://nautobot-demo.com/api/dcim/device-types/3/",
@@ -19,9 +19,9 @@
                 },
                 "model": "IOSv",
                 "slug": "iosv",
-                "display_name": "Cisco IOSv"
+                "display": "Cisco IOSv"
             },
-            "device_role": {
+            "role": {
                 "id": 2,
                 "url": "http://nautobot-demo.com/api/dcim/device-roles/2/",
                 "name": "Network",
@@ -32,13 +32,13 @@
                 "id": 2,
                 "url": "http://nautobot-demo.com/api/dcim/platforms/2/",
                 "name": "Cisco IOS",
-                "slug": "ios"
+                "network_driver": "ios"
             },
             "serial": "9ZYX8XZUMP0AF69YGO5Z5",
             "asset_tag": null,
-            "site": {
+            "location": {
                 "id": 4,
-                "url": "http://nautobot-demo.com/api/dcim/sites/4/",
+                "url": "http://nautobot-demo.com/api/dcim/locations/4/",
                 "name": "DEN",
                 "slug": "den"
             },
@@ -68,7 +68,7 @@
             "vc_position": null,
             "vc_priority": null,
             "comments": "",
-            "local_context_data": null,
+            "local_config_context_data": null,
             "tags": [
                 {
                     "id": 2,

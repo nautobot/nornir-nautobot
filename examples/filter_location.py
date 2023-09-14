@@ -22,7 +22,7 @@ def hello_world(task: Task) -> Result:
 
 def main():
     """Nornir testing."""
-    not_site = "msp"
+    location = "db913e3b-cbe0-4463-addc-816ba6a20100"
 
     my_nornir = InitNornir(
         inventory={
@@ -30,7 +30,7 @@ def main():
             "options": {
                 "nautobot_url": os.getenv("NAUTOBOT_URL"),
                 "nautobot_token": os.getenv("NAUTBOT_TOKEN"),
-                "filter_parameters": {"site__n": not_site},
+                "filter_parameters": {"location": location},
                 "ssl_verify": False,
             },
         },

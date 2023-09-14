@@ -91,7 +91,7 @@ class DispatcherMixin:
             features (dict): A dictionary describing the configurations required.
             backup_file (str): The file location of where the back configuration should be saved.
             intended_file (str):  The file location of where the intended configuration should be saved.
-            platform (str): The platform slug of the device.
+            platform (str): The platform network_driver of the device.
 
         Returns:
             Result: Nornir Result object with a feature_data key of the compliance data.
@@ -268,7 +268,8 @@ class NapalmDefault(DispatcherMixin):
         if result[0].failed:
             # TODO: investigate this, is there a better way to handle? recursive function?
             logger.log_error(
-                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`", extra={"object": obj}
+                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`",
+                extra={"object": obj},
             )
             return result
 

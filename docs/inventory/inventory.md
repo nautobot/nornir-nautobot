@@ -39,19 +39,26 @@ With the Nornir Nautobot Inventory plugin you have the option of using all of th
 
 ## Filtering Examples
 
-For each of the examples the sites correspond to the first three letters of the devices below:
+For each of the examples the locations correspond to the first three letters of the devices below:
 
 ```python
 >>> nautobot.dcim.devices.all()
 [den-rtr01, den-rtr02, grb-rtr01, msp-rtr01, msp-rtr02, nyc-rtr01, nyc-rtr02]
 ```
 
-### Filtering Example: Select from single site
+### Filtering Example: Select from single location
 
-To filter from a single site you can use the filter site to get the devices at a single site based on the **slug** for the site:
+To filter from a single location you can use the filter location to get the devices at a single location based on the **Primary Key** for the location:
+
+> NOTE: Location names do not guarantee uniqueness in Nautobot 2.0.
+> 
+> See this document for more information:
+> 
+> https://docs.nautobot.com/projects/core/en/next/development/apps/api/platform-features/uniquely-identify-objects/
+
 
 ```python
-site = "msp"
+location = "db913e3b-cbe0-4463-addc-816ba6a20100"
 
 my_nornir = InitNornir(
     inventory={
@@ -59,7 +66,7 @@ my_nornir = InitNornir(
         "options": {
             "nautobot_url": os.getenv("NAUTOBOT_URL"),
             "nautobot_token": os.getenv("NAUTBOT_TOKEN"),
-            "filter_parameters": {"site": site},
+            "filter_parameters": {"location": location},
             "ssl_verify": False,
         },
     },
@@ -73,18 +80,18 @@ print(my_nornir.inventory.hosts.keys())
 This results in:
 
 ```
-root@2e8168a1c3e7:/local# python examples/filter_site.py 
+root@2e8168a1c3e7:/local# python examples/filter_location.py 
 Hosts found: 2
 dict_keys(['msp-rtr01', 'msp-rtr02'])
 ```
 
 
-### Filter Example: Multiple Sites
+### Filter Example: Multiple Locations
 
-To search within multiple sites, pass a list of site slugs. In the example below, it is the same as the previous example with a list passed in instead of a single string.
+To search within multiple locations, pass a list of location Primary Keys. In the example below, it is the same as the previous example with a list passed in instead of a single string.
 
 ```python
-site = ["msp", "grb"]
+location = ["db913e3b-cbe0-4463-addc-816ba6a20100", "6f09aa66-96be-4b4d-955a-9c98e488f0e6"]
 
 my_nornir = InitNornir(
     inventory={
@@ -92,7 +99,7 @@ my_nornir = InitNornir(
         "options": {
             "nautobot_url": os.getenv("NAUTOBOT_URL"),
             "nautobot_token": os.getenv("NAUTBOT_TOKEN"),
-            "filter_parameters": {"site": site},
+            "filter_parameters": {"location": location},
             "ssl_verify": False,
         },
     },
@@ -106,17 +113,17 @@ print(my_nornir.inventory.hosts.keys())
 Results in:
 
 ```
-root@2e8168a1c3e7:/local# python examples/filter_multiple_sites.py 
+root@2e8168a1c3e7:/local# python examples/filter_multiple_locations.py 
 Hosts found: 3
 dict_keys(['grb-rtr01', 'msp-rtr01', 'msp-rtr02'])
 ```
 
-### Filtering Example: Not at a site
+### Filtering Example: Not at a location
 
 The negative filters also are supported. These are all of the filters possible. Here we will search for devices **not** at _MSP_:
 
 ```python
-not_site = "msp"
+not_location = "db913e3b-cbe0-4463-addc-816ba6a20100"
 
 my_nornir = InitNornir(
     inventory={
@@ -124,7 +131,7 @@ my_nornir = InitNornir(
         "options": {
             "nautobot_url": os.getenv("NAUTOBOT_URL"),
             "nautobot_token": os.getenv("NAUTBOT_TOKEN"),
-            "filter_parameters": {"site__n": not_site},
+            "filter_parameters": {"location__n": not_location},
             "ssl_verify": False,
         },
     },
@@ -138,7 +145,7 @@ print(my_nornir.inventory.hosts.keys())
 Results in:
 
 ```
-root@2e8168a1c3e7:/local# python examples/filter_negate_site.py 
+root@2e8168a1c3e7:/local# python examples/filter_negate_location.py 
 Hosts found: 5
 dict_keys(['den-rtr01', 'den-rtr02', 'grb-rtr01', 'nyc-rtr01', 'nyc-rtr02'])
 ```

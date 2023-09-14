@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.6.1
+
+- (#108) Add enable threading option
+- (#109) Patch merge_config methods return values
+
 ## v2.6.0
 
 - (#96) Changes backup_file to be conditional for get_config

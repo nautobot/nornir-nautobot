@@ -61,6 +61,7 @@ class NautobotInventory:  # pylint: disable=R0902
         ssl_verify: Union[bool, None] = True,
         filter_parameters: Union[Dict[str, Any], None] = None,
         pynautobot_dict: Union[bool, None] = True,
+        enable_threading: Union[bool, None] = False,
     ) -> None:
         """Nautobot nornir class initialization."""
         self.nautobot_url = nautobot_url or os.getenv("NAUTOBOT_URL")
@@ -68,6 +69,7 @@ class NautobotInventory:  # pylint: disable=R0902
         self.filter_parameters = filter_parameters
         self.ssl_verify = ssl_verify
         self.pynautobot_dict = pynautobot_dict
+        self.enable_threading = enable_threading
         self._verify_required()
         self._api_session = None
         self._devices = None
@@ -105,7 +107,11 @@ class NautobotInventory:  # pylint: disable=R0902
             pynautobot object: Object to interact with the pynautobot SDK.
         """
         if self._pynautobot_obj is None:
-            self._pynautobot_obj = pynautobot.api(self.nautobot_url, token=self.nautobot_token)
+            self._pynautobot_obj = pynautobot.api(
+                self.nautobot_url,
+                token=self.nautobot_token,
+                threading=self.enable_threading,
+            )
             self._pynautobot_obj.http_session = self.api_session
 
         return self._pynautobot_obj

@@ -330,7 +330,7 @@ class NautobotNornirDriver:
 
         logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
         logger.log_success(obj, "Config provision ended")
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0]})
 
     @staticmethod
     def merge_config(
@@ -374,7 +374,7 @@ class NautobotNornirDriver:
 
         logger.log_success(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
         logger.log_success(obj, "Config merge ended")
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0]})
 
 
 class NetmikoNautobotNornirDriver(NautobotNornirDriver):

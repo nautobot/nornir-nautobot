@@ -38,6 +38,16 @@ class DispatcherMixin:
         return task.host.hostname
 
     @classmethod
+    def _get_tcp_port(cls, task: Task) -> str:  # pylint: disable=unused-argument
+        custom_field = task.data.get("custom_field_data", {}).get("tcp_port")
+        if isinstance(custom_field, int):
+            return custom_field
+        config_context = task.data.get("config_context_data", {}).get("tcp_port")
+        if isinstance(config_context, int):
+            return config_context
+        return cls.tcp_port
+
+    @classmethod
     def check_connectivity(cls, task: Task, logger, obj) -> Result:
         """Check the connectivity to a network device.
 
@@ -61,8 +71,7 @@ class DispatcherMixin:
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
 
-        # TODO: Allow port to be configurable
-        port = cls.tcp_port
+        port = cls._get_tcp_port(task)
         if not tcp_ping(ip_addr, port):
             error_msg = f"E1004: Could not connect to IP: {ip_addr} and port: {port}, preemptively failed."
             logger.log_error(error_msg, extra={"object": obj})

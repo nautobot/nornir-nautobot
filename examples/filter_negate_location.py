@@ -22,7 +22,7 @@ def hello_world(task: Task) -> Result:
 
 def main():
     """Nornir testing."""
-    not_location = "db913e3b-cbe0-4463-addc-816ba6a20100"
+    not_location = "msp"
 
     my_nornir = InitNornir(
         inventory={

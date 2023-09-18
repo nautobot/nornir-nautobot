@@ -55,10 +55,11 @@ To filter from a single location you can use the filter location to get the devi
 > See this document for more information:
 > 
 > https://docs.nautobot.com/projects/core/en/next/development/apps/api/platform-features/uniquely-identify-objects/
-
+>
+> *TLDR*: To query for a unique location, use the `id` object or a combination of fields (attributes) that are specific to the unique location.
 
 ```python
-location = "db913e3b-cbe0-4463-addc-816ba6a20100"
+location = "msp"
 
 my_nornir = InitNornir(
     inventory={
@@ -91,7 +92,7 @@ dict_keys(['msp-rtr01', 'msp-rtr02'])
 To search within multiple locations, pass a list of location Primary Keys. In the example below, it is the same as the previous example with a list passed in instead of a single string.
 
 ```python
-location = ["db913e3b-cbe0-4463-addc-816ba6a20100", "6f09aa66-96be-4b4d-955a-9c98e488f0e6"]
+location = ["msp", "grb"]
 
 my_nornir = InitNornir(
     inventory={
@@ -123,7 +124,7 @@ dict_keys(['grb-rtr01', 'msp-rtr01', 'msp-rtr02'])
 The negative filters also are supported. These are all of the filters possible. Here we will search for devices **not** at _MSP_:
 
 ```python
-not_location = "db913e3b-cbe0-4463-addc-816ba6a20100"
+not_location = "msp"
 
 my_nornir = InitNornir(
     inventory={

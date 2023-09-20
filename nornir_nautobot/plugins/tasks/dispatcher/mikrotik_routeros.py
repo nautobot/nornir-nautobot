@@ -116,9 +116,9 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
-        NETMIKO_FAIL_MSG = ["bad", "failed", "failure"]
+        NETMIKO_FAIL_MSG = ["bad", "failed", "failure"]  # pylint: disable=C0103
         logger.log_success(obj, "Config merge starting")
-        
+
         try:
             config_list = config.splitlines()
             push_result = task.run(
@@ -127,8 +127,8 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             )
         except NornirSubTaskError as exc:
             logger.log_failure(obj, f"Failed with error: `{exc.result.exception}`")
-            raise NornirNautobotException()
-        
+            raise NornirNautobotException() from exc
+
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
             logger.log_warning(obj, "Config merged with errors, please check full info log below.")
             logger.log_failure(obj, f"result: {push_result[0].result}")
@@ -138,5 +138,12 @@ class NautobotNornirDriver(DefaultNautobotNornirDriver):
             logger.log_info(obj, f"result: {push_result[0].result}")
             push_result[0].failed = False
         push_result[0].changed = True
-            
-        return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result, "failed": push_result[0].failed})
+
+        return Result(
+            host=task.host,
+            result={
+                "changed": push_result[0].changed,
+                "result": push_result[0].result,
+                "failed": push_result[0].failed,
+            },
+        )

@@ -49,7 +49,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             backup_file (str): The file location of where the back configuration should be saved.
             remove_lines (list): A list of regex lines to remove configurations.
@@ -59,10 +59,10 @@ class ApiMikrotikRouteros(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         if not routeros_api:
             error_msg = "E1020: The `routeros_api` is not installed in this environment."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         sslctx = ssl.create_default_context()
@@ -80,7 +80,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
             api = connection.get_api()
         except Exception as error:
             error_msg = f"E1021: `get_config` method failed with an unexpected issue: `{error}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         for endpoint in cls.config_command:
             try:
@@ -88,17 +88,17 @@ class ApiMikrotikRouteros(DispatcherMixin):
                 config_data[endpoint] = resource.get()
             except Exception as error:
                 error_msg = f"E1022: `get_config` method failed with an unexpected issue: `{error}`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
         connection.disconnect()
         running_config = json.dumps(config_data, indent=4)
         if remove_lines:
-            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug("Removing lines from configuration based on `remove_lines` definition")
             running_config = clean_config(running_config, remove_lines)
 
         if substitute_lines:
-            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
         make_folder(os.path.dirname(backup_file))
@@ -124,7 +124,7 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
@@ -134,22 +134,22 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
                 { "config: <running configuration> }
         """
         task.host.platform = NETMIKO_DEVICE_TYPE
-        logger.log_debug(f"Analyzing Software Version for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Analyzing Software Version for {task.host.name} on {task.host.platform}")
         try:
             result = task.run(task=netmiko_send_command, command_string=cls.version_command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"E1017: Failed with an authentication issue: `{exc.result.exception}`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
                 error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             error_msg = f"E1016: Failed with an unknown issue. `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if result[0].failed:
@@ -161,13 +161,13 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
         if major_version > "6":
             command += " show-sensitive"
 
-        logger.log_debug(f"Found Mikrotik Router OS version {major_version}")
-        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Found Mikrotik Router OS version {major_version}")
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
 
         try:
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
-            logger.log_error(f"Failed with an unknown issue. `{exc.result.exception}`", extra={"object": obj})
+            logger.error(f"Failed with an unknown issue. `{exc.result.exception}`", extra={"object": obj})
             raise NornirNautobotException(  # pylint: disable=W0707
                 f"Failed with an unknown issue. `{exc.result.exception}`"
             )

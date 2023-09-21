@@ -18,7 +18,7 @@ The only task plugin currently is the "dispatcher" plugin. This plugin dispatche
 ```python
     if not kwargs.get("custom_dispatcher"):
         custom_dispatcher = {}
-    logger.log_debug(f"Dispatcher process started for {task.host.name} ({task.host.platform.network_driver})")
+    logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform.network_driver})")
 
     network_driver = task.host.platform.network_driver
     network_driver_title = snake_to_title_case(network_driver)
@@ -62,6 +62,8 @@ task.run(
     substitute_lines=substitute_lines,
 )
 ```
+
+TODO: 2.0 update the logger info
 
 The dispatcher expects the two primary objects, the `obj` and `logger` objects. The `obj` object should be a Device model instance. The logger should be `NornirLogger` instance which is imported from `nornir_nautobot.utils.logger`. This logging object optionally takes in a Nautobot Job object named nautobot_job. This is for use within the Nautobot platform Jobs. 
 

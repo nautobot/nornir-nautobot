@@ -72,7 +72,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
             error_msg = (
                 f"E1023: `_api_auth` method failed with an unexpected issue: HTTP Error `{response.status_code}`"
             )
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         return service_ticket
 
@@ -110,7 +110,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                     item_list = response.json().get("list")
                 else:
                     error_msg = f"E1024: `{uri}` endpoint failed with code: HTTP Error `{response.status_code}`"
-                    logger.log_error(error_msg, extra={"object": obj})
+                    logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
                 uri_list = [f'{uri}/{item["id"]}' for item in item_list]
@@ -118,7 +118,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                     url_dict[uri_list_item] = f"{base_url}{uri_list_item}?serviceTicket={token}"
             else:
                 error_msg = f"E1025: `{uri}` endpoint missing in simple endpoints list, schema invalid`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
         return url_dict
@@ -145,7 +145,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             backup_file (str): The file location of where the back configuration should be saved.
             remove_lines (list): A list of regex lines to remove configurations.
@@ -155,7 +155,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         _extras = {}
         if task.host.platform in AP_PLATFORM_LIST:
             _wlc_ip4 = obj.get_computed_field("wireless_controller")
@@ -173,11 +173,11 @@ class ApiRuckusSmartzone(DispatcherMixin):
         running_config = json.dumps(config_data, indent=4)
 
         if remove_lines:
-            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug("Removing lines from configuration based on `remove_lines` definition")
             running_config = clean_config(running_config, remove_lines)
 
         if substitute_lines:
-            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
         make_folder(os.path.dirname(backup_file))

@@ -25,7 +25,7 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     """
     if not kwargs.get("custom_dispatcher"):
         custom_dispatcher = {}
-    logger.log_debug(f"Dispatcher process started for {task.host.name} ({task.host.platform.network_driver})")
+    logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform.network_driver})")
 
     network_driver = task.host.platform.network_driver
     network_driver_title = snake_to_title_case(network_driver)
@@ -44,14 +44,14 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
 
     if not driver_class:
         error_msg = f"E1001: Did not find a valid dispatcher in {checked_path}, preemptively failed."
-        logger.log_error(error_msg, extra={"object": obj})
+        logger.error(error_msg, extra={"object": obj})
         raise NornirNautobotException(error_msg)
 
     try:
         driver_task = getattr(driver_class, method)
     except AttributeError:
         error_msg = f"E1002: Unable to locate the method {method} for {driver_class}, preemptively failed."
-        logger.log_error(error_msg, extra={"object": obj})
+        logger.error(error_msg, extra={"object": obj})
         raise NornirNautobotException(error_msg)
 
     result = task.run(task=driver_task, logger=logger, obj=obj, *args, **kwargs)

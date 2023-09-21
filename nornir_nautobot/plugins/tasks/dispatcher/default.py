@@ -53,7 +53,7 @@ class DispatcherMixin:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
 
         Returns:
@@ -67,22 +67,22 @@ class DispatcherMixin:
                 error_msg = (
                     f"E1003: The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
                 )
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
 
         port = cls._get_tcp_port(task)
         if not tcp_ping(ip_addr, port):
             error_msg = f"E1004: Could not connect to IP: {ip_addr} and port: {port}, preemptively failed."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:
             error_msg = "E1005: There was no username defined, preemptively failed."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.password:
             error_msg = "E1006: There was no password defined, preemptively failed."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         return Result(host=task.host)
@@ -95,7 +95,7 @@ class DispatcherMixin:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             features (dict): A dictionary describing the configurations required.
             backup_file (str): The file location of where the back configuration should be saved.
@@ -107,19 +107,19 @@ class DispatcherMixin:
         """
         if not os.path.exists(backup_file):
             error_msg = f"E1007: Backup file Not Found at location: `{backup_file}`, preemptively failed."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if not os.path.exists(intended_file):
             error_msg = f"E1008: Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         try:
             feature_data = compliance(features, backup_file, intended_file, platform)
         except Exception as error:  # pylint: disable=broad-except
             error_msg = f"E1009: UNKNOWN Failure of: {str(error)}"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         return Result(host=task.host, result={"feature_data": feature_data})
 
@@ -139,7 +139,7 @@ class DispatcherMixin:
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             jinja_template (str): The file location of the actual Jinja template.
             jinja_root_path (str): The file folder where the file will be saved to.
@@ -164,26 +164,26 @@ class DispatcherMixin:
                 error_msg = (
                     f"E1010: There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
                 )
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
                 error_msg = (f"E1011: There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",)
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
                 error_msg = f"E1012: There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateError):
                 error_msg = f"E1013: There was an issue general Jinja error: ``{str(exc.result.exception)}``"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             error_msg = f"E1014: Failed with an unknown issue. `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         make_folder(os.path.dirname(output_file_location))
@@ -196,7 +196,7 @@ class DispatcherMixin:
         """Removes lines in configuration as specified in Remove Lines list.
 
         Args:
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             _running_config (str): a device running configuration.
             remove_lines (list): A list of regex lines to remove configurations.
 
@@ -205,7 +205,7 @@ class DispatcherMixin:
         """
         if not remove_lines:
             return _running_config
-        logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+        logger.debug("Removing lines from configuration based on `remove_lines` definition")
         return clean_config(_running_config, remove_lines)
 
     @classmethod
@@ -213,7 +213,7 @@ class DispatcherMixin:
         """Substitutes lines in configuration as specified in substitute Lines list.
 
         Args:
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             _running_config (str): a device running configuration.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
 
@@ -222,7 +222,7 @@ class DispatcherMixin:
         """
         if not substitute_lines:
             return _running_config
-        logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+        logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
         return sanitize_config(_running_config, substitute_lines)
 
     @classmethod
@@ -230,7 +230,7 @@ class DispatcherMixin:
         """Saves Running Configuration to a specified file.
 
         Args:
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             _running_config (str): a device running configuration.
             backup_file (str): String representing backup file path.
 
@@ -238,7 +238,7 @@ class DispatcherMixin:
             Result: Running Config is saved into backup file path.
         """
         make_folder(os.path.dirname(backup_file))
-        logger.log_debug(f"Saving Configuration to file: {backup_file}")
+        logger.debug(f"Saving Configuration to file: {backup_file}")
         with open(backup_file, "w", encoding="utf8") as filehandler:
             filehandler.write(_running_config)
 
@@ -254,7 +254,7 @@ class NapalmDefault(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             backup_file (str): The file location of where the back configuration should be saved.
             remove_lines (list): A list of regex lines to remove configurations.
@@ -264,19 +264,19 @@ class NapalmDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
 
         # TODO: Find standard napalm exceptions and account for them
         try:
             result = task.run(task=napalm_get, getters=["config"], retrieve="running")
         except NornirSubTaskError as exc:
             error_msg = f"E1015: `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if result[0].failed:
             # TODO: investigate this, is there a better way to handle? recursive function?
-            logger.log_error(
+            logger.error(
                 f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`",
                 extra={"object": obj},
             )
@@ -284,11 +284,11 @@ class NapalmDefault(DispatcherMixin):
 
         running_config = result[0].result.get("config", {}).get("running", None)
         if remove_lines:
-            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug("Removing lines from configuration based on `remove_lines` definition")
             running_config = clean_config(running_config, remove_lines)
 
         if substitute_lines:
-            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
         if backup_file:
@@ -310,7 +310,7 @@ class NapalmDefault(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The candidate config.
 
@@ -322,7 +322,7 @@ class NapalmDefault(DispatcherMixin):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
-        logger.log_info(obj, "Config provision starting")
+        logger.info(obj, "Config provision starting")
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
         revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
         if revert_in is not None:
@@ -337,11 +337,11 @@ class NapalmDefault(DispatcherMixin):
             )
         except NornirSubTaskError as exc:
             error_msg = f"E1015: Failed with an unknown issue. `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.log_info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
-        logger.log_info(obj, "Config provision ended")
+        logger.info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.info(obj, "Config provision ended")
         return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
     @classmethod
@@ -356,7 +356,7 @@ class NapalmDefault(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The config set.
 
@@ -368,7 +368,7 @@ class NapalmDefault(DispatcherMixin):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
-        logger.log_info(obj, "Config merge starting")
+        logger.info(obj, "Config merge starting")
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
         revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
         if revert_in is not None:
@@ -383,11 +383,11 @@ class NapalmDefault(DispatcherMixin):
             )
         except NornirSubTaskError as exc:
             error_msg = f"E1015: Failed with an unknown issue. `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.log_info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
-        logger.log_info(obj, "Config merge ended")
+        logger.info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
+        logger.info(obj, "Config merge ended")
         return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
 
@@ -404,7 +404,7 @@ class NetmikoDefault(DispatcherMixin):
 
         Args:
             task (Task): Nornir Task.
-            logger (NornirLogger): Custom NornirLogger object to reflect job results (via Nautobot Jobs) and Python logger.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
@@ -413,7 +413,7 @@ class NetmikoDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.log_debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
 
         try:
@@ -421,16 +421,16 @@ class NetmikoDefault(DispatcherMixin):
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"E1017: Failed with an authentication issue: `{exc.result.exception}`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
                 error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
-                logger.log_error(error_msg, extra={"object": obj})
+                logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             error_msg = f"E1016: Failed with an unknown issue. `{exc.result.exception}`"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if result[0].failed:
@@ -441,14 +441,14 @@ class NetmikoDefault(DispatcherMixin):
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
             error_msg = "E1019: Discovered `ERROR: % Invalid input detected at` in the output"
-            logger.log_error(error_msg, extra={"object": obj})
+            logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if remove_lines:
-            logger.log_debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug("Removing lines from configuration based on `remove_lines` definition")
             running_config = clean_config(running_config, remove_lines)
         if substitute_lines:
-            logger.log_debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
 
         if backup_file:

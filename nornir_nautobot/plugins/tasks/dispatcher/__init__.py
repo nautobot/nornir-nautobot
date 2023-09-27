@@ -25,13 +25,13 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     """
     if not kwargs.get("custom_dispatcher"):
         custom_dispatcher = {}
-    logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform.network_driver})")
+    logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform})")
 
-    network_driver = task.host.platform.network_driver
+    network_driver = task.host.platform
     network_driver_title = snake_to_title_case(network_driver)
     custom_dispatcher_path = [custom_dispatcher.get(network_driver)]
-    framework_path = f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework}{network_driver_title}"
-    framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework}Default"
+    framework_path = f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
+    framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework.title()}Default"
 
     if custom_dispatcher.get(network_driver):
         driver_class = import_string(custom_dispatcher_path)

@@ -322,7 +322,7 @@ class NapalmDefault(DispatcherMixin):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
-        logger.info(obj, "Config provision starting")
+        logger.info("Config provision starting", extra={"object": obj})
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
         revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
         if revert_in is not None:
@@ -340,8 +340,8 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
-        logger.info(obj, "Config provision ended")
+        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info("Config provision ended", extra={"object": obj})
         return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
     @classmethod
@@ -368,7 +368,7 @@ class NapalmDefault(DispatcherMixin):
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
-        logger.info(obj, "Config merge starting")
+        logger.info("Config merge starting", extra={"object": obj})
         # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
         revert_in = os.getenv("NORNIR_NAUTOBOT_REVERT_IN_SECONDS")
         if revert_in is not None:
@@ -386,8 +386,8 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(obj, f"result: {push_result[0].result}, changed: {push_result.changed}")
-        logger.info(obj, "Config merge ended")
+        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info("Config merge ended", extra={"object": obj})
         return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
 

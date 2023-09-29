@@ -1,8 +1,15 @@
 # Changelog
 
-Remove legacy dispatcher method
-error codes
 
+## 3.0.0
+- Remove legacy dispatcher method
+- error codes
+
+
+## v2.6.1
+
+- (#108) Add enable threading option
+- (#109) Patch merge_config methods return values
 
 
 ## v2.6.0

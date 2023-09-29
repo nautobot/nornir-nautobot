@@ -364,6 +364,7 @@ class NapalmDefault(DispatcherMixin):
             result={"changed": push_result.changed, "result": push_result[0].result},
         )
 
+
     @classmethod
     def merge_config(
         cls,

@@ -64,9 +64,7 @@ class DispatcherMixin:
             ip_addr = hostname
         else:
             if not is_fqdn_resolvable(hostname):
-                error_msg = (
-                    f"E1003: The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
-                )
+                error_msg = f"E1003: The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
@@ -94,7 +92,14 @@ class DispatcherMixin:
 
     @classmethod
     def compliance_config(
-        cls, task: Task, logger, obj, features: str, backup_file: str, intended_file: str, platform: str
+        cls,
+        task: Task,
+        logger,
+        obj,
+        features: str,
+        backup_file: str,
+        intended_file: str,
+        platform: str,
     ) -> Result:
         """Compare two configurations against each other.
 
@@ -165,15 +170,17 @@ class DispatcherMixin:
                 jinja_env=jinja_env,
             )[0].result
         except NornirSubTaskError as exc:
-            if isinstance(exc.result.exception, jinja2.exceptions.UndefinedError):  # pylint: disable=no-else-raise
-                error_msg = (
-                    f"E1010: There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
-                )
+            if isinstance(
+                exc.result.exception, jinja2.exceptions.UndefinedError
+            ):  # pylint: disable=no-else-raise
+                error_msg = f"E1010: There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
-                error_msg = (f"E1011: There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",)
+                error_msg = (
+                    f"E1011: There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",
+                )
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
@@ -210,11 +217,15 @@ class DispatcherMixin:
         """
         if not remove_lines:
             return _running_config
-        logger.debug("Removing lines from configuration based on `remove_lines` definition")
+        logger.debug(
+            "Removing lines from configuration based on `remove_lines` definition"
+        )
         return clean_config(_running_config, remove_lines)
 
     @classmethod
-    def _substitute_lines(cls, logger, _running_config: str, substitute_lines: list) -> str:
+    def _substitute_lines(
+        cls, logger, _running_config: str, substitute_lines: list
+    ) -> str:
         """Substitutes lines in configuration as specified in substitute Lines list.
 
         Args:
@@ -227,7 +238,9 @@ class DispatcherMixin:
         """
         if not substitute_lines:
             return _running_config
-        logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+        logger.debug(
+            "Substitute lines from configuration based on `substitute_lines` definition"
+        )
         return sanitize_config(_running_config, substitute_lines)
 
     @classmethod
@@ -253,7 +266,13 @@ class NapalmDefault(DispatcherMixin):
 
     @classmethod
     def get_config(
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device.
 
@@ -269,7 +288,9 @@ class NapalmDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_config for {task.host.name} on {task.host.platform}"
+        )
 
         # TODO: Find standard napalm exceptions and account for them
         try:
@@ -289,11 +310,15 @@ class NapalmDefault(DispatcherMixin):
 
         running_config = result[0].result.get("config", {}).get("running", None)
         if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug(
+                "Removing lines from configuration based on `remove_lines` definition"
+            )
             running_config = clean_config(running_config, remove_lines)
 
         if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug(
+                "Substitute lines from configuration based on `substitute_lines` definition"
+            )
             running_config = sanitize_config(running_config, substitute_lines)
 
         if backup_file:
@@ -345,9 +370,15 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            extra={"object": obj},
+        )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def merge_config(
@@ -391,9 +422,15 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            extra={"object": obj},
+        )
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -403,7 +440,13 @@ class NetmikoDefault(DispatcherMixin):
 
     @classmethod
     def get_config(
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
@@ -418,7 +461,9 @@ class NetmikoDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_config for {task.host.name} on {task.host.platform}"
+        )
         command = cls.config_command
 
         try:
@@ -430,7 +475,9 @@ class NetmikoDefault(DispatcherMixin):
                 raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
+                error_msg = (
+                    f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
+                )
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
@@ -445,15 +492,21 @@ class NetmikoDefault(DispatcherMixin):
 
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
-            error_msg = "E1019: Discovered `ERROR: % Invalid input detected at` in the output"
+            error_msg = (
+                "E1019: Discovered `ERROR: % Invalid input detected at` in the output"
+            )
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
+            logger.debug(
+                "Removing lines from configuration based on `remove_lines` definition"
+            )
             running_config = clean_config(running_config, remove_lines)
         if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+            logger.debug(
+                "Substitute lines from configuration based on `substitute_lines` definition"
+            )
             running_config = sanitize_config(running_config, substitute_lines)
 
         if backup_file:

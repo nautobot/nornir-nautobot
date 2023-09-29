@@ -7,9 +7,7 @@ import socket
 from typing import Optional
 
 import jinja2
-
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
-
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
@@ -18,12 +16,10 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
-from nornir_napalm.plugins.tasks import napalm_get, napalm_configure
-from nornir_netmiko.tasks import netmiko_send_command
-
+from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
-
+from nornir_netmiko.tasks import netmiko_send_command
 
 _logger = logging.getLogger(__name__)
 
@@ -34,15 +30,15 @@ class DispatcherMixin:
     tcp_port = 22
 
     @classmethod
-    def _get_hostname(cls, task: Task, obj) -> str:  # pylint: disable=unused-argument
+    def _get_hostname(cls, task: Task) -> str:
         return task.host.hostname
 
     @classmethod
-    def _get_tcp_port(cls, task: Task) -> str:  # pylint: disable=unused-argument
-        custom_field = task.data.get("custom_field_data", {}).get("tcp_port")
+    def _get_tcp_port(cls, obj) -> str:
+        custom_field = obj.cf.get("tcp_port")
         if isinstance(custom_field, int):
             return custom_field
-        config_context = task.data.get("config_context_data", {}).get("tcp_port")
+        config_context = obj.get_config_context().get("tcp_port")
         if isinstance(config_context, int):
             return config_context
         return cls.tcp_port
@@ -71,9 +67,14 @@ class DispatcherMixin:
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
 
-        port = cls._get_tcp_port(task)
-        if not tcp_ping(ip_addr, port):
-            error_msg = f"E1004: Could not connect to IP: {ip_addr} and port: {port}, preemptively failed."
+        port = cls._get_tcp_port(task, obj)
+        # TODO: Remove after fixing tcp_ping in netutils
+        try:
+            _tcp_ping = tcp_ping(ip_addr, port)
+        except socket.error:
+            _tcp_ping = False
+        if not _tcp_ping:
+            error_msg = f"E1004: Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:
@@ -89,7 +90,14 @@ class DispatcherMixin:
 
     @classmethod
     def compliance_config(
-        cls, task: Task, logger, obj, features: str, backup_file: str, intended_file: str, platform: str
+        cls,
+        task: Task,
+        logger,
+        obj,
+        features: str,
+        backup_file: str,
+        intended_file: str,
+        platform: str,
     ) -> Result:
         """Compare two configurations against each other.
 
@@ -248,7 +256,13 @@ class NapalmDefault(DispatcherMixin):
 
     @classmethod
     def get_config(
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device.
 
@@ -340,9 +354,15 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            extra={"object": obj},
+        )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def merge_config(
@@ -386,9 +406,15 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        logger.info(f"result: {push_result[0].result}, changed: {push_result.changed}", extra={"object": obj})
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            extra={"object": obj},
+        )
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -398,7 +424,13 @@ class NetmikoDefault(DispatcherMixin):
 
     @classmethod
     def get_config(
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 

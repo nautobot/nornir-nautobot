@@ -38,11 +38,11 @@ class DispatcherMixin:
         return task.host.hostname
 
     @classmethod
-    def _get_tcp_port(cls, task: Task) -> str:  # pylint: disable=unused-argument
-        custom_field = task.data.get("custom_field_data", {}).get("tcp_port")
+    def _get_tcp_port(cls, task: Task, obj) -> str:  # pylint: disable=unused-argument
+        custom_field = obj.cf.get("tcp_port")
         if isinstance(custom_field, int):
             return custom_field
-        config_context = task.data.get("config_context_data", {}).get("tcp_port")
+        config_context = obj.get_config_context().get("tcp_port")
         if isinstance(config_context, int):
             return config_context
         return cls.tcp_port
@@ -71,9 +71,14 @@ class DispatcherMixin:
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
 
-        port = cls._get_tcp_port(task)
-        if not tcp_ping(ip_addr, port):
-            error_msg = f"E1004: Could not connect to IP: {ip_addr} and port: {port}, preemptively failed."
+        port = cls._get_tcp_port(task, obj)
+        # TODO: Remove after fixing tcp_ping in netutils
+        try:
+            _tcp_ping = tcp_ping(ip_addr, port)
+        except socket.error:
+            _tcp_ping = False
+        if not _tcp_ping:
+            error_msg = f"E1004: Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:

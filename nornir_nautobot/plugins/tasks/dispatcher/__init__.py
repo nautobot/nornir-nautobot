@@ -30,7 +30,9 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     network_driver = task.host.platform
     network_driver_title = snake_to_title_case(network_driver)
     custom_dispatcher_path = [custom_dispatcher.get(network_driver)]
-    framework_path = f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
+    framework_path = (
+        f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
+    )
     framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework.title()}Default"
 
     if custom_dispatcher.get(network_driver):

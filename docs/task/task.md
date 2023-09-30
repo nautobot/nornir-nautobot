@@ -17,7 +17,7 @@ This may seem like a lot, but it essentially can be broken down to:
 - Check for the `framework` and `network_driver`
 - Check for the `framework`'s default
 
-For completeness here is the referenced code as of SEP-2023.
+For completeness here is the referenced code as of September 2023.
 
 ```python
     if not kwargs.get("custom_dispatcher"):

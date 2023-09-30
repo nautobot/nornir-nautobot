@@ -99,4 +99,5 @@ nav:
   - Developer Guide:
       - Contributing: "dev/CONTRIBUTING.md"
       - Changelog: "dev/CHANGELOG.md"
+      - Migration Guide 2.x -> 3.0: "dev/migrating_to_3.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

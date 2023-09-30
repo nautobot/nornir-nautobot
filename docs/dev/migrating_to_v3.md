@@ -1,4 +1,4 @@
-# Migration Guide to 3.0
+# Migrating to v3
 
 This is intended to document the changes and considerations for migration to Nornir-Nautobot 3.0. **Please Note** this is nornir-nautobot's version number, not Nautobot's version number. This major upgrade did coincide with the release of Nautobot 2.0, but the version trains are on their own path.
 

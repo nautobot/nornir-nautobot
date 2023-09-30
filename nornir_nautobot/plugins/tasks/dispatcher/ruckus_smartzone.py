@@ -44,7 +44,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
     }
 
     @classmethod
-    def _get_hostname(cls, task: Task, obj) -> str:
+    def _get_hostname(cls, task: Task, obj=None) -> str:
         hostname = (
             obj.get_computed_field("wireless_controller")
             if task.host.platform in AP_PLATFORM_LIST

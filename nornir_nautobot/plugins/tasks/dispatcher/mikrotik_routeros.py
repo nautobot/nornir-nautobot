@@ -108,7 +108,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
         return Result(host=task.host, result={"config": running_config})
 
 
-class NetmikoMikrotekRouteros(NetmikoDefault):
+class NetmikoMikrotikRouteros(NetmikoDefault):
     """Driver for Mikrotik Router OS."""
 
     config_command = "export terse"
@@ -167,10 +167,9 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
         try:
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
-            logger.error(f"Failed with an unknown issue. `{exc.result.exception}`", extra={"object": obj})
-            raise NornirNautobotException(  # pylint: disable=W0707
-                f"Failed with an unknown issue. `{exc.result.exception}`"
-            )
+            error_msg = f"Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
 
         if result[0].failed:
             return result
@@ -207,7 +206,7 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         NETMIKO_FAIL_MSG = ["bad", "failed", "failure"]  # pylint: disable=C0103
-        logger.log_success(obj, "Config merge starting")
+        logger.info("Config merge starting", extra={"object": obj})
 
         try:
             config_list = config.splitlines()
@@ -216,17 +215,18 @@ class NetmikoMikrotekRouteros(NetmikoDefault):
                 config_commands=config_list,
             )
         except NornirSubTaskError as exc:
-            logger.log_failure(obj, f"Failed with error: `{exc.result.exception}`")
-            raise NornirNautobotException() from exc
+            error_msg = f"E1015 Failed with error: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
-            logger.log_warning(obj, "Config merged with errors, please check full info log below.")
-            logger.log_failure(obj, f"result: {push_result[0].result}")
-            push_result[0].failed = True
-        else:
-            logger.log_success(obj, "Config merged successfully.")
-            logger.log_info(obj, f"result: {push_result[0].result}")
-            push_result[0].failed = False
+            logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
+            error_msg = f"E1026: result: {push_result[0].result}"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+        logger.info("Config merged successfully.", extra={"object": obj})
+        logger.info(f"result: {push_result[0].result}", extra={"object": obj})
+        push_result[0].failed = False
         push_result[0].changed = True
 
         return Result(

@@ -13,12 +13,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
     config_command = "show running-config"
 
     @staticmethod
-    def merge_config(
-        task: Task,
-        logger,
-        obj,
-        config: str,
-    ) -> Result:
+    def merge_config(task: Task, logger, obj, config: str) -> Result:
         """Send configuration to merge on the device.
 
         Args:
@@ -36,7 +31,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         NETMIKO_FAIL_MSG = ["invalid", "fail"]  # pylint: disable=C0103
-        logger.log_success(obj, "Config merge starting")
+        logger.info("Config merge starting", extra={"object": obj})
 
         try:
             config_list = config.splitlines()
@@ -45,24 +40,28 @@ class NetmikoRuckusFastiron(NetmikoDefault):
                 config_commands=config_list,
             )
         except NornirSubTaskError as exc:
-            logger.log_failure(obj, f"Failed with error: `{exc.result.exception}`")
-            raise NornirNautobotException() from exc
+            error_msg = f"Failed with error: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
-            logger.log_warning(obj, "Config merged with errors, please check full info log below.")
-            logger.log_failure(obj, f"result: {push_result[0].result}")
-            push_result[0].failed = True
-        else:
-            logger.log_success(obj, "Config merged successfully.")
-            logger.log_info(obj, f"result: {push_result[0].result}")
-            push_result[0].failed = False
-            try:
-                save_result = task.run(
-                    task=netmiko_save_config,
-                )
-                logger.log_info(obj, f"config saved: {save_result[0].result}")
-            except NornirSubTaskError as exc:
-                logger.log_failure(obj, f"config merged, but failed to save: {exc.result.exception}")
+            logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
+            error_msg = f"E1026: result: {push_result[0].result}"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        logger.info("Config merged successfully.", extra={"object": obj})
+        logger.info(f"result: {push_result[0].result}", extra={"object": obj})
+        push_result[0].failed = False
+        try:
+            save_result = task.run(
+                task=netmiko_save_config,
+            )
+            logger.info(f"config saved: {save_result[0].result}", extra={"object": obj})
+        except NornirSubTaskError as exc:
+            error_msg = f"E1027: config merged, but failed to save: {exc.result.exception}"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
         push_result[0].changed = True
 
         return Result(

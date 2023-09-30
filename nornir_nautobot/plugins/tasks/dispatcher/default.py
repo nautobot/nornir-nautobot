@@ -7,19 +7,24 @@ import socket
 from typing import Optional
 
 import jinja2
-from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
+
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.ping import tcp_ping
+
+from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
+
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
+
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
+from nornir_netmiko.tasks import netmiko_send_command
+
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
-from nornir_netmiko.tasks import netmiko_send_command
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +35,7 @@ class DispatcherMixin:
     tcp_port = 22
 
     @classmethod
-    def _get_hostname(cls, task: Task) -> str:
+    def _get_hostname(cls, task: Task, obj=None) -> str:  # pylint: disable=unused-argument
         return task.host.hostname
 
     @classmethod
@@ -55,7 +60,7 @@ class DispatcherMixin:
         Returns:
             Result: Nornir Result object.
         """
-        hostname = cls._get_hostname(task, obj)
+        hostname = cls._get_hostname(task)
         if is_ip(hostname):
             ip_addr = hostname
         else:
@@ -67,7 +72,7 @@ class DispatcherMixin:
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
 
-        port = cls._get_tcp_port(task, obj)
+        port = cls._get_tcp_port(obj)
         # TODO: Remove after fixing tcp_ping in netutils
         try:
             _tcp_ping = tcp_ping(ip_addr, port)

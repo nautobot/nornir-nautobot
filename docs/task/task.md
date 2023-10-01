@@ -17,26 +17,29 @@ This may seem like a lot, but it essentially can be broken down to:
 - Check for the `framework` and `network_driver`
 - Check for the `framework`'s default
 
-For completeness here is the referenced code as of September 2023.
+For completeness here is the referenced code as of October 2023.
 
 ```python
-    if not kwargs.get("custom_dispatcher"):
-        custom_dispatcher = {}
+    custom_dispatcher = ""
+    if kwargs.get("custom_dispatcher"):
+        custom_dispatcher = kwargs["custom_dispatcher"]
+        del kwargs["custom_dispatcher"]
+
     logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform})")
 
     network_driver = task.host.platform
     network_driver_title = snake_to_title_case(network_driver)
-    custom_dispatcher_path = [custom_dispatcher.get(network_driver)]
     framework_path = (
         f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
     )
     framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework.title()}Default"
 
-    if custom_dispatcher.get(network_driver):
-        driver_class = import_string(custom_dispatcher_path)
-        checked_path = [custom_dispatcher_path]
+    if custom_dispatcher:
+        driver_class = import_string(custom_dispatcher)
+        checked_path = [custom_dispatcher]
     elif import_string(framework_path):
         driver_class = import_string(framework_path)
+        checked_path = [framework_path]
     else:
         driver_class = import_string(framework_default_path)
         checked_path = [framework_path, framework_default_path]

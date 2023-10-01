@@ -46,7 +46,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
             logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
-            error_msg = f"E1026: result: {push_result[0].result}"
+            error_msg = f"`E1026:` result: {push_result[0].result}"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -59,7 +59,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
             )
             logger.info(f"config saved: {save_result[0].result}", extra={"object": obj})
         except NornirSubTaskError as exc:
-            error_msg = f"E1027: config merged, but failed to save: {exc.result.exception}"
+            error_msg = f"`E1027:` config merged, but failed to save: {exc.result.exception}"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg) from exc
         push_result[0].changed = True

@@ -61,7 +61,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         if not routeros_api:
-            error_msg = "E1020: The `routeros_api` is not installed in this environment."
+            error_msg = "`E1020:` The `routeros_api` is not installed in this environment."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -79,7 +79,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
         try:
             api = connection.get_api()
         except Exception as error:
-            error_msg = f"E1021: `get_config` method failed with an unexpected issue: `{error}`"
+            error_msg = f"`E1021:` The `get_config` method failed with an unexpected issue: `{error}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         for endpoint in cls.config_command:
@@ -87,7 +87,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
                 resource = api.get_resource(endpoint)
                 config_data[endpoint] = resource.get()
             except Exception as error:
-                error_msg = f"E1022: `get_config` method failed with an unexpected issue: `{error}`"
+                error_msg = f"`E1022:` The `get_config` method failed with an unexpected issue: `{error}`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
@@ -139,16 +139,16 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
             result = task.run(task=netmiko_send_command, command_string=cls.version_command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                error_msg = f"E1017: Failed with an authentication issue: `{exc.result.exception}`"
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-            error_msg = f"E1016: Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -215,13 +215,13 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
                 config_commands=config_list,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"E1015 Failed with error: `{exc.result.exception}`"
+            error_msg = f"`E1015 `Failed with error: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
             logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
-            error_msg = f"E1026: result: {push_result[0].result}"
+            error_msg = f"`E1026:` result: {push_result[0].result}"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         logger.info("Config merged successfully.", extra={"object": obj})

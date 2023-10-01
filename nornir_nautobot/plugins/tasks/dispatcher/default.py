@@ -66,7 +66,7 @@ class DispatcherMixin:
         else:
             if not is_fqdn_resolvable(hostname):
                 error_msg = (
-                    f"E1003: The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
+                    f"`E1003:` The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
                 )
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
@@ -79,15 +79,15 @@ class DispatcherMixin:
         except socket.error:
             _tcp_ping = False
         if not _tcp_ping:
-            error_msg = f"E1004: Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed."
+            error_msg = f"`E1004:` Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:
-            error_msg = "E1005: There was no username defined, preemptively failed."
+            error_msg = "`E1005:` There was no username defined, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.password:
-            error_msg = "E1006: There was no password defined, preemptively failed."
+            error_msg = "`E1006:` There was no password defined, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -119,19 +119,19 @@ class DispatcherMixin:
             Result: Nornir Result object with a feature_data key of the compliance data.
         """
         if not os.path.exists(backup_file):
-            error_msg = f"E1007: Backup file Not Found at location: `{backup_file}`, preemptively failed."
+            error_msg = f"`E1007:` Backup file Not Found at location: `{backup_file}`, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if not os.path.exists(intended_file):
-            error_msg = f"E1008: Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            error_msg = f"`E1008:` Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         try:
             feature_data = compliance(features, backup_file, intended_file, platform)
         except Exception as error:  # pylint: disable=broad-except
-            error_msg = f"E1009: UNKNOWN Failure of: {str(error)}"
+            error_msg = f"`E1009:` UNKNOWN Failure of: {str(error)}"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         return Result(host=task.host, result={"feature_data": feature_data})
@@ -175,27 +175,27 @@ class DispatcherMixin:
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, jinja2.exceptions.UndefinedError):  # pylint: disable=no-else-raise
                 error_msg = (
-                    f"E1010: There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
+                    f"`E1010:` There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
                 )
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
-                error_msg = (f"E1011: There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",)
+                error_msg = (f"`E1011:` There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
-                error_msg = f"E1012: There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
+                error_msg = f"`E1012:` There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             elif isinstance(exc.result.exception, jinja2.TemplateError):
-                error_msg = f"E1013: There was an issue general Jinja error: ``{str(exc.result.exception)}``"
+                error_msg = f"`E1013:` There was an issue general Jinja error: ``{str(exc.result.exception)}``"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-            error_msg = f"E1014: Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1014:` Failed with an unknown issue. `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -289,7 +289,7 @@ class NapalmDefault(DispatcherMixin):
         try:
             result = task.run(task=napalm_get, getters=["config"], retrieve="running")
         except NornirSubTaskError as exc:
-            error_msg = f"E1015: `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -355,7 +355,7 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"E1015: Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -407,7 +407,7 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"E1015: Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -457,16 +457,16 @@ class NetmikoDefault(DispatcherMixin):
             result = task.run(task=netmiko_send_command, command_string=command)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                error_msg = f"E1017: Failed with an authentication issue: `{exc.result.exception}`"
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
             if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"E1018: Failed with a timeout issue. `{exc.result.exception}`"
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-            error_msg = f"E1016: Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -477,7 +477,7 @@ class NetmikoDefault(DispatcherMixin):
 
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
-            error_msg = "E1019: Discovered `ERROR: % Invalid input detected at` in the output"
+            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

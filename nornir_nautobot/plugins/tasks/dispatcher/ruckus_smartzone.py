@@ -70,7 +70,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
             service_ticket = data.get("serviceTicket")
         else:
             error_msg = (
-                f"E1023: `_api_auth` method failed with an unexpected issue: HTTP Error `{response.status_code}`"
+                f"`E1023:` The `_api_auth` method failed with an unexpected issue: HTTP Error `{response.status_code}`"
             )
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
@@ -109,7 +109,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                 if response.status_code == 200:
                     item_list = response.json().get("list")
                 else:
-                    error_msg = f"E1024: `{uri}` endpoint failed with code: HTTP Error `{response.status_code}`"
+                    error_msg = f"`E1024:` The `{uri}` endpoint failed with code: HTTP Error `{response.status_code}`"
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
@@ -117,7 +117,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                 for uri_list_item in uri_list:
                     url_dict[uri_list_item] = f"{base_url}{uri_list_item}?serviceTicket={token}"
             else:
-                error_msg = f"E1025: `{uri}` endpoint missing in simple endpoints list, schema invalid`"
+                error_msg = f"`E1025:` The `{uri}` endpoint missing in simple endpoints list, schema invalid`"
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 

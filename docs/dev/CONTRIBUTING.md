@@ -10,7 +10,7 @@ This section describes how to install *nornir_nautobot* for development, how to 
 
 ## Python Versions
 
-This leverages Python3.6 or later. All features will be tested against 3.6 - 3.9 versions of Python.
+This leverages Python3.8 or later. All features will be tested against 3.8 - 3.11 versions of Python.
 
 ## Versioning
 
@@ -27,7 +27,7 @@ Follow these steps to set up your local development environment:
 ```bash
 # Double check your version
 $ python --version
-Python 3.7.7
+Python 3.11.1
 # Activate the Poetry environment, which will auto create the virtual environment related to the project
 $ poetry shell
 # Install project dependencies as well as development dependencies
@@ -61,7 +61,7 @@ All tests should be located within the `tests\` directory with `tests\unit` for 
 The following linting tasks are required:
 
 * [Bandit](https://bandit.readthedocs.io/en/latest/)
-  * Basic security tests, should be run on Python3.6 or Python3.7
+  * Basic security tests, should be run on Python3.11
 * [Black code style](https://github.com/psf/black)
   * Code formatting with version 20.8b1. There are some differences in the format between versions 19 and 20.
 * [Flake8](https://flake8.pycqa.org/en/latest/)

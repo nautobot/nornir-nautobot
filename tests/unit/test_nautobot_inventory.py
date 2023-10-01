@@ -19,8 +19,13 @@ from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
 HERE = path.abspath(path.dirname(__file__))
 API_CALLS = [
     {
+        "fixture_path": f"{HERE}/mocks/00_api_root.json",
+        "url": "http://mock.example.com/api/",
+        "method": "get",
+    },
+    {
         "fixture_path": f"{HERE}/mocks/01_get_devices.json",
-        "url": "http://mock.example.com/api/dcim/devices/",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1",
         "method": "get",
     },
     {
@@ -39,8 +44,8 @@ API_CALLS = [
         "method": "get",
     },
     {
-        "fixture_path": f"{HERE}/mocks/05_get_sites_filtered.json",
-        "url": "http://mock.example.com/api/dcim/devices/?site=msp",
+        "fixture_path": f"{HERE}/mocks/05_get_locations_filtered.json",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1&location=msp",
         "method": "get",
     },
     {
@@ -131,7 +136,7 @@ def test_filter_devices():
         test_class = NautobotInventory(
             nautobot_url="http://mock.example.com",
             nautobot_token="0123456789abcdef01234567890",
-            filter_parameters={"site": "msp"},
+            filter_parameters={"location": "msp"},
         )
         pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
         expected_devices = []
@@ -158,7 +163,7 @@ def test_device_required_properties():
                 "options": {
                     "nautobot_url": "http://mock.example.com",
                     "nautobot_token": "0123456789abcdef01234567890",
-                    "filter_parameters": {"site": "msp"},
+                    "filter_parameters": {"location": "msp"},
                 },
             },
         )

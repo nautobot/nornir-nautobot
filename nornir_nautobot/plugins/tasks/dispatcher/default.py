@@ -417,7 +417,7 @@ class NapalmDefault(DispatcherMixin):
         )
 
         if push_result.diff:
-            logger.info(f"```\nDiff: {push_result.diff}\n```", extra={"object": obj})
+            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(

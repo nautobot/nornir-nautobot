@@ -415,6 +415,10 @@ class NapalmDefault(DispatcherMixin):
             f"result: {push_result[0].result}, changed: {push_result.changed}",
             extra={"object": obj},
         )
+
+        if push_result.diff:
+            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
             host=task.host,

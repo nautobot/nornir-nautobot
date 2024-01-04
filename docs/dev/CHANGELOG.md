@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.0
+
+- [#131](https://github.com/nautobot/nornir-nautobot/pull/131) Updated logging output for Nornir
+
 
 ## 3.0.0
 

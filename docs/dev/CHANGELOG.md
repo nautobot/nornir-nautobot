@@ -2,7 +2,7 @@
 
 ## 3.1.0
 
-- [#132](https://github.com/nautobot/nornir-nautobot/pull/132) Updated logging output for Nornir
+- [#131](https://github.com/nautobot/nornir-nautobot/pull/131) Updated logging output for Nornir
 
 
 ## 3.0.0

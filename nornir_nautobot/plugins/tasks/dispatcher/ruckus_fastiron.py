@@ -1,4 +1,5 @@
 """nornir dispatcher for Ruckus ICX/FastIron Switches."""
+
 from nornir.core.task import Result, Task
 from nornir.core.exceptions import NornirSubTaskError
 

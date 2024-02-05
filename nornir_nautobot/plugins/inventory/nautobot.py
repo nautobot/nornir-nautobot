@@ -1,4 +1,5 @@
 """Nornir Nautobot Inventory Plugin."""
+
 # Python Imports
 import os
 import sys
@@ -111,9 +112,11 @@ class NautobotInventory:  # pylint: disable=R0902
                 self.nautobot_url,
                 token=self.nautobot_token,
                 threading=self.enable_threading,
+                verify=self.ssl_verify,
             )
             self.api_session.params = {"depth": 1}
 
+            # self._pynautobot_obj.http_session.verify = self.ssl_verify
             self._pynautobot_obj.http_session = self.api_session
 
         return self._pynautobot_obj
@@ -161,9 +164,11 @@ class NautobotInventory:  # pylint: disable=R0902
             host["hostname"] = (
                 str(ipaddress.IPv4Interface(device.primary_ip4.address).ip)
                 if device["primary_ip4"]
-                else str(ipaddress.IPv6Interface(device.primary_ip6.address).ip)
-                if device["primary_ip6"]
-                else device["name"]
+                else (
+                    str(ipaddress.IPv6Interface(device.primary_ip6.address).ip)
+                    if device["primary_ip6"]
+                    else device["name"]
+                )
             )
             host["name"] = device.name or str(device.id)
             host["groups"] = []

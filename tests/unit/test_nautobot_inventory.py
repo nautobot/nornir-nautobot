@@ -111,9 +111,9 @@ def test_nornir_nautobot_initialization_ssl_verify_default():
         nornir_nautobot_class = NautobotInventory(
             nautobot_url="https://mock.example.com", nautobot_token="0123456789abcdef01234567890"
         )
-        assert nornir_nautobot_class.pynautobot_obj.http_session.verify == True
-        assert nornir_nautobot_class.api_session.verify == True
-        assert nornir_nautobot_class.ssl_verify == True
+        assert nornir_nautobot_class.pynautobot_obj.http_session.verify is True
+        assert nornir_nautobot_class.api_session.verify is True
+        assert nornir_nautobot_class.ssl_verify is True
 
 
 def test_nornir_nautobot_initialization_ssl_verify_false():
@@ -122,9 +122,9 @@ def test_nornir_nautobot_initialization_ssl_verify_false():
         nornir_nautobot_class = NautobotInventory(
             nautobot_url="https://mock.example.com", nautobot_token="0123456789abcdef01234567890", ssl_verify=False
         )
-        assert nornir_nautobot_class.pynautobot_obj.http_session.verify == False
-        assert nornir_nautobot_class.api_session.verify == False
-        assert nornir_nautobot_class.ssl_verify == False
+        assert nornir_nautobot_class.pynautobot_obj.http_session.verify is False
+        assert nornir_nautobot_class.api_session.verify is False
+        assert nornir_nautobot_class.ssl_verify is False
 
 
 def test_nornir_nautobot_missing_url():

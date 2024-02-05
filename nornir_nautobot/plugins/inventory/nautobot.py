@@ -116,7 +116,6 @@ class NautobotInventory:  # pylint: disable=R0902
             )
             self.api_session.params = {"depth": 1}
 
-            # self._pynautobot_obj.http_session.verify = self.ssl_verify
             self._pynautobot_obj.http_session = self.api_session
 
         return self._pynautobot_obj

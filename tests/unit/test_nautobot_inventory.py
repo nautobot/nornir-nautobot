@@ -1,4 +1,5 @@
 """Pytest of Nautobot Inventory."""
+
 # Standard Library Imports
 from os import path
 
@@ -24,8 +25,23 @@ API_CALLS = [
         "method": "get",
     },
     {
+        "fixture_path": f"{HERE}/mocks/00_api_root.json",
+        "url": "https://mock.example.com/api/",
+        "method": "get",
+    },
+    {
         "fixture_path": f"{HERE}/mocks/01_get_devices.json",
         "url": "http://mock.example.com/api/dcim/devices/?depth=1",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/01_get_devices.json",
+        "url": "https://mock.example.com/api/dcim/devices/?depth=1",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/01_get_devices.json",
+        "url": "https://mock.example.com/api/dcim/devices/?depth=1&limit=0",
         "method": "get",
     },
     {
@@ -87,6 +103,28 @@ def test_nornir_nautobot_initialization():
         no_exception_found = False
 
     assert no_exception_found
+
+
+def test_nornir_nautobot_initialization_ssl_verify_default():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_nautobot_class = NautobotInventory(
+            nautobot_url="https://mock.example.com", nautobot_token="0123456789abcdef01234567890"
+        )
+        assert nornir_nautobot_class.pynautobot_obj.http_session.verify is True
+        assert nornir_nautobot_class.api_session.verify is True
+        assert nornir_nautobot_class.ssl_verify is True
+
+
+def test_nornir_nautobot_initialization_ssl_verify_false():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        nornir_nautobot_class = NautobotInventory(
+            nautobot_url="https://mock.example.com", nautobot_token="0123456789abcdef01234567890", ssl_verify=False
+        )
+        assert nornir_nautobot_class.pynautobot_obj.http_session.verify is False
+        assert nornir_nautobot_class.api_session.verify is False
+        assert nornir_nautobot_class.ssl_verify is False
 
 
 def test_nornir_nautobot_missing_url():

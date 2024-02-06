@@ -1,4 +1,5 @@
 """Used to initialize the dispatcher."""
+
 # pylint: disable=raise-missing-from
 
 import logging

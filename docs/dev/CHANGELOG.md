@@ -4,6 +4,10 @@
 
 - [#137](https://github.com/nautobot/nornir-nautobot/pull/137) Update to new pynautobot ssl verification
 
+## 3.1.0
+
+- [#131](https://github.com/nautobot/nornir-nautobot/pull/131) Updated logging output for Nornir
+
 ## 3.0.0
 
 - [#107](https://github.com/nautobot/nornir-nautobot/pull/107) Changed the dispatcher method function signature - Breaking change

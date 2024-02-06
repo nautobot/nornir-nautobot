@@ -1,4 +1,5 @@
 """nornir dispatcher for Mikrotik Router OS."""
+
 # pylint: disable=raise-missing-from
 
 import os

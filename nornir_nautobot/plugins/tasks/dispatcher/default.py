@@ -459,7 +459,7 @@ class NetmikoDefault(DispatcherMixin):
         command = cls.config_command
 
         try:
-            result = task.run(task=netmiko_send_command, command_string=command)
+            result = task.run(task=netmiko_send_command, command_string=command, enable=True)
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"

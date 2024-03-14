@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.1.2
+
+- [#145](https://github.com/nautobot/nornir-nautobot/pull/145) Update httpx
+
 ## 3.1.1
 
 - [#137](https://github.com/nautobot/nornir-nautobot/pull/137) Update to new pynautobot ssl verification

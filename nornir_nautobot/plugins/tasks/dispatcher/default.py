@@ -189,7 +189,7 @@ class DispatcherMixin:
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
-            error_msg = f"`E1014:` Unknown error - {exc.result.exception}\n```\n{stack_trace}\n```"
+            error_msg = f"`E1014:` Unknown error - `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

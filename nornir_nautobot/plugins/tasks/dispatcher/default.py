@@ -25,7 +25,7 @@ from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder, format_jinja_stack_trace
+from nornir_nautobot.utils.helpers import make_folder, get_stack_trace
 
 _logger = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ class DispatcherMixin:
                 jinja_env=jinja_env,
             )[0].result
         except NornirSubTaskError as exc:
-            stack_trace = format_jinja_stack_trace(exc.result.exception)
+            stack_trace = get_stack_trace(exc.result.exception)
 
             error_mapping = {
                 jinja2.exceptions.UndefinedError: ("E1010", "Undefined variable in Jinja2 template"),
@@ -189,7 +189,7 @@ class DispatcherMixin:
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
-            error_msg = f"`E1014:` Unknown error - `{exc.result.exception}`"
+            error_msg = f"`E1014:` Unknown error - `{exc.result.exception}`\n```\n{stack_trace}\n```"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

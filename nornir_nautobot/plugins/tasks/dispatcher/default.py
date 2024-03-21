@@ -149,6 +149,7 @@ class DispatcherMixin:
         jinja_filters: Optional[dict] = None,
         jinja_env: Optional[jinja2.Environment] = None,
     ) -> Result:
+        # pylint: disable=too-many-locals
         """A small wrapper around template_file Nornir task.
 
         Args:

@@ -33,6 +33,7 @@ def import_string(dotted_path):
     except (ModuleNotFoundError, AttributeError):
         return None
 
+
 def get_stack_trace(exc: Exception) -> str:
     """Generate and format a stack trace string for a given Jinja exception."""
     stack_trace_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)

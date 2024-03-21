@@ -25,7 +25,7 @@ from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder
+from nornir_nautobot.utils.helpers import make_folder, format_jinja_stack_trace
 
 _logger = logging.getLogger(__name__)
 
@@ -174,29 +174,22 @@ class DispatcherMixin:
                 jinja_env=jinja_env,
             )[0].result
         except NornirSubTaskError as exc:
-            if isinstance(exc.result.exception, jinja2.exceptions.UndefinedError):  # pylint: disable=no-else-raise
-                error_msg = (
-                    f"`E1010:` There was a jinja2.exceptions.UndefinedError error: ``{str(exc.result.exception)}``"
-                )
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
+            stack_trace = format_jinja_stack_trace(exc.result.exception)
 
-            elif isinstance(exc.result.exception, jinja2.TemplateSyntaxError):
-                error_msg = (f"`E1011:` There was a jinja2.TemplateSyntaxError error: ``{str(exc.result.exception)}``",)
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
+            error_mapping = {
+                jinja2.exceptions.UndefinedError: ("E1010", "Undefined variable in Jinja2 template"),
+                jinja2.TemplateSyntaxError: ("E1011", "Syntax error in Jinja2 template"),
+                jinja2.TemplateNotFound: ("E1012", "Jinja2 template not found"),
+                jinja2.TemplateError: ("E1013", "General Jinja2 template error"),
+            }
 
-            elif isinstance(exc.result.exception, jinja2.TemplateNotFound):
-                error_msg = f"`E1012:` There was an issue finding the template and a jinja2.TemplateNotFound error was raised: ``{str(exc.result.exception)}``"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
+            for error, (code, message) in error_mapping.items():
+                if isinstance(exc.result.exception, error):
+                    error_msg = f"`{code}:` {message} - ``{str(exc.result.exception)}``\n```\n{stack_trace}\n```"
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
 
-            elif isinstance(exc.result.exception, jinja2.TemplateError):
-                error_msg = f"`E1013:` There was an issue general Jinja error: ``{str(exc.result.exception)}``"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-
-            error_msg = f"`E1014:` Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = f"`E1014:` Unknown error - {exc.result.exception}\n```\n{stack_trace}\n```"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

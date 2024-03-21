@@ -4,6 +4,7 @@ import errno
 import os
 import logging
 import importlib
+import traceback
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,3 +32,9 @@ def import_string(dotted_path):
         return getattr(importlib.import_module(module_name), class_name)
     except (ModuleNotFoundError, AttributeError):
         return None
+
+def format_jinja_stack_trace(exc: Exception) -> str:
+    """Generate and format a stack trace string for a given Jinja exception."""
+    stack_trace_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
+    stack_trace_lines = [line for line in stack_trace_lines if '.j2' in line or '{{' in line]
+    return "\n".join(stack_trace_lines)

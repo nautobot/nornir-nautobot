@@ -37,4 +37,4 @@ def import_string(dotted_path):
 def get_stack_trace(exc: Exception) -> str:
     """Converts the provided exception's stack trace into a string."""
     stack_trace_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
-    return "\n".join(stack_trace_lines)
+    return "".join(stack_trace_lines)

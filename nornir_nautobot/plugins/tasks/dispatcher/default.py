@@ -175,10 +175,6 @@ class DispatcherMixin:
                 jinja_env=jinja_env,
             )[0].result
         except NornirSubTaskError as exc:
-            if logger.getEffectiveLevel() == logging.DEBUG:
-                logger.error("DEBUG ON", extra={"object": obj})
-            else:
-                logger.error("DEBUG OFF", extra={"object": obj})
             stack_trace = get_stack_trace(exc.result.exception)
 
             error_mapping = {

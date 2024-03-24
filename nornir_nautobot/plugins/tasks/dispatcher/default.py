@@ -165,9 +165,7 @@ class DispatcherMixin:
         Returns:
             Result: Nornir Result object.
         """
-        print(f"Logger type: {type(logger)}")
-        print(f"Logger attributes: {dir(logger)}")
-        print(f"Logger vars: {vars(logger)}")
+        logger.debug(task)
         try:
             filled_template = task.run(
                 **task.host,

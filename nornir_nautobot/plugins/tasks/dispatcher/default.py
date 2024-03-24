@@ -165,6 +165,8 @@ class DispatcherMixin:
         Returns:
             Result: Nornir Result object.
         """
+        logger.debug(f"Task vars: {vars(task)}")
+        logger.debug(f"Task dir: {dir(task)}")
         logger.debug(f"Task name: {task.name}")
         logger.debug(f"Task host: {task.host}")
         logger.debug(f"Task host data: {task.host.data}")

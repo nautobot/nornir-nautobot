@@ -165,6 +165,7 @@ class DispatcherMixin:
         Returns:
             Result: Nornir Result object.
         """
+        logger.debug("TESTING")
         try:
             filled_template = task.run(
                 **task.host,

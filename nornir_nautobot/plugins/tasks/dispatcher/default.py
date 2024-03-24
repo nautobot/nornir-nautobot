@@ -165,8 +165,6 @@ class DispatcherMixin:
         Returns:
             Result: Nornir Result object.
         """
-        if logger.getEffectiveLevel() == logging.DEBUG:
-            logger.debug("Job is running in debug mode", extra={"object": obj})
         try:
             filled_template = task.run(
                 **task.host,

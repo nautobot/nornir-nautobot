@@ -1,8 +1,11 @@
-from nornir import InitNornir
-from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
-from nornir_utils.plugins.functions import print_result
+"""Example with a actual dispatcher task."""
 
 import logging
+import os
+from nornir import InitNornir
+from nornir_utils.plugins.functions import print_result
+from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,8 +20,8 @@ my_nornir = InitNornir(
         },
     },
 )
-my_nornir.inventory.defaults.username = "jeff"
-my_nornir.inventory.defaults.password = "cisco"
+my_nornir.inventory.defaults.username = os.getenv("NORNIR_USERNAME")
+my_nornir.inventory.defaults.password = os.getenv("NORNIR_PASSWORD")
 
 for nr_host, nr_obj in my_nornir.inventory.hosts.items():
     network_driver = my_nornir.inventory.hosts[nr_host].platform

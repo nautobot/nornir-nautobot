@@ -38,3 +38,25 @@ def get_stack_trace(exc: Exception) -> str:
     """Converts the provided exception's stack trace into a string."""
     stack_trace_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
     return "".join(stack_trace_lines)
+
+
+def is_truthy(arg):
+    """Convert "truthy" strings into Booleans.
+
+    Args:
+        arg (str): Truthy string (True values are y, yes, t, true, on and 1; false values are n, no,
+        f, false, off and 0. Raises ValueError if val is anything else.
+
+    Examples:
+        >>> is_truthy('yes')
+        True
+    """
+    if isinstance(arg, bool):
+        return arg
+
+    val = str(arg).lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    if val in ("n", "no", "f", "false", "off", "0"):
+        return False
+    return True

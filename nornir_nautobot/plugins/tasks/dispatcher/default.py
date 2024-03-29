@@ -23,9 +23,8 @@ from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
-
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder
+from nornir_nautobot.utils.helpers import make_folder, is_truthy
 
 _logger = logging.getLogger(__name__)
 
@@ -459,7 +458,11 @@ class NetmikoDefault(DispatcherMixin):
         command = cls.config_command
 
         try:
-            result = task.run(task=netmiko_send_command, command_string=command)
+            result = task.run(
+                task=netmiko_send_command,
+                command_string=command,
+                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+            )
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"

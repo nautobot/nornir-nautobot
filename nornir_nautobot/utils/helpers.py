@@ -4,6 +4,7 @@ import errno
 import os
 import logging
 import importlib
+import traceback
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,6 +32,12 @@ def import_string(dotted_path):
         return getattr(importlib.import_module(module_name), class_name)
     except (ModuleNotFoundError, AttributeError):
         return None
+
+
+def get_stack_trace(exc: Exception) -> str:
+    """Converts the provided exception's stack trace into a string."""
+    stack_trace_lines = traceback.format_exception(type(exc), exc, exc.__traceback__)
+    return "".join(stack_trace_lines)
 
 
 def is_truthy(arg):

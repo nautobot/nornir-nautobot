@@ -15,6 +15,7 @@ from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
 
 class TestDispatcherMixin(TestCase):
     """Tests for DispatcherMixin"""
+
     @classmethod
     def setUpClass(cls):
         cls.dispatcher = DispatcherMixin()

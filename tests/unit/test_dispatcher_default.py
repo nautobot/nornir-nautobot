@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import jinja2
 from nornir.core.task import Task, Result
 from nornir.core.exceptions import NornirSubTaskError
-from nornir_jinja2.plugins.tasks import template_file
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin

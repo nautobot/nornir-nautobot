@@ -23,9 +23,8 @@ from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_send_command
-
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder
+from nornir_nautobot.utils.helpers import make_folder, is_truthy
 
 _logger = logging.getLogger(__name__)
 
@@ -34,6 +33,7 @@ class DispatcherMixin:
     """Mixin for non-network driver related tasks."""
 
     tcp_port = 22
+    config_injections = []
 
     @classmethod
     def _get_hostname(cls, task: Task, obj=None) -> str:  # pylint: disable=unused-argument
@@ -48,6 +48,16 @@ class DispatcherMixin:
         if isinstance(config_context, int):
             return config_context
         return cls.tcp_port
+
+    @classmethod
+    def _get_config_injections(cls, obj) -> str:
+        custom_field = obj.cf.get("config_injections")
+        if isinstance(custom_field, int):
+            return custom_field
+        config_context = obj.get_config_context().get("config_injections")
+        if isinstance(config_context, int):
+            return config_context
+        return cls.config_injections
 
     @classmethod
     def check_connectivity(cls, task: Task, logger, obj) -> Result:
@@ -431,6 +441,7 @@ class NetmikoDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Netmiko."""
 
     config_command = "show run"
+    config_injections = ["show run | i pad"]
 
     @classmethod
     def get_config(
@@ -457,9 +468,14 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
+        config_to_inject = cls._get_config_injections(obj)
 
         try:
-            result = task.run(task=netmiko_send_command, command_string=command)
+            result = task.run(
+                task=netmiko_send_command,
+                command_string=command,
+                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+            )
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
@@ -492,6 +508,31 @@ class NetmikoDefault(DispatcherMixin):
         if substitute_lines:
             logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
             running_config = sanitize_config(running_config, substitute_lines)
+        if config_to_inject:
+            logger.debug("Injecting additional context into backup file based on `config_injections")
+            try:
+                for inject_command in config_to_inject:
+                    inject_result = task.run(
+                        task=netmiko_send_command,
+                        command_string=inject_command,
+                        enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                    )
+            except NornirSubTaskError as exc:
+                if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                    error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+
+                if isinstance(exc.result.exception, NetmikoTimeoutException):
+                    error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+
+                error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+        running_config += inject_result[0].result
 
         if backup_file:
             make_folder(os.path.dirname(backup_file))

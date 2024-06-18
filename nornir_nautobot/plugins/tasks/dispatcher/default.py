@@ -55,10 +55,10 @@ class DispatcherMixin:
     def _get_config_injections(cls, obj) -> list:
         custom_field = obj.cf.get("config_injections")
         if isinstance(custom_field, str):
-            return custom_field.split(',')
+            return custom_field.split(",")
         config_context = obj.get_config_context().get("config_injections")
         if isinstance(config_context, str):
-            return config_context.split(',')
+            return config_context.split(",")
         return cls.config_injections
 
     @classmethod
@@ -439,7 +439,7 @@ class NetmikoDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-locals,too-many-branches
         cls,
         task: Task,
         logger,
@@ -518,7 +518,9 @@ class NetmikoDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
             if cls.config_end_string:
-                running_config = running_config.replace(cls.config_end_string, "\n".join(injected_data) + "\n" + cls.config_end_string)
+                running_config = running_config.replace(
+                    cls.config_end_string, "\n".join(injected_data) + "\n" + cls.config_end_string
+                )
             else:
                 running_config += "\n".join(injected_data)
 

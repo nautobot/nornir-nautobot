@@ -103,3 +103,24 @@ class DispatcherMixin:
             return config_context
         return cls.tcp_port
 ```
+
+## Config Injections
+
+In certain circumstances and at times with certain platforms the not all configurations are in a standard `get configuration` method.  Two common examples are:
+
+1. A specific default configuration only visible in the `show run all` version of the configuration needs to be validated. E.g. Cisco IOS you may need to validate `service pad` configurations, so you might want to inject thos by running `show run all | i service pad`.
+
+2. A specific configuration is not anywhere in the configuration and the ability to inject it would be valuable. E.g. Cisco NXOS doesn't show snmp-user information in the backup. This means an additional show command needs to be run to fully replicate the full configuration.
+
+The config injection will run additional commands that are defined on the following order or precedence.
+
+- Prefer `obj.cf["config_injections"]` if is a valid integer
+- Prefer `obj.get_config_context()["config_injections"]` if is a valid integer
+- Prefer cls.config_injections, which by default is defined in `DispatcherMixin` as []
+
+## Environment Variables
+
+| Environment Variable | Explanation |
+| ----- | ----------- |
+| NORNIR_NAUTOBOT_REVERT_IN_SECONDS  | Amount in seconds to revert if a config based method fails. |
+| NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT | Override the default(True) to not automatically call the `enable` function before running commands. |

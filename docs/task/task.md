@@ -110,3 +110,31 @@ class DispatcherMixin:
 | ----- | ----------- |
 | NORNIR_NAUTOBOT_REVERT_IN_SECONDS  | Amount in seconds to revert if a config based method fails. |
 | NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT | Override the default(True) to not automatically call the `enable` function before running commands. |
+
+
+## Dispatcher Configuration for Nautobot Golden Config
+
+here are the steps needed to configure dispatchers for Nautobot Golden Config.
+
+### checkpoint_gaia
+
+This section describes the **checkpoint_gaia** dispatcher that provides backup functionality for Check Point firewalls.
+
+To configure the dispatcher for Nautobot Golden Config, follow these steps:
+
+1. Go to **Nautobot / Admin / Configuration**.
+2. In the **Golden Configuration** section, set the default framework to `"checkpoint_gaia": "netmiko"`.
+
+    Here is an example of the configuration in JSON format:
+
+    ```json
+    {
+        "all": "napalm",
+        "checkpoint_gaia": "netmiko"
+    }
+    ```
+
+3. Add the Platform **checkpoint_gaia** to the **Platform** model in the Nautobot admin interface.
+
+    - **Name**: "checkpoint_gaia"
+    - **Network driver**: "checkpoint_gaia"

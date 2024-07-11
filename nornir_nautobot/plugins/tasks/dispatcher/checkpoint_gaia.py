@@ -1,4 +1,5 @@
 """nornir dispatcher for checkpoint_gaia."""
+
 from nornir.core.task import Result, Task
 
 from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault

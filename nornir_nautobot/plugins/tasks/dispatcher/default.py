@@ -22,7 +22,7 @@ from nornir.core.task import Result, Task
 
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import netmiko_send_command
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder
@@ -499,3 +499,55 @@ class NetmikoDefault(DispatcherMixin):
             with open(backup_file, "w", encoding="utf8") as filehandler:
                 filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
+
+    @classmethod
+    def merge_config(
+        cls,
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Send configuration to merge on the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The config set.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+        """
+        logger.info("Config merge via netmiko starting", extra={"object": obj})
+        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
+
+        try:
+            push_result = task.run(
+                task=netmiko_send_config,
+                config_commands=config.splitlines(),
+                enable=True,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            extra={"object": obj},
+        )
+
+        if push_result.diff:
+            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+
+        logger.info("Config merge ended", extra={"object": obj})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )

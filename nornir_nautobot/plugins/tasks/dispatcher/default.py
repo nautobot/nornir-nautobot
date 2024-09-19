@@ -43,10 +43,12 @@ class DispatcherMixin:
 
     @classmethod
     def _get_tcp_port(cls, obj) -> int:
+        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "cf"):
             custom_field = obj.cf.get("tcp_port")
             if isinstance(custom_field, int):
                 return custom_field
+        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "get_config_context"):
             config_context = obj.get_config_context().get("tcp_port")
             if isinstance(config_context, int):
@@ -55,10 +57,12 @@ class DispatcherMixin:
 
     @classmethod
     def _get_config_injections(cls, obj) -> list:
+        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "cf"):
             custom_field = obj.cf.get("config_injections")
             if isinstance(custom_field, str):
                 return custom_field.split(",")
+        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "get_config_context"):
             config_context = obj.get_config_context().get("config_injections")
             if isinstance(config_context, str):

@@ -103,3 +103,10 @@ class DispatcherMixin:
             return config_context
         return cls.tcp_port
 ```
+
+## Environment Variables
+
+| Environment Variable | Explanation |
+| ----- | ----------- |
+| NORNIR_NAUTOBOT_REVERT_IN_SECONDS  | Amount in seconds to revert if a config based method fails. |
+| NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT | Override the default(True) to not automatically call the `enable` function before running commands. |

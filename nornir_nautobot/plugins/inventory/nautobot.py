@@ -126,6 +126,7 @@ class NautobotInventory:  # pylint: disable=R0902
         if self._devices is None:
             # Check for filters. Cannot pass an empty dictionary to the filter method
             if self.filter_parameters is None:
+                # Do to https://github.com/nautobot/pynautobot/issues/237
                 self._devices = self.pynautobot_obj.dcim.devices.filter(include=["config_context"])
             else:
                 try:

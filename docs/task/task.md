@@ -106,16 +106,18 @@ class DispatcherMixin:
 
 ## Config Injections
 
-In certain circumstances and at times with certain platforms the not all configurations are in a standard `get configuration` method.  Two common examples are:
+In certain circumstances and with certain platforms, not all configurations can be obtained through a standard get configuration method.
 
-1. A specific default configuration only visible in the `show run all` version of the configuration needs to be validated. E.g. Cisco IOS you may need to validate `service pad` configurations, so you might want to inject thos by running `show run all | i service pad`.
+Two common examples are:
 
-2. A specific configuration is not anywhere in the configuration and the ability to inject it would be valuable. E.g. Cisco NXOS doesn't show snmp-user information in the backup. This means an additional show command needs to be run to fully replicate the full configuration.
+1. A specific default configuration, visible only in the `show run all` version of the configuration, needs to be validated. For instance, on Cisco IOS, you might need to validate `service pad` configurations. To do this, you could inject these configurations by running `show run all | i service pad`.
 
-The config injection will run additional commands that are defined on the following order or precedence.
+2. A specific configuration may not be present in the configuration at all, making it necessary to inject it. For example, Cisco NXOS doesn't show `snmp-user` information in the backup. To fully replicate the full configuration, an additional `show command` must be run.
 
-- Prefer `obj.cf["config_injections"]` if is a valid integer
-- Prefer `obj.get_config_context()["config_injections"]` if is a valid integer
+The configuration injection process will execute additional commands based on the following order or precedence.
+
+- Prefer `custom_fields` if is a valid integer
+- Prefer `config_context` if is a valid integer
 - Prefer cls.config_injections, which by default is defined in `DispatcherMixin` as []
 
 ## Environment Variables

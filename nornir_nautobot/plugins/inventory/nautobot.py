@@ -113,7 +113,6 @@ class NautobotInventory:  # pylint: disable=R0902
                 token=self.nautobot_token,
                 threading=self.enable_threading,
                 verify=self.ssl_verify,
-                api_version=2.2,
             )
             self.api_session.params = {"depth": 1}
 

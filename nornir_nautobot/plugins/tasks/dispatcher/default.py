@@ -525,8 +525,6 @@ class NetmikoDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
         logger.info("Config merge via netmiko starting", extra={"object": obj})
-        # Sending None to napalm_configure for revert_in will disable it, so we don't want a default value.
-
         try:
             push_result = task.run(
                 task=netmiko_send_config,
@@ -534,7 +532,28 @@ class NetmikoDefault(DispatcherMixin):
                 enable=True,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
+            if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            if isinstance(exc.result.exception, NetmikoTimeoutException):
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if push_result[0].failed:
+            return push_result
+
+        push_result = push_result[0].result
+
+        # Primarily seen in Cisco devices.
+        if "Invalid input detected at" in push_result:
+            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

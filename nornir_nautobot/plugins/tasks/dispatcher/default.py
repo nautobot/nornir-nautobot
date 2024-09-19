@@ -494,8 +494,20 @@ class NetmikoDefault(DispatcherMixin):
                 command_string=command,
                 enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
             )
-        except Exception:  # pylint:disable=broad-exception-caught
-            logger.error("Exception occured during config_injection, continuing without it.", extra={"object": obj})
+        except NornirSubTaskError as exc:
+            if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            if isinstance(exc.result.exception, NetmikoTimeoutException):
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
 
         if result[0].failed:
             return result

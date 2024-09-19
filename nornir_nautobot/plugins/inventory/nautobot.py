@@ -126,10 +126,12 @@ class NautobotInventory:  # pylint: disable=R0902
         if self._devices is None:
             # Check for filters. Cannot pass an empty dictionary to the filter method
             if self.filter_parameters is None:
-                self._devices = self.pynautobot_obj.dcim.devices.all()
+                self._devices = self.pynautobot_obj.dcim.devices.filter(include=["config_context"])
             else:
                 try:
-                    self._devices = self.pynautobot_obj.dcim.devices.filter(**self.filter_parameters)
+                    self._devices = self.pynautobot_obj.dcim.devices.filter(
+                        **self.filter_parameters, include=["config_context"]
+                    )
                 except pynautobot.core.query.RequestError as err:
                     print(f"Error in the query filters: {err.error}. Please verify the parameters.")
                     sys.exit(1)

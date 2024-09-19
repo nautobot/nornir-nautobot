@@ -29,7 +29,7 @@ for nr_host, nr_obj in my_nornir.inventory.hosts.items():
         task=dispatcher,
         logger=LOGGER,
         method="get_config",
-        obj=nr_host,
+        obj=nr_obj,
         framework="netmiko",
         backup_file="./ios.cfg",
         remove_lines=None,

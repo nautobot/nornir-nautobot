@@ -48,9 +48,17 @@ class DispatcherMixin:
             custom_field = obj.cf.get("tcp_port")
             if isinstance(custom_field, int):
                 return custom_field
-        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "get_config_context"):
             config_context = obj.get_config_context().get("tcp_port")
+            if isinstance(config_context, int):
+                return config_context
+        # NautobotInventory (nornir-nautobot) inventory.
+        if obj.data["pynautobot_dictionary"].get("custom_fields"):
+            custom_field = obj.data["pynautobot_dictionary"]["custom_fields"].get("tcp_port")
+            if isinstance(custom_field, int):
+                return custom_field
+        if obj.data["pynautobot_dictionary"].get("config_context"):
+            config_context = obj.data["pynautobot_dictionary"]["config_context"].get("tcp_port")
             if isinstance(config_context, int):
                 return config_context
         return cls.tcp_port
@@ -62,9 +70,17 @@ class DispatcherMixin:
             custom_field = obj.cf.get("config_injections")
             if isinstance(custom_field, str):
                 return custom_field.split(",")
-        # NautobotORMInventory (nautobot-plugin-nornir) inventory.
         if hasattr(obj, "get_config_context"):
             config_context = obj.get_config_context().get("config_injections")
+            if isinstance(config_context, str):
+                return config_context.split(",")
+        # NautobotInventory (nornir-nautobot) inventory.
+        if obj.data["pynautobot_dictionary"].get("custom_fields"):
+            custom_field = obj.data["pynautobot_dictionary"]["custom_fields"].get("config_injections")
+            if isinstance(custom_field, str):
+                return custom_field.split(",")
+        if obj.data["pynautobot_dictionary"].get("config_context"):
+            config_context = obj.data["pynautobot_dictionary"]["config_context"].get("config_injections")
             if isinstance(config_context, str):
                 return config_context.split(",")
         return cls.config_injections

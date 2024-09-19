@@ -31,47 +31,47 @@ API_CALLS = [
     },
     {
         "fixture_path": f"{HERE}/mocks/01_get_devices.json",
-        "url": "http://mock.example.com/api/dcim/devices/?depth=1",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/01_get_devices.json",
-        "url": "https://mock.example.com/api/dcim/devices/?depth=1",
+        "url": "https://mock.example.com/api/dcim/devices/?depth=1&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/01_get_devices.json",
-        "url": "https://mock.example.com/api/dcim/devices/?depth=1&limit=0",
+        "url": "https://mock.example.com/api/dcim/devices/?depth=1&limit=0&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/02_get_device1.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist01",
+        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist01&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/03_get_device2.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist02",
+        "url": "http://mock.example.com/api/dcim/devices/?name=den-dist02&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/04_get_device3.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=den-wan01",
+        "url": "http://mock.example.com/api/dcim/devices/?name=den-wan01&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/05_get_locations_filtered.json",
-        "url": "http://mock.example.com/api/dcim/devices/?depth=1&location=msp",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1&location=msp&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/06_get_device_msp-rtr01.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr01",
+        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr01&include=config_context",
         "method": "get",
     },
     {
         "fixture_path": f"{HERE}/mocks/07_get_device_msp-rtr02.json",
-        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr02",
+        "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr02&include=config_context",
         "method": "get",
     },
 ]
@@ -163,7 +163,7 @@ def test_devices(nornir_nautobot_class):
         pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
         expected_devices = []
         for device in ["den-dist01", "den-dist02", "den-wan01"]:
-            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
+            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device, include=["config_context"]))
 
         assert nornir_nautobot_class.devices == expected_devices
 
@@ -179,7 +179,7 @@ def test_filter_devices():
         pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
         expected_devices = []
         for device in ["msp-rtr01", "msp-rtr02"]:
-            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
+            expected_devices.append(pynautobot_obj.dcim.devices.get(name=device, include=["config_context"]))
 
         assert test_class.devices == expected_devices
 

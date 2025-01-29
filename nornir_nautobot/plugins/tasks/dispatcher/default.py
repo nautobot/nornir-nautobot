@@ -22,7 +22,7 @@ from nornir.core.task import Result, Task
 
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config, netmiko_save_config
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder, get_stack_trace, is_truthy
 
@@ -547,8 +547,6 @@ class NetmikoDefault(DispatcherMixin):
         if push_result[0].failed:
             return push_result
 
-        push_result = push_result[0].result
-
         # Primarily seen in Cisco devices.
         if "Invalid input detected at" in push_result:
             error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
@@ -556,15 +554,23 @@ class NetmikoDefault(DispatcherMixin):
             raise NornirNautobotException(error_msg)
 
         logger.info(
-            f"result: {push_result[0].result}, changed: {push_result.changed}",
+            f"result: {push_result[0].result}, changed: {push_result[0].changed}",
             extra={"object": obj},
         )
 
         if push_result.diff:
-            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            logger.info(f"Diff:\n```\n_{push_result[0].diff}\n```", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
+        try:
+            task.run(
+                task=netmiko_save_config,
+                confirm=True,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1016:`Saving Config Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result},
+            result={"changed": push_result[0].changed, "result": push_result[0].result},
         )

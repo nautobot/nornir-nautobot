@@ -319,6 +319,28 @@ class NapalmDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": running_config})
 
     @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A Napalm getter to execute.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(task=napalm_get, getters=[command], **kwargs)
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if result[0].failed:
+            return result
+
+    @classmethod
     def replace_config(
         cls,
         task: Task,
@@ -499,3 +521,37 @@ class NetmikoDefault(DispatcherMixin):
             with open(backup_file, "w", encoding="utf8") as filehandler:
                 filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
+
+    @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(task=netmiko_send_command, command_string=command, **kwargs)
+        except NornirSubTaskError as exc:
+            if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            if isinstance(exc.result.exception, NetmikoTimeoutException):
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if result[0].failed:
+            return result
+
+        return Result(host=task.host, result={"output": result[0].result})

@@ -13,6 +13,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 repository = "https://github.com/nautobot/nornir-nautobot"
 homepage = "https://nautobot.com"
@@ -23,7 +24,7 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 "Bug Tracker" = "https://github.com/nautobot/nornir-nautobot/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.13"
 nornir = "^3.0.0"
 requests = "^2.25.1"
 nornir-utils = "^0"

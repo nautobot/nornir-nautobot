@@ -10,7 +10,7 @@ This section describes how to install *nornir_nautobot* for development, how to 
 
 ## Python Versions
 
-This leverages Python3.9 or later. All features will be tested against 3.9 - 3.11 versions of Python.
+This leverages Python3.9 or later. All features will be tested against 3.9 - 3.12 versions of Python.
 
 ## Versioning
 

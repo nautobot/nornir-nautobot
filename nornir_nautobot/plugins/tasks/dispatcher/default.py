@@ -332,6 +332,7 @@ class NapalmDefault(DispatcherMixin):
 
         if result[0].failed:
             return result
+        return Result(host=task.host, result={"output": result[0].result})
 
     @classmethod
     def replace_config(
@@ -386,7 +387,7 @@ class NapalmDefault(DispatcherMixin):
         )
 
     @classmethod
-    def merge_config(
+    def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -603,6 +604,7 @@ class NetmikoDefault(DispatcherMixin):
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
+
         Args:
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.

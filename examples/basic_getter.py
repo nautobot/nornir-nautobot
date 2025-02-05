@@ -2,6 +2,7 @@
 
 import logging
 import os
+from netutils.lib_mapper import NAPALM_LIB_MAPPER_REVERSE
 from nornir import InitNornir
 from nornir_utils.plugins.functions import print_result
 from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
@@ -24,8 +25,8 @@ my_nornir.inventory.defaults.username = os.getenv("NORNIR_USERNAME")
 my_nornir.inventory.defaults.password = os.getenv("NORNIR_PASSWORD")
 
 for nr_host, nr_obj in my_nornir.inventory.hosts.items():
-    network_driver = my_nornir.inventory.hosts[nr_host].platform
-    my_nornir.inventory.hosts[nr_host].platform = "ios"
+    network_driver = my_nornir.inventory.hosts[nr_host].data["pynautobot_object"].platform.network_driver
+    my_nornir.inventory.hosts[nr_host].platform = NAPALM_LIB_MAPPER_REVERSE.get(network_driver)
     result = my_nornir.run(
         task=dispatcher,
         logger=LOGGER,
@@ -37,8 +38,6 @@ for nr_host, nr_obj in my_nornir.inventory.hosts.items():
     print_result(result)
 
 for nr_host, nr_obj in my_nornir.inventory.hosts.items():
-    network_driver = my_nornir.inventory.hosts[nr_host].platform
-    my_nornir.inventory.hosts[nr_host].platform = "ios"
     result = my_nornir.run(
         task=dispatcher,
         logger=LOGGER,
@@ -46,5 +45,6 @@ for nr_host, nr_obj in my_nornir.inventory.hosts.items():
         obj=nr_host,
         framework="netmiko",
         command="show version",
+        use_textfsm=True,
     )
     print_result(result)

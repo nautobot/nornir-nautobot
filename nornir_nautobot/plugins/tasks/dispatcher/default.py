@@ -22,7 +22,7 @@ from nornir.core.task import Result, Task
 
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import netmiko_send_command
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config, netmiko_save_config
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder, get_stack_trace, is_truthy
 
@@ -95,7 +95,7 @@ class DispatcherMixin:
         return Result(host=task.host)
 
     @classmethod
-    def compliance_config(
+    def compliance_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -138,7 +138,7 @@ class DispatcherMixin:
         return Result(host=task.host, result={"feature_data": feature_data})
 
     @classmethod
-    def generate_config(
+    def generate_config(  # pylint: disable=too-many-positional-arguments,too-many-locals
         cls,
         task: Task,
         logger,
@@ -149,7 +149,6 @@ class DispatcherMixin:
         jinja_filters: Optional[dict] = None,
         jinja_env: Optional[jinja2.Environment] = None,
     ) -> Result:
-        # pylint: disable=too-many-locals
         """A small wrapper around template_file Nornir task.
 
         Args:
@@ -255,7 +254,7 @@ class NapalmDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Napalm."""
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -393,6 +392,7 @@ class NapalmDefault(DispatcherMixin):
         logger,
         obj,
         config: str,
+        can_diff: bool = True,
     ) -> Result:
         """Send configuration to merge on the device.
 
@@ -434,7 +434,10 @@ class NapalmDefault(DispatcherMixin):
         )
 
         if push_result.diff:
-            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            if can_diff:
+                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            else:
+                logger.warning("Diff was requested but may include sensitive data. Ignoring...", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
@@ -449,7 +452,7 @@ class NetmikoDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -521,9 +524,85 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": running_config})
 
     @classmethod
+    def merge_config(
+        cls,
+        task: Task,
+        logger,
+        obj,
+        config: str,
+    ) -> Result:
+        """Send configuration to merge on the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The config set.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+        """
+        logger.info("Config merge via netmiko starting", extra={"object": obj})
+        try:
+            push_result = task.run(
+                task=netmiko_send_config,
+                config_commands=config.splitlines(),
+                enable=True,
+            )
+        except NornirSubTaskError as exc:
+            if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            if isinstance(exc.result.exception, NetmikoTimeoutException):
+                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if push_result[0].failed:
+            return push_result
+
+        # Primarily seen in Cisco devices.
+        if "Invalid input detected at" in push_result:
+            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result[0].changed}",
+            extra={"object": obj},
+        )
+
+        if push_result.diff:
+            logger.info(f"Diff:\n```\n_{push_result[0].diff}\n```", extra={"object": obj})
+
+        logger.info("Config merge ended", extra={"object": obj})
+        try:
+            task.run(
+                task=netmiko_save_config,
+                confirm=True,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1016:`Saving Config Failed with an unknown issue. `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+        return Result(
+            host=task.host,
+            result={"changed": push_result[0].changed, "result": push_result[0].result},
+        )
+
+    @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
-
         Args:
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.

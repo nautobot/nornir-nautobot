@@ -43,7 +43,7 @@ class ApiMikrotikRouteros(DispatcherMixin):
     ]
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
+    def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
         cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device.
@@ -116,7 +116,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
     version_command = "system resource print"
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
+    def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
         cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.

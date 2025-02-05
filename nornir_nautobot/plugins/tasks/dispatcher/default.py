@@ -370,6 +370,7 @@ class NapalmDefault(DispatcherMixin):
         logger,
         obj,
         config: str,
+        can_diff: bool = True,
     ) -> Result:
         """Send configuration to merge on the device.
 
@@ -411,7 +412,10 @@ class NapalmDefault(DispatcherMixin):
         )
 
         if push_result.diff:
-            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            if can_diff:
+                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            else:
+                logger.warning("Diff was requested but may include sensitive data. Ignoring...", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(

@@ -10,10 +10,10 @@ classifiers = [
   "Intended Audience :: Developers",
   "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 repository = "https://github.com/nautobot/nornir-nautobot"
 homepage = "https://nautobot.com"
@@ -24,7 +24,7 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 "Bug Tracker" = "https://github.com/nautobot/nornir-nautobot/issues"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<3.13"
 nornir = "^3.0.0"
 requests = "^2.25.1"
 nornir-utils = "^0"
@@ -64,7 +64,7 @@ mikrotik_driver = ["routeros-api"]
 
 [tool.black]
 line-length = 120
-target-version = ['py38', 'py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 exclude = '''
 (

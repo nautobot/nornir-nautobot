@@ -14,7 +14,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml black"
       - name: "Linting: Black"
@@ -29,7 +29,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml bandit"
       - name: "Linting: Bandit"
@@ -46,7 +46,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml pydocstyle"
       - name: "Linting: pydocstyle"
@@ -63,7 +63,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml flake8"
       - name: "Linting: flake8"
@@ -80,7 +80,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml yamllint"
       - name: "Linting: yamllint"
@@ -95,7 +95,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Setup"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -113,7 +113,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -126,7 +126,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     runs-on: "ubuntu-20.04"
     env:
       PYTHON_VER: "${{ matrix.python-version }}"
@@ -136,7 +136,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -155,7 +155,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Set env"
@@ -184,7 +184,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages"
         run: "pip install poetry"
       - name: "Set env"

@@ -77,7 +77,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
         return service_ticket
 
     @classmethod
-    def _build_urls(  # pylint: disable=too-many-arguments,too-many-locals
+    def _build_urls(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         cls,
         obj,
         logger,
@@ -138,7 +138,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
         return api_data
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
+    def get_config(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device.

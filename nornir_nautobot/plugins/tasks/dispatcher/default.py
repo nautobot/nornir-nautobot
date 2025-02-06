@@ -96,7 +96,7 @@ class DispatcherMixin:
         return Result(host=task.host)
 
     @classmethod
-    def compliance_config(
+    def compliance_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -139,7 +139,7 @@ class DispatcherMixin:
         return Result(host=task.host, result={"feature_data": feature_data})
 
     @classmethod
-    def generate_config(
+    def generate_config(  # pylint: disable=too-many-positional-arguments,too-many-locals
         cls,
         task: Task,
         logger,
@@ -150,7 +150,6 @@ class DispatcherMixin:
         jinja_filters: Optional[dict] = None,
         jinja_env: Optional[jinja2.Environment] = None,
     ) -> Result:
-        # pylint: disable=too-many-locals
         """A small wrapper around template_file Nornir task.
 
         Args:
@@ -256,7 +255,7 @@ class NapalmDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Napalm."""
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -372,6 +371,7 @@ class NapalmDefault(DispatcherMixin):
         logger,
         obj,
         config: str,
+        can_diff: bool = True,
     ) -> Result:
         """Send configuration to merge on the device.
 
@@ -413,7 +413,10 @@ class NapalmDefault(DispatcherMixin):
         )
 
         if push_result.diff:
-            logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            if can_diff:
+                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            else:
+                logger.warning("Diff was requested but may include sensitive data. Ignoring...", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
@@ -428,7 +431,7 @@ class NetmikoDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,

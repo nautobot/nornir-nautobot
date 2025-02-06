@@ -365,7 +365,7 @@ class NapalmDefault(DispatcherMixin):
         )
 
     @classmethod
-    def merge_config(
+    def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
@@ -586,7 +586,7 @@ class ScrapliDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
-    def get_config(
+    def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,

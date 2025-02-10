@@ -581,7 +581,7 @@ class NetmikoDefault(DispatcherMixin):
 
 
 class ScrapliDefault(DispatcherMixin):
-    """Default collection of Nornir Tasks based on Netmiko."""
+    """Default collection of Nornir Tasks based on Scrapli."""
 
     config_command = "show run"
 

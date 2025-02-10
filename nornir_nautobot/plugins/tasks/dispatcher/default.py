@@ -22,6 +22,7 @@ from nornir.core.task import Result, Task
 
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
+from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config, netmiko_save_config
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder, get_stack_trace, is_truthy
@@ -601,10 +602,10 @@ class NetmikoDefault(DispatcherMixin):
             result={"changed": push_result[0].changed, "result": push_result[0].result},
         )
 
+
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
-
         Args:
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
@@ -634,3 +635,71 @@ class NetmikoDefault(DispatcherMixin):
             return result
 
         return Result(host=task.host, result={"output": result[0].result})
+
+
+class ScrapliDefault(DispatcherMixin):
+    """Default collection of Nornir Tasks based on Scrapli."""
+
+    config_command = "show run"
+
+    @classmethod
+    def get_config(  # pylint: disable=too-many-positional-arguments
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
+    ) -> Result:
+        """Get the latest configuration from the device using Netmiko.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            remove_lines (list): A list of regex lines to remove configurations.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing the running configuration
+                { "config: <running configuration> }
+        """
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        command = cls.config_command
+
+        try:
+            result = task.run(
+                task=scrapli_send_command,
+                command=command,
+                strip_prompt=True,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if result[0].failed:
+            return result
+
+        running_config = result[0].result
+
+        # Primarily seen in Cisco devices.
+        if "ERROR: % Invalid input detected at" in running_config:
+            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        if remove_lines:
+            logger.debug("Removing lines from configuration based on `remove_lines` definition")
+            running_config = clean_config(running_config, remove_lines)
+        if substitute_lines:
+            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+            running_config = sanitize_config(running_config, substitute_lines)
+
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
+
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(running_config)
+        return Result(host=task.host, result={"config": running_config})

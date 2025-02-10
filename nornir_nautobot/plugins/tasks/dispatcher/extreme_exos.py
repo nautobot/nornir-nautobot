@@ -1,6 +1,6 @@
 """nornir dispatcher for Extreme EXOS."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
 
 
 class NapalmExtremeEXOS(NapalmDefault):

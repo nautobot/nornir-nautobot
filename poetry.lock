@@ -1329,6 +1329,32 @@ files = [
 netmiko = ">=4.0.0,<5.0.0"
 
 [[package]]
+name = "nornir-scrapli"
+version = "2025.1.30"
+description = "Scrapli's plugin for Nornir"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "nornir_scrapli-2025.1.30-py3-none-any.whl", hash = "sha256:be178b13257ece024a01c97c798973622138bc780fa607fe8bed70d0dbf2914a"},
+    {file = "nornir_scrapli-2025.1.30.tar.gz", hash = "sha256:b36bbfcf3678e695d54c0df673f9cf662dbd737d9e13170893cd4ed833c7b410"},
+]
+
+[package.dependencies]
+nornir = ">=3.0.0"
+nornir_utils = ">=0.1.0"
+ntc_templates = ">=1.1.0"
+scrapli = ">=2022.01.30"
+scrapli_cfg = ">=2022.01.30"
+scrapli_community = ">=2021.01.30"
+scrapli_netconf = ">=2022.01.30"
+textfsm = ">=1.1.0"
+
+[package.extras]
+dev = ["black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "genie (>=20.2)", "isort (>=5.10.1,<6.0.0)", "mypy (>1.0.0,<2.0.0)", "nox (==2024.4.15)", "pyats (>=20.2)", "pydocstyle (>=6.1.1,<7.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "toml (>=0.10.2,<1.0.0)"]
+docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-files (>=0.4.0,<1.0.0)", "mkdocs-literate-nav (>=0.5.0,<1.0.0)", "mkdocs-material (>=8.1.6,<10.0.0)", "mkdocs-material-extensions (>=1.0.3,<2.0.0)", "mkdocs-section-index (>=0.3.4,<1.0.0)", "mkdocstrings[python] (>=0.19.0,<1.0.0)"]
+genie = ["genie (>=20.2)", "pyats (>=20.2)"]
+
+[[package]]
 name = "nornir-utils"
 version = "0.2.0"
 description = "Collection of plugins and functions for nornir that don't require external dependencies"
@@ -1345,13 +1371,13 @@ nornir = ">=3,<4"
 
 [[package]]
 name = "ntc-templates"
-version = "7.6.0"
+version = "7.7.0"
 description = "TextFSM Templates for Network Devices, and Python wrapper for TextFSM's CliTable."
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "ntc_templates-7.6.0-py3-none-any.whl", hash = "sha256:6e855a443cd9ad28192bc766994cbfef58bcaae3ebaf19005a55c6f76e9ab6b5"},
-    {file = "ntc_templates-7.6.0.tar.gz", hash = "sha256:b70ccaaf74014344a8446f13744691cfbf2e603101481c71decc8ee53eefea5d"},
+    {file = "ntc_templates-7.7.0-py3-none-any.whl", hash = "sha256:314850358394f4edbc3170ce9d3b69f51c2877c67cd9c4c8fe21227cb81f8ab1"},
+    {file = "ntc_templates-7.7.0.tar.gz", hash = "sha256:c7b9c2f8306ff6ff1133b5a1614f9627b520bc27c3c514c4e95bf27e221f2a2d"},
 ]
 
 [package.dependencies]
@@ -2147,6 +2173,93 @@ files = [
 paramiko = "*"
 
 [[package]]
+name = "scrapli"
+version = "2025.1.30"
+description = "Fast, flexible, sync/async, Python 3.7+ screen scraping client specifically for network devices"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "scrapli-2025.1.30-py3-none-any.whl", hash = "sha256:f71ca4e96b56ad245f34269dc3eedf168aca54eb7b1ba96ad0c965c2b76f807e"},
+    {file = "scrapli-2025.1.30.tar.gz", hash = "sha256:3426a38b5dd6a4c67749c30f14102c04a4a43d3da17710b46fec7e53409b340e"},
+]
+
+[package.extras]
+asyncssh = ["asyncssh (>=2.2.1,<3.0.0)"]
+community = ["scrapli_community (>=2021.01.30)"]
+dev = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "genie (>=20.2)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "ntc-templates (>=1.1.0,<8.0.0)", "paramiko (>=2.6.0,<4.0.0)", "pyats (>=20.2)", "pydocstyle (>=6.1.1,<7.0.0)", "pyfakefs (>=5.4.1,<6.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "scrapli-cfg (==2023.7.30)", "scrapli-replay (==2023.7.30)", "scrapli_community (>=2021.01.30)", "ssh2-python (>=0.23.0,<2.0.0)", "textfsm (>=1.1.0,<2.0.0)", "toml (>=0.10.2,<1.0.0)", "ttp (>=0.5.0,<1.0.0)", "types-paramiko (>=2.8.6,<4.0.0)"]
+dev-darwin = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "genie (>=20.2)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "ntc-templates (>=1.1.0,<8.0.0)", "paramiko (>=2.6.0,<4.0.0)", "pyats (>=20.2)", "pydocstyle (>=6.1.1,<7.0.0)", "pyfakefs (>=5.4.1,<6.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "scrapli-cfg (==2023.7.30)", "scrapli-replay (==2023.7.30)", "scrapli_community (>=2021.01.30)", "textfsm (>=1.1.0,<2.0.0)", "toml (>=0.10.2,<1.0.0)", "ttp (>=0.5.0,<1.0.0)", "types-paramiko (>=2.8.6,<4.0.0)"]
+docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-files (>=0.4.0,<1.0.0)", "mkdocs-literate-nav (>=0.5.0,<1.0.0)", "mkdocs-material (>=8.1.6,<10.0.0)", "mkdocs-material-extensions (>=1.0.3,<2.0.0)", "mkdocs-section-index (>=0.3.4,<1.0.0)", "mkdocstrings[python] (>=0.19.0,<1.0.0)"]
+genie = ["genie (>=20.2)", "pyats (>=20.2)"]
+paramiko = ["paramiko (>=2.6.0,<4.0.0)"]
+ssh2 = ["ssh2-python (>=0.23.0,<2.0.0)"]
+textfsm = ["ntc-templates (>=1.1.0,<8.0.0)", "textfsm (>=1.1.0,<2.0.0)"]
+ttp = ["ttp (>=0.5.0,<1.0.0)"]
+
+[[package]]
+name = "scrapli-cfg"
+version = "2025.1.30"
+description = "Network device configuration management with scrapli"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "scrapli_cfg-2025.1.30-py3-none-any.whl", hash = "sha256:aaf0c5f52ed06ba0ffefa860ab947c96b663c98a96f38b90eac567d46906fdf4"},
+    {file = "scrapli_cfg-2025.1.30.tar.gz", hash = "sha256:7ed3b5743116d35d7d65f86d06dd7e74fcc509e1c8df6ddebffdeb7cebed13e8"},
+]
+
+[package.dependencies]
+scrapli = ">=2022.01.30a2"
+
+[package.extras]
+asyncssh = ["asyncssh (>=2.2.1,<3.0.0)"]
+dev = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "paramiko (>=2.6.0,<4.0.0)", "pydocstyle (>=6.1.1,<7.0.0)", "pyfakefs (>=5.4.1,<6.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "scrapli-replay (==2023.7.30)", "ssh2-python (>=0.23.0,<2.0.0)", "toml (>=0.10.2,<1.0.0)"]
+dev-darwin = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "paramiko (>=2.6.0,<4.0.0)", "pydocstyle (>=6.1.1,<7.0.0)", "pyfakefs (>=5.4.1,<6.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "scrapli-replay (==2023.7.30)", "toml (>=0.10.2,<1.0.0)"]
+docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-files (>=0.4.0,<1.0.0)", "mkdocs-literate-nav (>=0.5.0,<1.0.0)", "mkdocs-material (>=8.1.6,<10.0.0)", "mkdocs-material-extensions (>=1.0.3,<2.0.0)", "mkdocs-section-index (>=0.3.4,<1.0.0)", "mkdocstrings[python] (>=0.19.0,<1.0.0)"]
+paramiko = ["paramiko (>=2.6.0,<4.0.0)"]
+ssh2 = ["ssh2-python (>=0.23.0,<2.0.0)"]
+
+[[package]]
+name = "scrapli-community"
+version = "2025.1.30"
+description = "Easily add support for 'non-core' platforms to scrapli"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "scrapli_community-2025.1.30-py3-none-any.whl", hash = "sha256:dc4d02193ec3bb14cec9e04ab0d48fc59d575e1ccedac92fb4b8bbd6f3b6726f"},
+    {file = "scrapli_community-2025.1.30.tar.gz", hash = "sha256:5357d1e471879203f648948adf114d8155a69ca1242060504d9b92f54f79d119"},
+]
+
+[package.dependencies]
+scrapli = ">=2021.07.30a1"
+
+[package.extras]
+dev = ["black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "pydocstyle (>=6.1.1,<7.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "toml (>=0.10.2,<1.0.0)"]
+dev-darwin = ["black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "pydocstyle (>=6.1.1,<7.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "toml (>=0.10.2,<1.0.0)"]
+docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-files (>=0.4.0,<1.0.0)", "mkdocs-literate-nav (>=0.5.0,<1.0.0)", "mkdocs-material (>=8.1.6,<10.0.0)", "mkdocs-material-extensions (>=1.0.3,<2.0.0)", "mkdocs-section-index (>=0.3.4,<1.0.0)", "mkdocstrings[python] (>=0.19.0,<1.0.0)"]
+
+[[package]]
+name = "scrapli-netconf"
+version = "2025.1.30"
+description = "Fast, flexible, sync/async, Python 3.7+ NETCONF client built on scrapli"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "scrapli_netconf-2025.1.30-py3-none-any.whl", hash = "sha256:009041515d9d75d6e3748730bc920b350eb6ab86c6890e44495ca00de3e86cd9"},
+    {file = "scrapli_netconf-2025.1.30.tar.gz", hash = "sha256:06813455dda9bd27d99734a3f689b4259ccab625141fc41126495ccad705d248"},
+]
+
+[package.dependencies]
+lxml = ">=4.5.1"
+scrapli = ">=2022.07.30"
+
+[package.extras]
+asyncssh = ["asyncssh (>=2.2.1,<3.0.0)"]
+dev = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "paramiko (>=2.6.0,<4.0.0)", "pydocstyle (>=6.1.1,<7.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "ssh2-python (>=0.23.0,<2.0.0)", "toml (>=0.10.2,<1.0.0)"]
+dev-darwin = ["asyncssh (>=2.2.1,<3.0.0)", "black (>=23.3.0,<25.0.0)", "darglint (>=1.8.1,<2.0.0)", "isort (>=5.10.1,<6.0.0)", "mypy (>=1.4.1,<2.0.0)", "nox (==2024.4.15)", "paramiko (>=2.6.0,<4.0.0)", "pydocstyle (>=6.1.1,<7.0.0)", "pylint (>=3.0.0,<4.0.0)", "pytest (>=7.0.0,<8.0.0)", "pytest-asyncio (>=0.17.0,<1.0.0)", "pytest-cov (>=3.0.0,<5.0.0)", "toml (>=0.10.2,<1.0.0)"]
+docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-files (>=0.4.0,<1.0.0)", "mkdocs-literate-nav (>=0.5.0,<1.0.0)", "mkdocs-material (>=8.1.6,<10.0.0)", "mkdocs-material-extensions (>=1.0.3,<2.0.0)", "mkdocs-section-index (>=0.3.4,<1.0.0)", "mkdocstrings[python] (>=0.19.0,<1.0.0)"]
+paramiko = ["paramiko (>=2.6.0,<4.0.0)"]
+ssh2 = ["ssh2-python (>=0.23.0,<2.0.0)"]
+
+[[package]]
 name = "setuptools"
 version = "75.8.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -2479,4 +2592,4 @@ mikrotik-driver = ["routeros-api"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "7b261710e677a1a7c0067560c16552eb03c6b15be13a230655d16ff6bbb9dab7"
+content-hash = "08c2e669ab0d48c0fea5c1bb4d7276eef6057ed2dc8dd0053ddcde4876086357"

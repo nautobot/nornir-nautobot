@@ -280,23 +280,16 @@ class NapalmDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
 
-        # TODO: Find standard napalm exceptions and account for them
-        try:
-            result = task.run(task=napalm_get, getters=["config"], retrieve="running")
-        except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        if result[0].failed:
+        getter_result = cls.get_command(task, logger, obj, command="config", retrieve="running")
+        if getter_result.failed:
             # TODO: investigate this, is there a better way to handle? recursive function?
             logger.error(
-                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`",
+                f"`get_config` nornir task failed with an unexpected issue: `{str(getter_result.result.exception)}`",
                 extra={"object": obj},
             )
-            return result
+            return getter_result.result
 
-        running_config = result[0].result.get("config", {}).get("running", None)
+        running_config = getter_result.result.get("output", {}).get("config", {}).get("running", None)
         if remove_lines:
             logger.debug("Removing lines from configuration based on `remove_lines` definition")
             running_config = clean_config(running_config, remove_lines)
@@ -331,9 +324,7 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        if result[0].failed:
-            return result
-        return Result(host=task.host, result={"output": result[0].result})
+        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
 
     @classmethod
     def replace_config(
@@ -479,31 +470,12 @@ class NetmikoDefault(DispatcherMixin):
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
 
-        try:
-            result = task.run(
-                task=netmiko_send_command,
-                command_string=command,
-                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
-            )
-        except NornirSubTaskError as exc:
-            if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
+        getter_result = cls.get_command(task, logger, obj, command)
 
-            if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
+        if getter_result.failed:
+            return getter_result
 
-            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        if result[0].failed:
-            return result
-
-        running_config = result[0].result
+        running_config = getter_result.result.get("output")
 
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
@@ -602,7 +574,6 @@ class NetmikoDefault(DispatcherMixin):
             result={"changed": push_result[0].changed, "result": push_result[0].result},
         )
 
-
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
@@ -615,7 +586,12 @@ class NetmikoDefault(DispatcherMixin):
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
         try:
-            result = task.run(task=netmiko_send_command, command_string=command, **kwargs)
+            result = task.run(
+                task=netmiko_send_command,
+                command_string=command,
+                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                **kwargs,
+            )
         except NornirSubTaskError as exc:
             if isinstance(exc.result.exception, NetmikoAuthenticationException):
                 error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
@@ -631,10 +607,7 @@ class NetmikoDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        if result[0].failed:
-            return result
-
-        return Result(host=task.host, result={"output": result[0].result})
+        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
 
 
 class ScrapliDefault(DispatcherMixin):
@@ -668,21 +641,12 @@ class ScrapliDefault(DispatcherMixin):
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
 
-        try:
-            result = task.run(
-                task=scrapli_send_command,
-                command=command,
-                strip_prompt=True,
-            )
-        except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
+        getter_result = cls.get_command(task, logger, obj, command)
 
-        if result[0].failed:
-            return result
+        if getter_result.failed:
+            return getter_result
 
-        running_config = result[0].result
+        running_config = getter_result.result.get("output")
 
         # Primarily seen in Cisco devices.
         if "ERROR: % Invalid input detected at" in running_config:
@@ -703,3 +667,28 @@ class ScrapliDefault(DispatcherMixin):
             with open(backup_file, "w", encoding="utf8") as filehandler:
                 filehandler.write(running_config)
         return Result(host=task.host, result={"config": running_config})
+
+    @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(
+                task=scrapli_send_command,
+                command=command,
+                strip_prompt=True,
+                **kwargs,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)

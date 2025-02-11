@@ -314,6 +314,7 @@ class NapalmDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A Napalm getter to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
@@ -577,11 +578,13 @@ class NetmikoDefault(DispatcherMixin):
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
+
         Args:
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
@@ -671,11 +674,13 @@ class ScrapliDefault(DispatcherMixin):
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
         """A tasks to get the commands from a device.
+
         Args:
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 

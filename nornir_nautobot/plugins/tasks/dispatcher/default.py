@@ -23,6 +23,7 @@ from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_scrapli.tasks import send_command as scrapli_send_command
+from nornir_scrapli.tasks import send_commands as scrapli_send_commands
 from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config, netmiko_save_config
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import make_folder, get_stack_trace, is_truthy
@@ -314,14 +315,36 @@ class NapalmDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A Napalm getter to execute.
-            kwargs: Additional arguments to pass to the scrapli_send_command task.
+            kwargs: Additional arguments to pass to the napalm_get task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
         try:
             result = task.run(task=napalm_get, getters=[command], **kwargs)
         except NornirSubTaskError as exc:
             error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: Napalm getters to execute.
+            kwargs: Additional arguments to pass to the napalm_get task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(task=napalm_get, getters=command_list, **kwargs)
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_commands` method failed with an unexpected issue: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -584,9 +607,9 @@ class NetmikoDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
-            kwargs: Additional arguments to pass to the scrapli_send_command task.
+            kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
         try:
             result = task.run(
@@ -611,6 +634,45 @@ class NetmikoDefault(DispatcherMixin):
             raise NornirNautobotException(error_msg)
 
         return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: A command to execute.
+            kwargs: Additional arguments to pass to the netmiko_send_command task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = []
+        for command in command_list:
+            try:
+                result = task.run(
+                    task=netmiko_send_command,
+                    command_string=command,
+                    enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                    **kwargs,
+                )
+                command_results.append({command: result[0].result})
+            except NornirSubTaskError as exc:
+                if isinstance(exc.result.exception, NetmikoAuthenticationException):
+                    error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+
+                if isinstance(exc.result.exception, NetmikoTimeoutException):
+                    error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+
+                error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": command_results})
 
 
 class ScrapliDefault(DispatcherMixin):
@@ -693,6 +755,33 @@ class ScrapliDefault(DispatcherMixin):
             )
         except NornirSubTaskError as exc:
             error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: A command to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_commands task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(
+                task=scrapli_send_commands,
+                commands=command_list,
+                strip_prompt=True,
+                **kwargs,
+            )
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_commands` method failed with an unexpected issue: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

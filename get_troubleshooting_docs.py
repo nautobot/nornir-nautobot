@@ -30,5 +30,6 @@ def generate_files_from_template(template_file):
         with open(output_filepath, "w", encoding="utf-8") as doc_file:
             doc_file.write(output_content)
 
+
 if __name__ == "__main__":
     generate_files_from_template("error_code_template.j2")

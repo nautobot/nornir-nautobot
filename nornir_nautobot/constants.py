@@ -5,15 +5,14 @@ from collections import namedtuple
 import jinja2
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
-
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
 
 ERROR_CODES = {
     "E1XXX": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Find the error code in the traceback, and search for it in the codebase.",
+        description="This means a code snippet was calling get_error_code() with an error code that is not registered.",
         error_message="Un-Registered Error Code used.",
-        recommendation="Coming soon....",
+        recommendation="Add the error code to the constants.py file.",
     ),
     "E1001": ErrorCode(
         troubleshooting="Coming soon....",

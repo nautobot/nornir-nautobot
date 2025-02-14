@@ -6,14 +6,12 @@
 
 ## Description:
 
-Coming soon....
+This means a code snippet was calling get_error_code() with an error code that is not registered.
 
 ## Troubleshooting:
 
-Coming soon....
-
-Troubleshooting that is coming soon.
+Find the error code in the traceback, and search for it in the codebase.
 
 ## Recommendation:
 
-Coming soon....
+Add the error code to the constants.py file.

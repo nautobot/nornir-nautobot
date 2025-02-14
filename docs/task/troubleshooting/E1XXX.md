@@ -1,8 +1,8 @@
-# E1020 Details
+# E1XXX Details
 
 ## Message emitted:
 
-`E1020: The `{dependency}` is not installed in this environment.`
+`E1XXX: Un-Registered Error Code used.`
 
 ## Description:
 

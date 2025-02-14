@@ -15,8 +15,6 @@ from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.ping import tcp_ping
 
-from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
-
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 
@@ -270,7 +268,7 @@ class DispatcherMixin:
         return False, ""
 
     @classmethod
-    def _process_config(
+    def _process_config(  # pylint: disable=too-many-positional-arguments
         cls, logger, running_config: str, remove_lines: list, substitute_lines: list, backup_file: str
     ) -> str:
         """Process the running configuration.

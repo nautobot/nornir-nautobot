@@ -1,17 +1,14 @@
 """default network_importer API-based driver for Ruckus Smartzone WLC."""
 
-import os
 import json
 import asyncio
 import httpx  # pylint: disable=E0401
 import requests
 
-from netutils.config.clean import clean_config, sanitize_config
-
 from nornir.core.task import Result, Task
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder, get_error_message
+from nornir_nautobot.utils.helpers import get_error_message
 
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
 

@@ -8,7 +8,7 @@ import logging
 import importlib
 import traceback
 
-from nornir_nautobot.constants import ERROR_CODES, ErrorCode
+from nornir_nautobot.constants import ERROR_CODES
 
 
 LOGGER = logging.getLogger(__name__)

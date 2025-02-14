@@ -2,7 +2,6 @@
 
 # pylint: disable=raise-missing-from
 
-import os
 import ssl
 import json
 
@@ -11,17 +10,13 @@ try:
 except ImportError:
     routeros_api = None
 
-from netutils.config.clean import clean_config, sanitize_config
-
-from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
-
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin, NetmikoDefault
-from nornir_nautobot.utils.helpers import make_folder, get_error_message
+from nornir_nautobot.utils.helpers import get_error_message
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 
 

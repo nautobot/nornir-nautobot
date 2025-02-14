@@ -18,7 +18,7 @@ def generate_files_from_template(template_file):
     """
     data = {}
     template_dir = os.path.dirname(os.path.abspath(__file__))
-    env = Environment(loader=FileSystemLoader(template_dir))
+    env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
     template = env.get_template(template_file)
     for error_code, error in ERROR_CODES.items():
         data["error_code"] = error_code

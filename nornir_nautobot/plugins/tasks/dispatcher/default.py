@@ -333,7 +333,7 @@ class NapalmDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command="config", retrieve="running")
         running_config = getter_result.result.get("output", {}).get("config", {}).get("running", None)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config}, failed=False)
+        return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -359,7 +359,7 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": result[0].result}, failed=False)
+        return Result(host=task.host, result={"output": result[0].result})
 
     @classmethod
     def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
@@ -385,7 +385,7 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": result[0].result}, failed=False)
+        return Result(host=task.host, result={"output": result[0].result})
 
     @classmethod
     def replace_config(
@@ -436,8 +436,7 @@ class NapalmDefault(DispatcherMixin):
         logger.info("Config provision ended", extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result},
-            failed=False,
+            result={"changed": push_result.changed, "result": push_result[0].result}
         )
 
     @classmethod
@@ -500,8 +499,7 @@ class NapalmDefault(DispatcherMixin):
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result},
-            failed=False,
+            result={"changed": push_result.changed, "result": push_result[0].result}
         )
 
 
@@ -538,7 +536,7 @@ class NetmikoDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config}, failed=False)
+        return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
     def merge_config(
@@ -603,8 +601,7 @@ class NetmikoDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result[0].changed, "result": push_result[0].result},
-            failed=False,
+            result={"changed": push_result[0].changed, "result": push_result[0].result}
         )
 
     @classmethod
@@ -639,8 +636,7 @@ class NetmikoDefault(DispatcherMixin):
 
         return Result(
             host=task.host,
-            result={"output": {command: result[0].result}},
-            failed=False,
+            result={"output": {command: result[0].result}}
         )
 
     @classmethod
@@ -675,7 +671,7 @@ class NetmikoDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": command_results}, failed=False)
+        return Result(host=task.host, result={"output": command_results})
 
 
 class ScrapliDefault(DispatcherMixin):
@@ -711,7 +707,7 @@ class ScrapliDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config}, failed=False)
+        return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -744,8 +740,7 @@ class ScrapliDefault(DispatcherMixin):
 
         return Result(
             host=task.host,
-            result={"output": {command: result[0].result}},
-            failed=False,
+            result={"output": {command: result[0].result}}
         )
 
     @classmethod
@@ -780,4 +775,4 @@ class ScrapliDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": command_results}, failed=False)
+        return Result(host=task.host, result={"output": command_results})

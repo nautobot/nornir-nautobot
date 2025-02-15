@@ -144,7 +144,7 @@ def test_nornir_nautobot_missing_token():
 def test_api_session(nornir_nautobot_class):
     expected_headers = {
         "User-Agent": f"python-requests/{requests.__version__}",
-        "Accept-Encoding": "gzip, deflate zstd",
+        "Accept-Encoding": "gzip, deflate, zstd",
         "Accept": "*/*",
         "Connection": "keep-alive",
     }

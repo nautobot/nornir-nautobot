@@ -17,6 +17,12 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
+from nornir_netmiko.tasks import (
+    netmiko_save_config,
+    netmiko_send_command,
+    netmiko_send_config,
+)
+from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import (
@@ -25,12 +31,6 @@ from nornir_nautobot.utils.helpers import (
     is_truthy,
     make_folder,
 )
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
-from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 _logger = logging.getLogger(__name__)
 
@@ -359,7 +359,7 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+        return Result(host=task.host, result={"output": result[0].result}, failed=False)
 
     @classmethod
     def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
@@ -385,7 +385,7 @@ class NapalmDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+        return Result(host=task.host, result={"output": result[0].result}, failed=False)
 
     @classmethod
     def replace_config(
@@ -640,7 +640,7 @@ class NetmikoDefault(DispatcherMixin):
         return Result(
             host=task.host,
             result={"output": {command: result[0].result}},
-            failed=result[0].failed,
+            failed=False,
         )
 
     @classmethod
@@ -711,7 +711,7 @@ class ScrapliDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config}, failed=getter_result.failed)
+        return Result(host=task.host, result={"config": processed_config}, failed=False)
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -745,7 +745,7 @@ class ScrapliDefault(DispatcherMixin):
         return Result(
             host=task.host,
             result={"output": {command: result[0].result}},
-            failed=result[0].failed,
+            failed=False,
         )
 
     @classmethod

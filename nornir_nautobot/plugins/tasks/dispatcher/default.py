@@ -17,12 +17,6 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
-from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import (
@@ -31,6 +25,12 @@ from nornir_nautobot.utils.helpers import (
     is_truthy,
     make_folder,
 )
+from nornir_netmiko.tasks import (
+    netmiko_save_config,
+    netmiko_send_command,
+    netmiko_send_config,
+)
+from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 _logger = logging.getLogger(__name__)
 
@@ -333,7 +333,7 @@ class NapalmDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command="config", retrieve="running")
         running_config = getter_result.result.get("output", {}).get("config", {}).get("running", None)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config})
+        return Result(host=task.host, result={"config": processed_config}, failed=False)
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -437,6 +437,7 @@ class NapalmDefault(DispatcherMixin):
         return Result(
             host=task.host,
             result={"changed": push_result.changed, "result": push_result[0].result},
+            failed=False,
         )
 
     @classmethod
@@ -500,6 +501,7 @@ class NapalmDefault(DispatcherMixin):
         return Result(
             host=task.host,
             result={"changed": push_result.changed, "result": push_result[0].result},
+            failed=False,
         )
 
 
@@ -536,7 +538,7 @@ class NetmikoDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config})
+        return Result(host=task.host, result={"config": processed_config}, failed=False)
 
     @classmethod
     def merge_config(
@@ -602,6 +604,7 @@ class NetmikoDefault(DispatcherMixin):
         return Result(
             host=task.host,
             result={"changed": push_result[0].changed, "result": push_result[0].result},
+            failed=False,
         )
 
     @classmethod
@@ -672,7 +675,7 @@ class NetmikoDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": command_results})
+        return Result(host=task.host, result={"output": command_results}, failed=False)
 
 
 class ScrapliDefault(DispatcherMixin):
@@ -708,7 +711,7 @@ class ScrapliDefault(DispatcherMixin):
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
-        return Result(host=task.host, result={"config": processed_config})
+        return Result(host=task.host, result={"config": processed_config}, failed=getter_result.failed)
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -777,4 +780,4 @@ class ScrapliDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": command_results})
+        return Result(host=task.host, result={"output": command_results}, failed=False)

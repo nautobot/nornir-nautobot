@@ -8,25 +8,29 @@ import socket
 from typing import Optional
 
 import jinja2
-
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.ping import tcp_ping
-
-from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
-
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
-
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
+from nornir_netmiko.tasks import (
+    netmiko_save_config,
+    netmiko_send_command,
+    netmiko_send_config,
+)
 from nornir_scrapli.tasks import send_command as scrapli_send_command
-from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config, netmiko_save_config
+from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder, get_stack_trace, is_truthy
-
+from nornir_nautobot.utils.helpers import (
+    get_error_message,
+    get_stack_trace,
+    is_truthy,
+    make_folder,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -67,9 +71,7 @@ class DispatcherMixin:
             ip_addr = hostname
         else:
             if not is_fqdn_resolvable(hostname):
-                error_msg = (
-                    f"`E1003:` The hostname {hostname} did not have an IP nor was resolvable, preemptively failed."
-                )
+                error_msg = get_error_message("E1003", hostname=hostname)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
             ip_addr = socket.gethostbyname(hostname)
@@ -81,15 +83,15 @@ class DispatcherMixin:
         except socket.error:
             _tcp_ping = False
         if not _tcp_ping:
-            error_msg = f"`E1004:` Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed."
+            error_msg = get_error_message("E1004", ip_addr=ip_addr, port=port)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:
-            error_msg = "`E1005:` There was no username defined, preemptively failed."
+            error_msg = get_error_message("E1005")
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.password:
-            error_msg = "`E1006:` There was no password defined, preemptively failed."
+            error_msg = get_error_message("E1006")
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -121,19 +123,19 @@ class DispatcherMixin:
             Result: Nornir Result object with a feature_data key of the compliance data.
         """
         if not os.path.exists(backup_file):
-            error_msg = f"`E1007:` Backup file Not Found at location: `{backup_file}`, preemptively failed."
+            error_msg = get_error_message("E1007", backup_file=backup_file)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         if not os.path.exists(intended_file):
-            error_msg = f"`E1008:` Intended config file NOT Found at location: `{intended_file}`, preemptively failed."
+            error_msg = get_error_message("E1008", intended_file=intended_file)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
         try:
             feature_data = compliance(features, backup_file, intended_file, platform)
         except Exception as error:  # pylint: disable=broad-except
-            error_msg = f"`E1009:` UNKNOWN Failure of: {str(error)}"
+            error_msg = get_error_message("E1009", error=str(error))
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         return Result(host=task.host, result={"feature_data": feature_data})
@@ -177,20 +179,8 @@ class DispatcherMixin:
         except NornirSubTaskError as exc:
             stack_trace = get_stack_trace(exc.result.exception)
 
-            error_mapping = {
-                jinja2.exceptions.UndefinedError: ("E1010", "Undefined variable in Jinja2 template"),
-                jinja2.TemplateSyntaxError: ("E1011", "Syntax error in Jinja2 template"),
-                jinja2.TemplateNotFound: ("E1012", "Jinja2 template not found"),
-                jinja2.TemplateError: ("E1013", "General Jinja2 template error"),
-            }
-
-            for error, (code, message) in error_mapping.items():
-                if isinstance(exc.result.exception, error):
-                    error_msg = f"`{code}:` {message} - ``{str(exc.result.exception)}``\n```\n{stack_trace}\n```"
-                    logger.error(error_msg, extra={"object": obj})
-                    raise NornirNautobotException(error_msg)
-
-            error_msg = f"`E1014:` Unknown error - `{exc.result.exception}`\n```\n{stack_trace}\n```"
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
+            error_msg = get_error_message(error_code, exc=exc, stack_trace=stack_trace)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -245,10 +235,71 @@ class DispatcherMixin:
         Returns:
             Result: Running Config is saved into backup file path.
         """
-        make_folder(os.path.dirname(backup_file))
-        logger.debug(f"Saving Configuration to file: {backup_file}")
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(_running_config)
+        if backup_file:
+            make_folder(os.path.dirname(backup_file))
+            logger.debug(f"Saving Configuration to file: {backup_file}")
+            with open(backup_file, "w", encoding="utf8") as filehandler:
+                filehandler.write(_running_config)
+
+    @classmethod
+    def _has_hidden_errors(cls, result_output: str) -> tuple[bool, str]:
+        """Checks if the result_output has hidden errors from syntax problems.
+
+        Args:
+            result_output (str): The result output to check.
+
+        Returns:
+            tuple[bool, str]: A tuple containing a boolean and a string. The first element is a
+                bool: True if there are hidden errors, False otherwise.
+                str: The error message if there are hidden errors, empty string otherwise.
+
+        Examples:
+            iosvl2-0>show sun
+                    ^
+            % Invalid input detected at '^' marker.
+
+            iosvl2-0>show i
+            % Ambiguous command:  "show i"
+
+            iosvl2-0>show ip
+            % Incomplete command.
+        """
+        if "% Invalid input detected at" in result_output:
+            return True, get_error_message("E1019")
+        if "% Incomplete command" in result_output:
+            return True, get_error_message("E1028")
+        if "% Ambiguous command" in result_output:
+            return True, get_error_message("E1029")
+        return False, ""
+
+    @classmethod
+    def _process_config(  # pylint: disable=too-many-positional-arguments
+        cls,
+        logger,
+        running_config: str,
+        remove_lines: list,
+        substitute_lines: list,
+        backup_file: str,
+    ) -> str:
+        """Process the running configuration.
+
+        Args:
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            running_config (str): The running configuration.
+            remove_lines (list): A list of regex lines to remove configurations.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            backup_file (str): The file location of where the back configuration should be saved.
+
+        Returns:
+            str: The processed running configuration.
+        """
+        if remove_lines:
+            running_config = cls._remove_lines(logger, running_config, remove_lines)
+        if substitute_lines:
+            running_config = cls._substitute_lines(logger, running_config, substitute_lines)
+        if backup_file:
+            cls._save_file(logger, backup_file, running_config)
+        return running_config
 
 
 class NapalmDefault(DispatcherMixin):
@@ -279,38 +330,62 @@ class NapalmDefault(DispatcherMixin):
                 { "config: <running configuration> }
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        getter_result = cls.get_command(task, logger, obj, command="config", retrieve="running")
+        running_config = getter_result.result.get("output", {}).get("config", {}).get("running", None)
+        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        return Result(host=task.host, result={"config": processed_config})
 
-        # TODO: Find standard napalm exceptions and account for them
+    @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A Napalm getter to execute.
+            kwargs: Additional arguments to pass to the napalm_get task.
+        """
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+
         try:
-            result = task.run(task=napalm_get, getters=["config"], retrieve="running")
+            result = task.run(task=napalm_get, getters=[command], **kwargs)
+            failed, error_msg = cls._has_hidden_errors(result[0].result)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            error_msg = get_error_message("E1015", method="get_command", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        if result[0].failed:
-            # TODO: investigate this, is there a better way to handle? recursive function?
-            logger.error(
-                f"`get_config` nornir task failed with an unexpected issue: `{str(result.exception)}`",
-                extra={"object": obj},
-            )
-            return result
+        return Result(host=task.host, result={"output": result[0].result})
 
-        running_config = result[0].result.get("config", {}).get("running", None)
-        if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = clean_config(running_config, remove_lines)
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
 
-        if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = sanitize_config(running_config, substitute_lines)
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: Napalm getters to execute.
+            kwargs: Additional arguments to pass to the napalm_get task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
-        if backup_file:
-            make_folder(os.path.dirname(backup_file))
+        try:
+            result = task.run(task=napalm_get, getters=command_list, **kwargs)
+            failed, error_msg = cls._has_hidden_errors(result[0].result)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+        except NornirSubTaskError as exc:
+            error_msg = get_error_message("E1015", method="get_command", exc=exc)
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
 
-            with open(backup_file, "w", encoding="utf8") as filehandler:
-                filehandler.write(running_config)
-        return Result(host=task.host, result={"config": running_config})
+        return Result(host=task.host, result={"output": result[0].result})
 
     @classmethod
     def replace_config(
@@ -350,7 +425,7 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = error_msg = get_error_message("E1015", method="replace_config", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -359,10 +434,7 @@ class NapalmDefault(DispatcherMixin):
             extra={"object": obj},
         )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result},
-        )
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -403,7 +475,7 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` Failed with an unknown issue. `{exc.result.exception}`"
+            error_msg = error_msg = get_error_message("E1015", method="merge_config", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -416,13 +488,13 @@ class NapalmDefault(DispatcherMixin):
             if can_diff:
                 logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
             else:
-                logger.warning("Diff was requested but may include sensitive data. Ignoring...", extra={"object": obj})
+                logger.warning(
+                    "Diff was requested but may include sensitive data. Ignoring...",
+                    extra={"object": obj},
+                )
 
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result},
-        )
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -455,52 +527,10 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
-
-        try:
-            result = task.run(
-                task=netmiko_send_command,
-                command_string=command,
-                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
-            )
-        except NornirSubTaskError as exc:
-            if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-
-            if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-
-            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        if result[0].failed:
-            return result
-
-        running_config = result[0].result
-
-        # Primarily seen in Cisco devices.
-        if "ERROR: % Invalid input detected at" in running_config:
-            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = clean_config(running_config, remove_lines)
-        if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = sanitize_config(running_config, substitute_lines)
-
-        if backup_file:
-            make_folder(os.path.dirname(backup_file))
-
-            with open(backup_file, "w", encoding="utf8") as filehandler:
-                filehandler.write(running_config)
-        return Result(host=task.host, result={"config": running_config})
+        getter_result = cls.get_command(task, logger, obj, command)
+        running_config = getter_result.result.get("output").get(command)
+        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
     def merge_config(
@@ -534,26 +564,15 @@ class NetmikoDefault(DispatcherMixin):
                 enable=True,
             )
         except NornirSubTaskError as exc:
-            if isinstance(exc.result.exception, NetmikoAuthenticationException):
-                error_msg = f"`E1017:` Failed with an authentication issue: `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-
-            if isinstance(exc.result.exception, NetmikoTimeoutException):
-                error_msg = f"`E1018:` Failed with a timeout issue. `{exc.result.exception}`"
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-
-            error_msg = f"`E1016:` Failed with an unknown issue. `{exc.result.exception}`"
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+            error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
 
         if push_result[0].failed:
             return push_result
 
-        # Primarily seen in Cisco devices.
-        if "Invalid input detected at" in push_result:
-            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
+        failed, error_msg = cls._has_hidden_errors(push_result[0].result)
+        if failed:
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -572,12 +591,75 @@ class NetmikoDefault(DispatcherMixin):
                 confirm=True,
             )
         except NornirSubTaskError as exc:
-            error_msg = f"`E1016:`Saving Config Failed with an unknown issue. `{exc.result.exception}`"
+            get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result[0].changed, "result": push_result[0].result},
-        )
+        return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
+
+    @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+            kwargs: Additional arguments to pass to the netmiko_send_command task.
+        """
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+
+        try:
+            result = task.run(
+                task=netmiko_send_command,
+                command_string=command,
+                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                **kwargs,
+            )
+            failed, error_msg = cls._has_hidden_errors(result[0].result)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+        except NornirSubTaskError as exc:
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+            error_msg = get_error_message(error_code, exc=exc)
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": {command: result[0].result}})
+
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: A command to execute.
+            kwargs: Additional arguments to pass to the netmiko_send_command task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = {}
+        for command in command_list:
+            try:
+                result = task.run(
+                    task=netmiko_send_command,
+                    command_string=command,
+                    enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                    **kwargs,
+                )
+                failed, error_msg = cls._has_hidden_errors(result[0].result)
+                if failed:
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+                command_results.update({command: result[0].result})
+            except NornirSubTaskError as exc:
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_msg = get_error_message(error_code, exc=exc)
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": command_results})
 
 
 class ScrapliDefault(DispatcherMixin):
@@ -610,39 +692,72 @@ class ScrapliDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
+        getter_result = cls.get_command(task, logger, obj, command)
+        running_config = getter_result.result.get("output").get(command)
+        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        return Result(host=task.host, result={"config": processed_config})
+
+    @classmethod
+    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_command task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
         try:
             result = task.run(
                 task=scrapli_send_command,
                 command=command,
                 strip_prompt=True,
+                **kwargs,
             )
+            failed, error_msg = cls._has_hidden_errors(result[0].result)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        if result[0].failed:
-            return result
+        return Result(host=task.host, result={"output": {command: result[0].result}})
 
-        running_config = result[0].result
+    @classmethod
+    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
+        """A tasks to get the commands from a device.
 
-        # Primarily seen in Cisco devices.
-        if "ERROR: % Invalid input detected at" in running_config:
-            error_msg = "`E1019:` Discovered `ERROR: % Invalid input detected at` in the output"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list: A command to execute.
+            kwargs: Additional arguments to pass to the scrapli_send_commands task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = {}
+        for command in command_list:
+            try:
+                result = task.run(
+                    task=scrapli_send_command,
+                    command=command,
+                    strip_prompt=True,
+                    **kwargs,
+                )
+                failed, error_msg = cls._has_hidden_errors(result[0].result)
+                if failed:
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+                command_results.update({command: result[0].result})
+            except NornirSubTaskError as exc:
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_msg = get_error_message(error_code, exc=exc)
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
 
-        if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = clean_config(running_config, remove_lines)
-        if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = sanitize_config(running_config, substitute_lines)
-
-        if backup_file:
-            make_folder(os.path.dirname(backup_file))
-
-            with open(backup_file, "w", encoding="utf8") as filehandler:
-                filehandler.write(running_config)
-        return Result(host=task.host, result={"config": running_config})
+        return Result(host=task.host, result={"output": command_results})

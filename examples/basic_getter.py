@@ -3,7 +3,6 @@
 import logging
 import os
 from netutils.lib_mapper import NAPALM_LIB_MAPPER_REVERSE
-
 from nornir import InitNornir
 from nornir_utils.plugins.functions import print_result
 from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
@@ -15,7 +14,7 @@ my_nornir = InitNornir(
     inventory={
         "plugin": "NautobotInventory",
         "options": {
-            "nautobot_url": "http://localhost:8080/",
+            "nautobot_url": "http://localhost:8080",
             "nautobot_token": "0123456789abcdef0123456789abcdef01234567",
             "filter_parameters": {"location": "Site 1"},
             "ssl_verify": False,
@@ -31,11 +30,21 @@ for nr_host, nr_obj in my_nornir.inventory.hosts.items():
     result = my_nornir.run(
         task=dispatcher,
         logger=LOGGER,
-        method="get_config",
+        method="get_command",
+        obj=nr_host,
+        framework="napalm",
+        command="get_facts",
+    )
+    print_result(result)
+
+for nr_host, nr_obj in my_nornir.inventory.hosts.items():
+    result = my_nornir.run(
+        task=dispatcher,
+        logger=LOGGER,
+        method="get_command",
         obj=nr_host,
         framework="netmiko",
-        backup_file="./ios.cfg",
-        remove_lines=None,
-        substitute_lines=None,
+        command="show version",
+        use_textfsm=True,
     )
     print_result(result)

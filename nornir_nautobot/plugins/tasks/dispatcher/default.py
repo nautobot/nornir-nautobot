@@ -17,13 +17,12 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_scrapli.tasks import send_command as scrapli_send_command
-from nornir_scrapli.tasks import send_commands as scrapli_send_commands
 from nornir_netmiko.tasks import (
     netmiko_save_config,
     netmiko_send_command,
     netmiko_send_config,
 )
+from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import (
@@ -32,7 +31,6 @@ from nornir_nautobot.utils.helpers import (
     is_truthy,
     make_folder,
 )
-
 
 _logger = logging.getLogger(__name__)
 
@@ -732,6 +730,10 @@ class ScrapliDefault(DispatcherMixin):
                 strip_prompt=True,
                 **kwargs,
             )
+            failed, error_msg = cls._has_hidden_errors(result[0].result)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
             error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
             logger.error(error_msg, extra={"object": obj})
@@ -755,17 +757,24 @@ class ScrapliDefault(DispatcherMixin):
             kwargs: Additional arguments to pass to the scrapli_send_commands task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = {}
+        for command in command_list:
+            try:
+                result = task.run(
+                    task=scrapli_send_command,
+                    command=command,
+                    strip_prompt=True,
+                    **kwargs,
+                )
+                failed, error_msg = cls._has_hidden_errors(result[0].result)
+                if failed:
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+                command_results.update({command: result[0].result})
+            except NornirSubTaskError as exc:
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_msg = get_error_message(error_code, exc=exc)
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
 
-        try:
-            result = task.run(
-                task=scrapli_send_commands,
-                commands=command_list,
-                strip_prompt=True,
-                **kwargs,
-            )
-        except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_commands` method failed with an unexpected issue: `{exc.result.exception}`"
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        return Result(host=task.host, result={"output": result[0].result}, failed=result[0].failed)
+        return Result(host=task.host, result={"output": command_results})

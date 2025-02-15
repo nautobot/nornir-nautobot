@@ -434,10 +434,7 @@ class NapalmDefault(DispatcherMixin):
             extra={"object": obj},
         )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result}
-        )
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -497,10 +494,7 @@ class NapalmDefault(DispatcherMixin):
                 )
 
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result.changed, "result": push_result[0].result}
-        )
+        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -599,10 +593,7 @@ class NetmikoDefault(DispatcherMixin):
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-        return Result(
-            host=task.host,
-            result={"changed": push_result[0].changed, "result": push_result[0].result}
-        )
+        return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
 
     @classmethod
     def get_command(cls, task: Task, logger, obj, command, **kwargs):
@@ -634,10 +625,7 @@ class NetmikoDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(
-            host=task.host,
-            result={"output": {command: result[0].result}}
-        )
+        return Result(host=task.host, result={"output": {command: result[0].result}})
 
     @classmethod
     def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
@@ -738,10 +726,7 @@ class ScrapliDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        return Result(
-            host=task.host,
-            result={"output": {command: result[0].result}}
-        )
+        return Result(host=task.host, result={"output": {command: result[0].result}})
 
     @classmethod
     def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):

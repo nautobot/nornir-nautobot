@@ -55,7 +55,7 @@ def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults)
 class NautobotInventory:  # pylint: disable=R0902
     """Nautobot Nornir Inventory."""
 
-    def __init__(  # pylint: disable=R0913
+    def __init__(  # pylint: disable=R0913,too-many-positional-arguments
         self,
         nautobot_url: Union[str, None],
         nautobot_token: Union[str, None],

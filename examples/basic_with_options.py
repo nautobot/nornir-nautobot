@@ -3,8 +3,8 @@
 import logging
 import os
 from netutils.lib_mapper import NAPALM_LIB_MAPPER_REVERSE
-
 from nornir import InitNornir
+from nornir.core.inventory import ConnectionOptions
 from nornir_utils.plugins.functions import print_result
 from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
 
@@ -26,6 +26,9 @@ my_nornir.inventory.defaults.username = os.getenv("NORNIR_USERNAME")
 my_nornir.inventory.defaults.password = os.getenv("NORNIR_PASSWORD")
 
 for nr_host, nr_obj in my_nornir.inventory.hosts.items():
+    my_nornir.inventory.hosts[nr_host].connection_options = {
+        "scrapli": ConnectionOptions(extras={"auth_strict_key": False})
+    }
     network_driver = my_nornir.inventory.hosts[nr_host].data["pynautobot_object"].platform.network_driver
     my_nornir.inventory.hosts[nr_host].platform = NAPALM_LIB_MAPPER_REVERSE.get(network_driver)
     result = my_nornir.run(
@@ -33,9 +36,14 @@ for nr_host, nr_obj in my_nornir.inventory.hosts.items():
         logger=LOGGER,
         method="get_config",
         obj=nr_host,
-        framework="netmiko",
+        framework="scrapli",
         backup_file="./ios.cfg",
-        remove_lines=None,
-        substitute_lines=None,
+        remove_lines=[{"regex": r"^Building\s+configuration.*\n"}],
+        substitute_lines=[
+            {
+                "regex": r"^(enable (password|secret)( level \d+)? \d) .+$",
+                "replace": r"\1 <removed>",
+            }
+        ],
     )
     print_result(result)

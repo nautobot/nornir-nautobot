@@ -2,7 +2,6 @@
 
 import os
 import sys
-from distutils.util import strtobool  # pylint: disable=deprecated-module
 
 from invoke import task
 
@@ -24,7 +23,13 @@ def is_truthy(arg):
     """
     if isinstance(arg, bool):
         return arg
-    return bool(strtobool(arg))
+
+    val = str(arg).lower()
+    if val in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    if val in ("n", "no", "f", "false", "off", "0"):
+        return False
+    raise ValueError(f"Invalid truthy value: `{arg}`")
 
 
 PYPROJECT_CONFIG = toml.load("pyproject.toml")

@@ -1,17 +1,14 @@
 """default network_importer API-based driver for Ruckus Smartzone WLC."""
 
-import os
 import json
 import asyncio
 import httpx  # pylint: disable=E0401
 import requests
 
-from netutils.config.clean import clean_config, sanitize_config
-
 from nornir.core.task import Result, Task
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import make_folder
+from nornir_nautobot.utils.helpers import get_error_message
 
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
 
@@ -69,15 +66,13 @@ class ApiRuckusSmartzone(DispatcherMixin):
             data = response.json()
             service_ticket = data.get("serviceTicket")
         else:
-            error_msg = (
-                f"`E1023:` The `_api_auth` method failed with an unexpected issue: HTTP Error `{response.status_code}`"
-            )
+            error_msg = get_error_message("E1023", response=response)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         return service_ticket
 
     @classmethod
-    def _build_urls(  # pylint: disable=too-many-arguments,too-many-locals
+    def _build_urls(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         cls,
         obj,
         logger,
@@ -109,7 +104,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                 if response.status_code == 200:
                     item_list = response.json().get("list")
                 else:
-                    error_msg = f"`E1024:` The `{uri}` endpoint failed with code: HTTP Error `{response.status_code}`"
+                    error_msg = get_error_message("E1024", uri=uri, response=response)
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
@@ -117,7 +112,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                 for uri_list_item in uri_list:
                     url_dict[uri_list_item] = f"{base_url}{uri_list_item}?serviceTicket={token}"
             else:
-                error_msg = f"`E1025:` The `{uri}` endpoint missing in simple endpoints list, schema invalid`"
+                error_msg = get_error_message("E1025", uri=uri)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
@@ -138,7 +133,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
         return api_data
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
+    def get_config(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
         cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
     ) -> Result:
         """Get the latest configuration from the device.
@@ -171,17 +166,5 @@ class ApiRuckusSmartzone(DispatcherMixin):
         url_dict = cls._build_urls(obj, logger, _wlc_ip4, _token, _endpoints, _extras)
         config_data = asyncio.run(cls._async_get_data(url_dict))
         running_config = json.dumps(config_data, indent=4)
-
-        if remove_lines:
-            logger.debug("Removing lines from configuration based on `remove_lines` definition")
-            running_config = clean_config(running_config, remove_lines)
-
-        if substitute_lines:
-            logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
-            running_config = sanitize_config(running_config, substitute_lines)
-
-        make_folder(os.path.dirname(backup_file))
-
-        with open(backup_file, "w", encoding="utf8") as filehandler:
-            filehandler.write(running_config)
-        return Result(host=task.host, result={"config": running_config})
+        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        return Result(host=task.host, result={"config": processed_config})

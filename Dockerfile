@@ -1,4 +1,5 @@
-ARG PYTHON_VER
+# Accepts a desired Python version as build argument, default to 3.11
+ARG PYTHON_VER="3.11"
 
 FROM python:${PYTHON_VER}-slim
 

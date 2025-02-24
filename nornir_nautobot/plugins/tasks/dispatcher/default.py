@@ -584,9 +584,7 @@ class NetmikoDefault(DispatcherMixin):
 
         if push_result.diff:
             if can_diff:
-                logger.info(
-                    f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj}
-                )
+                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
             else:
                 logger.warning(
                     "Diff was requested but may include sensitive data. Ignoring...",

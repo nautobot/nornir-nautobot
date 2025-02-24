@@ -533,7 +533,7 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    def merge_config(
+    def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,

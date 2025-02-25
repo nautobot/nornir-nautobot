@@ -162,6 +162,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
         logger,
         obj,
         config: str,
+        can_diff: bool = True,
     ) -> Result:
         """Send configuration to merge on the device.
 

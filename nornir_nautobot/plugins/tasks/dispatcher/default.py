@@ -533,12 +533,13 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    def merge_config(
+    def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
         logger,
         obj,
         config: str,
+        can_diff: bool = True,
     ) -> Result:
         """Send configuration to merge on the device.
 
@@ -582,7 +583,13 @@ class NetmikoDefault(DispatcherMixin):
         )
 
         if push_result.diff:
-            logger.info(f"Diff:\n```\n_{push_result[0].diff}\n```", extra={"object": obj})
+            if can_diff:
+                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+            else:
+                logger.warning(
+                    "Diff was requested but may include sensitive data. Ignoring...",
+                    extra={"object": obj},
+                )
 
         logger.info("Config merge ended", extra={"object": obj})
         try:

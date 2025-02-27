@@ -15,7 +15,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
     config_command = "show running-config"
 
     @staticmethod
-    def merge_config(task: Task, logger, obj, config: str) -> Result:
+    def merge_config(task: Task, logger, obj, config: str, can_diff: bool = True) -> Result:
         """Send configuration to merge on the device.
 
         Args:

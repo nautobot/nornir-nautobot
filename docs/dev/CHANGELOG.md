@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.3.1
+
+* [179] Fixes Default Netmiko merge_config missing can_diff argument.
+
+**Full Changelog**: https://github.com/nautobot/nornir-nautobot/compare/v3.3.0...v3.3.1
+
 ## 3.3.0
 
 * [170] Add merge_config method to the Default Netmiko dispatcher.

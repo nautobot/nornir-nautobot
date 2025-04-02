@@ -188,6 +188,12 @@ ERROR_CODES = {
         error_message="Discovered `% Ambiguous command` in the output",
         recommendation="Coming soon....",
     ),
+    "E1030": ErrorCode(
+        troubleshooting="This is generally seen on Cisco NXOS devices. Ensure user is allowed to run the command that is being requested.",
+        description="Common permission issue, primarily (and potentially exclusively) seen on Cisco NXOS.",
+        error_message="Discovered `% Permission denied for the role` in the output",
+        recommendation="Ensure that the actual command that is ran, is allowed for the user making the connection. As an example, if `show run` is allowed, but `show running-config` is not, would need to address that.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

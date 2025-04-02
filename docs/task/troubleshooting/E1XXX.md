@@ -2,7 +2,7 @@
 
 ## Message emitted:
 
-`E1XXX: Un-Registered Error Code used.`
+`E1XXX`: Un-Registered Error Code used.
 
 ## Description:
 

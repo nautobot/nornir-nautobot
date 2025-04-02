@@ -270,6 +270,8 @@ class DispatcherMixin:
             return True, get_error_message("E1028")
         if "% Ambiguous command" in result_output:
             return True, get_error_message("E1029")
+        if "% Permission denied for the role" in result_output:
+            return True, get_error_message("E1030")
         return False, ""
 
     @classmethod

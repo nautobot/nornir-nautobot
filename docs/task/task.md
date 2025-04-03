@@ -104,6 +104,32 @@ class DispatcherMixin:
         return cls.tcp_port
 ```
 
+## Netmiko Show Running Config Command
+
+The Netmiko `show_command` tells netmiko which command to use to get the config, generally used to backup the configuration. You can override the default provided based on this logic:
+
+- Prefer `obj.cf["config_command"]` if it is a valid string.
+- Prefer `obj.get_config_context()["config_command"]` if it is a valid string.
+- Use the default command defined in `NetmikoDefault` as `"show version"`.
+
+Here is the implementation:
+
+```python
+class NetmikoDefault(DispatcherMixin):
+
+    config_command = "show version"
+
+    @classmethod
+    def _get_config_command(cls, obj) -> str:
+        custom_field = obj.cf.get("config_command")
+        if isinstance(custom_field, str):
+            return custom_field
+        config_context = obj.get_config_context().get("config_command")
+        if isinstance(config_context, str):
+            return config_context
+        return cls.config_command
+```
+
 ## Environment Variables
 
 | Environment Variable | Explanation |

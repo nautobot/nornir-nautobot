@@ -17,7 +17,7 @@ from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
-from nornir_jinja2.plugins.tasks import template_file
+
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import (
     netmiko_save_config,
@@ -28,6 +28,7 @@ from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
+from nornir_nautobot.plugins.tasks import template_file
 from nornir_nautobot.utils.helpers import (
     get_error_message,
     get_stack_trace,
@@ -178,6 +179,8 @@ class DispatcherMixin:
                 path=jinja_root_path,
                 jinja_filters=jinja_filters,
                 jinja_env=jinja_env,
+                obj=obj,
+                logger=logger,
             )[0].result
         except NornirSubTaskError as exc:
             stack_trace = get_stack_trace(exc.result.exception)

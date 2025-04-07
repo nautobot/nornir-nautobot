@@ -504,8 +504,6 @@ class NetmikoDefault(DispatcherMixin):
 
     config_command = "show run"
 
-    tcp_port = 22
-
     @classmethod
     def _get_config_command(cls, obj) -> str:
         custom_field = obj.cf.get("config_command")
@@ -515,7 +513,6 @@ class NetmikoDefault(DispatcherMixin):
         if isinstance(config_context, int):
             return config_context
         return cls.config_command
-
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments

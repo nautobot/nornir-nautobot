@@ -110,7 +110,7 @@ The Netmiko `show_command` tells Netmiko which command to use to get the config,
 
 - Prefer `obj.cf["config_command"]` if it is a valid string.
 - Prefer `obj.get_config_context()["config_command"]` if it is a valid string.
-- Use the default command defined in in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets `show run`.
+- Use the default command defined in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets `show run`.
 
 Here is the implementation:
 

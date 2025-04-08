@@ -25,17 +25,20 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-nornir = "^3.0.0"
-requests = "^2.25.1"
+nornir = "^3.3.0"
+requests = "^2.30.1"
 nornir-utils = "^0"
-nornir-napalm = ">=0.4.0 <1.0.0"
+nornir-napalm = ">=0.5.0 <1.0.0"
 nornir-jinja2 = "^0.2.0"
 nornir-netmiko = "^1"
-pynautobot = ">=2.0.2"
-netutils = "^1.6.0"
+pynautobot = ">=2.4.0,<3.0.0"
+netutils = "^1.9.0"
 routeros-api = {version = "^0.17.0", optional = true}
 httpx = ">=0.23.0,<=0.27.0"
 nornir-scrapli = "^2025.1.30"
+netmiko = "^4.4.0"
+napalm = "^5.0.0"
+scrapli = ">=2024.01.30"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -51,11 +54,17 @@ toml = "*"
 flake8 = "*"
 pydantic = {version = "^1.7.2", extras = ["dotenv"]}
 # documentation dependencies
-mkdocs = "1.5.2"
-mkdocs-material = "9.2.4"
-mkdocstrings = "0.22.0"
-mkdocstrings-python = "1.5.2"
-mkdocs-version-annotations = "1.0.0"
+# Render custom markdown for version added/changed/remove notes
+markdown-version-annotations = "1.0.1"
+# Rendering docs to HTML
+mkdocs = "1.6.0"
+# Material for MkDocs theme
+mkdocs-material = "9.5.32"
+# Automatic documentation from sources, for MkDocs
+mkdocstrings = "0.25.2"
+mkdocstrings-python = "1.10.8"
+mkdocs-autorefs = "1.2.0"
+griffe = "1.1.1"
 
 [tool.poetry.extras]
 mikrotik_driver = ["routeros-api"]

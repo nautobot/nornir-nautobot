@@ -1,4 +1,5 @@
 """Pytest of Nautobot Inventory."""
+
 # Standard Library Imports
 from os import path
 

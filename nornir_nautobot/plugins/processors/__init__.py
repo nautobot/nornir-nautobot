@@ -1,4 +1,5 @@
 """BaseProcessor for the nornir."""
+
 import logging
 
 from nornir.core.inventory import Host

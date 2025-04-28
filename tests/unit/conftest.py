@@ -1,4 +1,5 @@
 """Used to setup fixtures to be used through tests."""
+
 import pytest
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
 

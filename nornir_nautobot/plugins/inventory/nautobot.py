@@ -1,4 +1,5 @@
 """Nornir Nautobot Inventory Plugin."""
+
 # Python Imports
 import os
 import sys

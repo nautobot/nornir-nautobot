@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.7.1
+
+- (#190) Allow more broader range of httpx dependency
+
+## v2.7.0
+
+- (#117) [CFG-DEPLOYMENT] RouterOS, Ruckus Fastiron by @pato23arg
+- (#120) Minor bump in prep for release by @pke11y
+
 ## v2.6.1
 
 - (#108) Add enable threading option

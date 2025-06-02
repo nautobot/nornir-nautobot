@@ -24,7 +24,7 @@ documentation = "https://nornir-nautobot.readthedocs.io"
 "Bug Tracker" = "https://github.com/nautobot/nornir-nautobot/issues"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.13"
+python = ">=3.10,<3.14"
 nornir = "^3.3.0"
 requests = "^2.30.1"
 nornir-utils = "^0"

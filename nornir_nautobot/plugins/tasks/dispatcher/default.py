@@ -510,7 +510,7 @@ class NetmikoDefault(DispatcherMixin):
         if custom_field and isinstance(custom_field, str):
             return custom_field
         config_context = obj.get_config_context().get("config_command")
-        if custom_field and isinstance(config_context, str):
+        if config_context and isinstance(config_context, str):
             return config_context
         return cls.config_command
 

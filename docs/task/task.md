@@ -108,9 +108,9 @@ class DispatcherMixin:
 
 The Netmiko `show_command` tells Netmiko which command to use to get the config, generally used to backup the configuration. You can override the default provided based on this logic:
 
-- Prefer `obj.cf["config_command"]` if it is a valid string.
-- Prefer `obj.get_config_context()["config_command"]` if it is a valid string.
-- Use the default command defined in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets `show run`.
+- First prefer `obj.cf["config_command"]` if it is set and a valid string, which is to say if a custom field named `config_command` is present it should be preferred.
+- Second prefer `obj.get_config_context()["config_command"]` if it is set and a valid string, which is to say if a config context is rendered for this device named `config_command` is present it should be preferred.
+- Finally default to the command defined in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets it to `show run`.
 
 Here is the implementation:
 

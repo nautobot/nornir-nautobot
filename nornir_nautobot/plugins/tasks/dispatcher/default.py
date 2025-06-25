@@ -699,7 +699,7 @@ class GitDefault(DispatcherMixin):
         substitute_lines: list,
         command_relative_path: str = None,
     ) -> Result:
-        """Get the latest configuration from the device using Netmiko.
+        """Get the latest configuration of the device from a git repository.
 
         Args:
             task (Task): Nornir Task.
@@ -725,7 +725,7 @@ class GitDefault(DispatcherMixin):
     def get_command(
         cls, task: Task, logger, obj, command: str, git_repo_obj, command_relative_path: str = None
     ):  # pylint: disable=too-many-positional-arguments
-        """A tasks to get the commands from a device.
+        """A tasks to get the command outputs from a git repository.
 
         Args:
             task (Task): Nornir Task.
@@ -766,7 +766,7 @@ class GitDefault(DispatcherMixin):
     def get_commands(
         cls, task: Task, logger, obj, git_repo_obj, command_list: List[Tuple[str, Optional[str]]]
     ):  # pylint: disable=too-many-positional-arguments,too-many-locals
-        """A tasks to get the commands from a device.
+        """A tasks to get command outputs from a git repository.
 
         Args:
             task (Task): Nornir Task.

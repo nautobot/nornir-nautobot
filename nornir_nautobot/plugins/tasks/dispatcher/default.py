@@ -5,7 +5,7 @@
 import logging
 import os
 import socket
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import jinja2
 from netutils.config.clean import clean_config, sanitize_config
@@ -30,6 +30,7 @@ from nornir_nautobot.utils.helpers import (
     get_stack_trace,
     is_truthy,
     make_folder,
+    get_command_file_from_git,
 )
 
 _logger = logging.getLogger(__name__)
@@ -666,6 +667,127 @@ class NetmikoDefault(DispatcherMixin):
                     command_string=command,
                     enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
                     **kwargs,
+                )
+                failed, error_msg = cls._has_hidden_errors(result[0].result)
+                if failed:
+                    logger.error(error_msg, extra={"object": obj})
+                    raise NornirNautobotException(error_msg)
+                command_results.update({command: result[0].result})
+            except NornirSubTaskError as exc:
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_msg = get_error_message(error_code, exc=exc)
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": command_results})
+
+
+class GitDefault(DispatcherMixin):
+    """Default collection of Nornir Tasks based on Git."""
+
+    config_command = "show run"
+
+    @classmethod
+    def get_config(  # pylint: disable=too-many-positional-arguments
+        cls,
+        task: Task,
+        logger,
+        obj,
+        git_repo_obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
+        command_relative_path: str = None,
+    ) -> Result:
+        """Get the latest configuration from the device using Netmiko.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            git_repo_obj: A Nautobot GitRepository Django ORM object instance.
+            remove_lines (list): A list of regex lines to remove configurations.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            command_relative_path: The path to the command output file located under the command_outputs folder in the Git repository.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing the running configuration
+                { "config: <running configuration> }
+        """
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        command = cls.config_command
+        getter_result = cls.get_command(task, logger, obj, command, git_repo_obj, command_relative_path)
+        running_config = getter_result.result.get("output").get(command)
+        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        return Result(host=task.host, result={"config": processed_config})
+
+    @classmethod
+    def get_command(
+        cls, task: Task, logger, obj, command: str, git_repo_obj, command_relative_path: str = None
+    ):  # pylint: disable=too-many-positional-arguments
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+            git_repo_obj: A Nautobot GitRepository Django ORM object instance.
+            command_relative_path: The path to the command output file located under the command_outputs folder in the Git repository.
+        """
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+
+        command_file_path = get_command_file_from_git(
+            git_repo_obj=git_repo_obj, device=obj, command=command, command_relative_path=command_relative_path
+        )
+
+        if not command_file_path:
+            msg = f"Command output file for {command} on {obj.name} not found."
+            logger.error(msg)
+            return Result(host=task.host, failed=True, result=msg)
+
+        try:
+            logger.info(f"Reading command output from: {command_file_path}")
+            with command_file_path.open("r", encoding="utf-8") as file:
+                command_raw = file.read()
+            print(command_raw)
+        except FileNotFoundError:
+            msg = f"Command output file not found: {command_file_path}"
+            logger.error(msg)
+            return Result(host=task.host, failed=True, result=msg)
+        except OSError as exception:
+            msg = f"Error reading command output file: {exception}"
+            logger.error(msg)
+            return Result(host=task.host, failed=True, result=msg)
+
+        return Result(host=task.host, result={"output": {command: command_raw}})
+
+    @classmethod
+    def get_commands(
+        cls, task: Task, logger, obj, git_repo_obj, command_list: List[Tuple[str, Optional[str]]]
+    ):  # pylint: disable=too-many-positional-arguments,too-many-locals
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            git_repo_obj: A Nautobot GitRepository Django ORM object instance.
+            command_list: A list of tuples (command, command_relative_path).
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = {}
+        for item in command_list:
+            command, *rest = item
+            command_relative_path = rest[0] if rest else None
+            try:
+                result = task.run(
+                    task=cls.get_command,
+                    logger=logger,
+                    obj=obj,
+                    command=command,
+                    git_repo_obj=git_repo_obj,
+                    command_relative_path=command_relative_path,
                 )
                 failed, error_msg = cls._has_hidden_errors(result[0].result)
                 if failed:

@@ -1,6 +1,7 @@
 """A set of helper utilities."""
 
 from typing import Any
+from pathlib import Path
 
 import errno
 import os
@@ -84,3 +85,54 @@ def get_error_message(error_code: str, **kwargs: Any) -> str:
     except Exception:  # pylint: disable=broad-except
         error_message = "Error Code was found, but failed to format message, unknown cause."
     return f"{error_code}: {error_message}"
+
+
+def command_to_filename(command):
+    """
+    Convert a CLI command into a filesystem-friendly filename.
+
+    If the command includes a pipe ('|'), it splits the command into two parts,
+    replaces spaces with underscores in each part, and joins them using a double underscore.
+    Otherwise, it replaces all spaces in the command with underscores.
+
+    Args:
+        command (str): The CLI command string to convert.
+
+    Returns:
+        str: A filename-safe string representing the command.
+    """
+    if "|" in command:
+        part1, part2 = command.split("|")
+        command_file_name = part1.strip().replace(" ", "_") + "__" + part2.strip().replace(" ", "_")
+    else:
+        command_file_name = command.replace(" ", "_")
+
+    return command_file_name
+
+
+def get_command_file_from_git(git_repo_obj, device, command, command_relative_path=None):
+    """
+    Retrieve the path to a command output file from a local git repo.
+
+    Args:
+        git_repo: Git repository object with `.filesystem_path` attribute.
+        device: Device object used for rendering the path template.
+        command: Raw command string to be converted into a file name.
+        command_relative_path : The path to the command output file located under the command_outputs folder in the Git repository.
+                                The default relative path is "command_outputs/platform__name/device__name/command.raw"
+        logger: Logger instance for logging.
+
+    Returns:
+        Path object to the command file if it exists, otherwise None.
+    """
+    command_file_name = command_to_filename(command)
+
+    if not command_relative_path:
+        command_relative_path = f"{device.platform.name}/{device.name}/{command_file_name}.raw"
+
+    command_file_path = Path(git_repo_obj.filesystem_path) / "command_outputs" / command_relative_path
+
+    if command_file_path.exists():
+        return command_file_path
+
+    return None

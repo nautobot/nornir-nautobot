@@ -44,6 +44,8 @@ extra:
   generator: true
 
 markdown_extensions:
+  - "markdown_version_annotations":
+      admonition_tag: "???"
   - "admonition"
   - "toc":
       permalink: true
@@ -57,7 +59,6 @@ markdown_extensions:
   - "footnotes"
 plugins:
   - "search"
-  - "mkdocs-version-annotations"
 
 nav:
   - Overview: "index.md"

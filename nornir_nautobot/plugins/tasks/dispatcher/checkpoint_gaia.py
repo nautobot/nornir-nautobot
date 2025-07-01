@@ -1,13 +1,9 @@
 """nornir dispatcher for checkpoint_gaia."""
 
-
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault, DispatcherMixin
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_nautobot.exceptions import NornirNautobotException
-
-NETMIKO_DEVICE_TYPE = "linux"
-
 
 
 class CheckpointGaiaDefault(NetmikoDefault, DispatcherMixin):

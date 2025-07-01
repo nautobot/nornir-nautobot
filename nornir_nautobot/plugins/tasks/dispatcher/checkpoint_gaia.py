@@ -1,18 +1,16 @@
 """nornir dispatcher for checkpoint_gaia."""
 
-from nornir.core.task import Result, Task
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault, DispatcherMixin
+from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.task import Result, Task
 from nornir_nautobot.exceptions import NornirNautobotException
 
 NETMIKO_DEVICE_TYPE = "linux"
 
 
-class NapalmCheckpointGaia(NapalmDefault):
-    """Collection of Napalm Nornir Tasks specific to Check Point Gaia devices."""
 
-
-class NetmikoCheckpointGaia(NetmikoDefault):
+class CheckpointGaiaDefault(NetmikoDefault, DispatcherMixin):
     """Collection of Netmiko Nornir Tasks specific to Check Point Gaia devices."""
 
     config_command = 'clish -c "show configuration"'
@@ -35,8 +33,8 @@ class NetmikoCheckpointGaia(NetmikoDefault):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
+        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         try:
-            task.host.platform = NETMIKO_DEVICE_TYPE
             result = super().get_config(
                 task,
                 logger,
@@ -46,6 +44,7 @@ class NetmikoCheckpointGaia(NetmikoDefault):
                 substitute_lines,
             )
             return result
-        except Exception as exc:
-            error_msg = f"Failed to get configuration from {task.host.name} on {task.host.platform}"
-            raise NornirNautobotException(error_msg) from exc
+        except NornirSubTaskError as exc:
+            error_msg = f"`E1015:` `get_config` method failed with an unexpected issue: `{exc.result.exception}`"
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)

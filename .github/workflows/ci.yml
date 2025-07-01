@@ -7,20 +7,20 @@ jobs:
   black:
     env:
       INVOKE_LOCAL: "True"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml black"
       - name: "Linting: Black"
         run: "invoke black"
   bandit:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -29,7 +29,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml bandit"
       - name: "Linting: Bandit"
@@ -37,7 +37,7 @@ jobs:
     needs:
       - "black"
   pydocstyle:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -46,7 +46,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml pydocstyle"
       - name: "Linting: pydocstyle"
@@ -54,7 +54,7 @@ jobs:
     needs:
       - "black"
   flake8:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -63,7 +63,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml flake8"
       - name: "Linting: flake8"
@@ -71,7 +71,7 @@ jobs:
     needs:
       - "black"
   yamllint:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -80,7 +80,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install --upgrade pip wheel invoke toml yamllint"
       - name: "Linting: yamllint"
@@ -88,14 +88,14 @@ jobs:
     needs:
       - "black"
   build:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Setup"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -106,14 +106,14 @@ jobs:
       - "flake8"
       - "yamllint"
   pylint:
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -126,8 +126,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-    runs-on: "ubuntu-20.04"
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    runs-on: "ubuntu-latest"
     env:
       PYTHON_VER: "${{ matrix.python-version }}"
     steps:
@@ -136,7 +136,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Build Container"
@@ -147,7 +147,7 @@ jobs:
       - "pylint"
   publish_gh:
     name: "Publish to GitHub"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - name: "Check out repository code"
@@ -155,7 +155,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages for Linting"
         run: "pip install invoke poetry toml"
       - name: "Set env"
@@ -176,7 +176,7 @@ jobs:
       - "pytest"
   publish_pypi:
     name: "Push Package to PyPI"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-latest"
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - name: "Check out repository code"
@@ -184,7 +184,7 @@ jobs:
       - name: "Set up Python"
         uses: "actions/setup-python@v2"
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - name: "Install Python Packages"
         run: "pip install poetry"
       - name: "Set env"

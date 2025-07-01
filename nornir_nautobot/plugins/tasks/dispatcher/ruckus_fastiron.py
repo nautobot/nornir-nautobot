@@ -6,6 +6,7 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir_netmiko.tasks import netmiko_save_config, netmiko_send_config
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from nornir_nautobot.utils.helpers import get_error_message
 
 
 class NetmikoRuckusFastiron(NetmikoDefault):
@@ -14,7 +15,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
     config_command = "show running-config"
 
     @staticmethod
-    def merge_config(task: Task, logger, obj, config: str) -> Result:
+    def merge_config(task: Task, logger, obj, config: str, can_diff: bool = True) -> Result:
         """Send configuration to merge on the device.
 
         Args:
@@ -47,7 +48,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
             logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
-            error_msg = f"`E1026:` result: {push_result[0].result}"
+            error_msg = get_error_message("E1026", push_result=push_result)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -60,7 +61,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
             )
             logger.info(f"config saved: {save_result[0].result}", extra={"object": obj})
         except NornirSubTaskError as exc:
-            error_msg = f"`E1027:` config merged, but failed to save: {exc.result.exception}"
+            error_msg = get_error_message("E1027", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg) from exc
         push_result[0].changed = True

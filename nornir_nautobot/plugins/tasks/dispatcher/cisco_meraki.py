@@ -5,7 +5,6 @@ from typing import Any, Callable, Optional
 
 from meraki import DashboardAPI
 from nautobot.dcim.models import Controller, Device
-
 from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
     get_api_key,
@@ -182,3 +181,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             responses.update(jpath_fields)
 
         return responses
+
+
+class NapalmCiscoMeraki(NetmikoCiscoMeraki):
+    """Napalm class for the Meraki controller dispatcher."""

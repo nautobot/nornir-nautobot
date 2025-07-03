@@ -181,7 +181,3 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             responses.update(jpath_fields)
 
         return responses
-
-
-class NapalmCiscoMeraki(NetmikoCiscoMeraki):
-    """Napalm class for the Meraki controller dispatcher."""

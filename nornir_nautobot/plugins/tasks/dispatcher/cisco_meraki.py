@@ -5,7 +5,7 @@ from typing import Any, Callable, Optional
 
 from meraki import DashboardAPI
 from nautobot.dcim.models import Controller, Device
-from netscaler_ext.plugins.tasks.dispatcher.base_controller_driver import (
+from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
     get_api_key,
     resolve_jmespath,

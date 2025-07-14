@@ -88,7 +88,8 @@ def resolve_jmespath(
                 expression=value,
                 data=api_response,
             )
-            data_fields.update({key: j_value})
+            if j_value:
+                data_fields.update({key: j_value})
     return data_fields
 
 

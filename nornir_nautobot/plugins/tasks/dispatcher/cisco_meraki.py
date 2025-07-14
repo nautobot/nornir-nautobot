@@ -174,10 +174,16 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     e,
                 )
                 continue
+            except Exception as e:
+                logger.error(e)
+                continue
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
+            if not jpath_fields:
+                logger.error(f"jmespath values not found in {response}")
+                continue
             responses.update(jpath_fields)
 
         return responses

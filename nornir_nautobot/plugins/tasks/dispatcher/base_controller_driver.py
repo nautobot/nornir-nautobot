@@ -6,7 +6,10 @@ from logging import Logger
 from typing import Any, Optional, OrderedDict
 
 import jmespath
-from nautobot.apps.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
+from nautobot.apps.choices import (
+    SecretsGroupAccessTypeChoices,
+    SecretsGroupSecretTypeChoices,
+)
 from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
@@ -93,7 +96,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
     """Base Controller Dispatcher class."""
 
     @classmethod
-    def _feature_name_parser(cls, feature_name: str) -> str:
+    def _cc_feature_name_parser(cls, feature_name: str) -> str:
         """Feature name parser.
 
         Args:
@@ -108,7 +111,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             feat = feature_name.rsplit(sep="-", maxsplit=1)[0]
         else:
             feat = feature_name.rsplit(sep=" ", maxsplit=1)[0]
-        return feat
+        return feat.lower().strip().replace("-", "_").replace(" ", "_")
 
     @classmethod
     @abstractmethod
@@ -151,7 +154,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
 
     @classmethod
     @abstractmethod
-    def resolve_endpoint(
+    def resolve_backup_endpoint(
         cls,
         controller_obj: Any,
         logger: Logger,
@@ -211,10 +214,10 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         _running_config: dict[str, dict[Any, Any]] = {}
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
-            feature_name: str = cls._feature_name_parser(feature_name=feature)
+            feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
             _running_config.update(
                 {
-                    feature_name: cls.resolve_endpoint(
+                    feature_name: cls.resolve_backup_endpoint(
                         controller_obj=controller_obj,
                         logger=logger,
                         endpoint_context=endpoints,
@@ -230,3 +233,118 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             backup_file=backup_file,
         )
         return Result(host=task.host, result={"config": processed_config})
+
+    @classmethod
+    @abstractmethod
+    def resolve_remediation_endpoint(
+        cls,
+        controller_obj: Any,
+        logger: Logger,
+        endpoint_context: list[dict[Any, Any]],
+        payload: dict[str, Any],
+        **kwargs: Any,
+    ) -> dict[str, dict[Any, Any]]:
+        """Resolve endpoint with parameters if any.
+
+        Args:
+            controller_obj (Any): Controller object.
+            logger (Logger): Logger object.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            payload (dict[str, Any]): Payload to pass to the API call.
+            kwargs (Any): Keyword arguments.
+
+        Returns:
+            Any: Dictionary of responses.
+        """
+        pass
+
+    @classmethod
+    def merge_config(  # pylint: disable=too-many-positional-arguments
+        cls,
+        task: Task,
+        logger,
+        obj,
+        config: str,
+        can_diff: bool = True,
+    ) -> Result:
+        """Send configuration to merge on the device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            config (str): The remediation payload.
+            can_diff (bool, optional): Can diff the config. Defaults to True.
+
+        Raises:
+            NornirNautobotException: Authentication error.
+            NornirNautobotException: Timeout error.
+            NornirNautobotException: Other exception.
+
+        Returns:
+            Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+        """
+        logger.info(
+            "Config merge via controller dispatcher starting", extra={"object": obj}
+        )
+        cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
+        controller_obj: Any = cls.authenticate(
+            logger=logger,
+            obj=obj,
+        )
+        controller_dict: dict[str, str] = cls.controller_setup(
+            controller_obj=controller_obj,
+            logger=logger,
+        )
+        feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
+        if not feature_endpoints:
+            logger.error("Could not find the controller endpoints")
+            raise ValueError("Could not find controller endpoints")
+        for remediation_endpoint in config:
+            if f"{remediation_endpoint}_remediation" not in feature_endpoints:
+                logger.error(
+                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in {feature_endpoints}",
+                    extra={"object": obj},
+                )
+                continue
+            if not cfg_cntx.get(f"{remediation_endpoint}_remediation", ""):
+                logger.error(
+                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in the config context",
+                    extra={"object": obj},
+                )
+                continue
+            push_results = cls.resolve_remediation_endpoint(
+                controller_obj=controller_obj,
+                logger=logger,
+                endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
+                payload=config[remediation_endpoint],
+                **controller_dict,
+            )
+        # Default code
+        push_result = task.run(
+            task=netmiko_send_config,
+            config_commands=config.splitlines(),
+            enable=True,
+        )
+
+        logger.info(
+            f"result: {push_result[0].result}, changed: {push_result[0].changed}",
+            extra={"object": obj},
+        )
+
+        if push_result.diff:
+            if can_diff:
+                logger.info(
+                    f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj}
+                )
+            else:
+                logger.warning(
+                    "Diff was requested but may include sensitive data. Ignoring...",
+                    extra={"object": obj},
+                )
+
+        logger.info("Config merge ended", extra={"object": obj})
+        return Result(
+            host=task.host,
+            result={"changed": push_result[0].changed, "result": push_result[0].result},
+        )

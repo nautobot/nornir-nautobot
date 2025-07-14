@@ -121,7 +121,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         }
 
     @classmethod
-    def resolve_endpoint(
+    def resolve_backup_endpoint(
         cls,
         controller_obj: Any,
         logger: Logger,
@@ -181,3 +181,49 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             responses.update(jpath_fields)
 
         return responses
+
+    @abstractmethod
+    def resolve_remediation_endpoint(
+        cls,
+        controller_obj: Any,
+        logger: Logger,
+        endpoint_context: list[dict[Any, Any]],
+        payload: dict[str, Any],
+        **kwargs: Any,
+    ) -> dict[str, dict[Any, Any]]:
+        """Resolve endpoint with parameters if any.
+
+        Args:
+            controller_obj (Any): Controller object.
+            logger (Logger): Logger object.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
+            payload (dict[str, Any]): Payload to pass to the API call.
+            kwargs (Any): Keyword arguments.
+
+        Returns:
+            Any: Dictionary of responses.
+        """
+        for method_context in endpoint_context:
+            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+                controller_obj=controller_obj,
+                method=method_context["method"],
+                logger=logger,
+            )
+            if not method_callable:
+                logger.error(
+                    f"The method {method_context['method']} does not exist in the controller object",
+                )
+                continue
+            for param in method_context["parameters"]["non-optional"]:
+                payload.update({param: kwargs[param]})
+            try:
+                response: Any = method_callable(**payload)
+            except TypeError as e:
+                logger.error(
+                    f"The params {payload} are not valid/sufficient for the {method_callable} method",
+                )
+                logger.warning(
+                    e,
+                )
+                continue
+            return response

@@ -216,16 +216,18 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         for feature in feature_endpoints:
             endpoints: list[dict[Any, Any]] = cfg_cntx.get(feature, "")
             feature_name: str = cls._cc_feature_name_parser(feature_name=feature)
-            _running_config.update(
-                {
-                    feature_name: cls.resolve_backup_endpoint(
-                        controller_obj=controller_obj,
-                        logger=logger,
-                        endpoint_context=endpoints,
-                        **controller_dict,
-                    )
-                }
+            feature_response: dict[str, dict[Any, Any]] = cls.resolve_backup_endpoint(
+                controller_obj=controller_obj,
+                logger=logger,
+                endpoint_context=endpoints,
+                **controller_dict,
             )
+            if not feature_response:
+                logger.error(
+                    f"Could not fetch {feature_name} configuration from controller using context {feature} ",
+                )
+                continue
+            _running_config.update({feature_name: feature_response})
         processed_config: str = cls._process_config(
             logger=logger,
             running_config=json.dumps(obj=_running_config, indent=4),

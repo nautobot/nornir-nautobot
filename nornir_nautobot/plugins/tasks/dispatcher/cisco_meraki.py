@@ -182,7 +182,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
 
         return responses
 
-    @abstractmethod
+    @classmethod
     def resolve_remediation_endpoint(
         cls,
         controller_obj: Any,

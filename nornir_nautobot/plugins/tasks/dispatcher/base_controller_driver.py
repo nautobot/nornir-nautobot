@@ -299,6 +299,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             controller_obj=controller_obj,
             logger=logger,
         )
+        aggregated_results: list[Any] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
         if not feature_endpoints:
             logger.error("Could not find the controller endpoints")
@@ -316,38 +317,19 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                     extra={"object": obj},
                 )
                 continue
-            push_results = cls.resolve_remediation_endpoint(
-                controller_obj=controller_obj,
-                logger=logger,
-                endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
-                payload=config[remediation_endpoint],
-                **controller_dict,
+            aggregated_results.append(
+                cls.resolve_remediation_endpoint(
+                    controller_obj=controller_obj,
+                    logger=logger,
+                    endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
+                    payload=config[remediation_endpoint],
+                    **controller_dict,
+                )
             )
-        # Default code
-        push_result = task.run(
-            task=netmiko_send_config,
-            config_commands=config.splitlines(),
-            enable=True,
-        )
-
-        logger.info(
-            f"result: {push_result[0].result}, changed: {push_result[0].changed}",
-            extra={"object": obj},
-        )
-
-        if push_result.diff:
-            if can_diff:
-                logger.info(
-                    f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj}
-                )
-            else:
-                logger.warning(
-                    "Diff was requested but may include sensitive data. Ignoring...",
-                    extra={"object": obj},
-                )
+        logger.info(f"result: {aggregated_results}", extra={"object": obj})
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": push_result[0].changed, "result": push_result[0].result},
+            result={"changed": bool(aggregated_results), "result": aggregated_results},
         )

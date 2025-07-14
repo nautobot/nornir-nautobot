@@ -224,10 +224,12 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 payload.update({param: kwargs[param]})
             try:
                 response: Any = method_callable(**payload)
-            except TypeError as e:
+            except TypeError:
                 logger.error(
                     f"The params {payload} are not valid/sufficient for the {method_callable} method",
                 )
+                continue
+            except Exception as e:
                 logger.warning(
                     e,
                 )

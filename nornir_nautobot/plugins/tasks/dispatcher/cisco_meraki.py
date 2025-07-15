@@ -196,19 +196,20 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         endpoint_context: list[dict[Any, Any]],
         payload: dict[str, Any],
         **kwargs: Any,
-    ) -> dict[str, dict[Any, Any]]:
+    ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
 
         Args:
             controller_obj (Any): Controller object.
             logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
+            endpoint_context (list[dict[Any, Any]]): controller feature endpoint config context.
             payload (dict[str, Any]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:
-            Any: Dictionary of responses.
+            list[dict[str, Any]]: List of API responses.
         """
+        aggregated_results: list[Any] = []
         for method_context in endpoint_context:
             method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
                 controller_obj=controller_obj,
@@ -234,4 +235,5 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     e,
                 )
                 continue
-            return response
+            aggregated_results.append(response)
+        return aggregated_results

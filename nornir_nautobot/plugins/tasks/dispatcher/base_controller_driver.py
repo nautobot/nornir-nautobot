@@ -289,6 +289,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             "Config merge via controller dispatcher starting", extra={"object": obj}
         )
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
+        # The above Python code snippet is performing the following actions:
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
@@ -344,7 +345,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             }
 
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(
-            host=task.host,
-            result=result,
-        )
+        final_result: Result = Result(host=task.host, result=result)
+        final_result.changed = True
+        final_result.failed = False
+        return final_result

@@ -289,14 +289,14 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             "Config merge via controller dispatcher starting", extra={"object": obj}
         )
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        # controller_obj: Any = cls.authenticate(
-        #     logger=logger,
-        #     obj=obj,
-        # )
-        # controller_dict: dict[str, str] = cls.controller_setup(
-        #     controller_obj=controller_obj,
-        #     logger=logger,
-        # )
+        controller_obj: Any = cls.authenticate(
+            logger=logger,
+            obj=obj,
+        )
+        controller_dict: dict[str, str] = cls.controller_setup(
+            controller_obj=controller_obj,
+            logger=logger,
+        )
         aggregated_results: list[list[dict[str, Any]]] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
         if not feature_endpoints:
@@ -316,18 +316,17 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 )
                 continue
             try:
-                # aggregated_results.append(
-                #     cls.resolve_remediation_endpoint(
-                #         controller_obj=controller_obj,
-                #         logger=logger,
-                #         endpoint_context=cfg_cntx[
-                #             f"{remediation_endpoint}_remediation"
-                #         ],
-                #         payload=config[remediation_endpoint],
-                #         **controller_dict,
-                #     )
-                # )
-                aggregated_results.append(remediation_endpoint)
+                aggregated_results.append(
+                    cls.resolve_remediation_endpoint(
+                        controller_obj=controller_obj,
+                        logger=logger,
+                        endpoint_context=cfg_cntx[
+                            f"{remediation_endpoint}_remediation"
+                        ],
+                        payload=config[remediation_endpoint],
+                        **controller_dict,
+                    )
+                )
             except NotImplementedError:
                 logger.error("resolve_remediation_endpoint was not overriden.")
         if can_diff:

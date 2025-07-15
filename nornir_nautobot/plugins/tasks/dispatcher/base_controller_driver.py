@@ -279,14 +279,11 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             config (str): The remediation payload.
             can_diff (bool, optional): Can diff the config. Defaults to True.
 
-        Raises:
-            NornirNautobotException: Authentication error.
-            NornirNautobotException: Timeout error.
-            NornirNautobotException: Other exception.
-
         Returns:
             Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
         """
+        if isinstance(config, str):
+            config = json.loads(config)
         logger.info(
             "Config merge via controller dispatcher starting", extra={"object": obj}
         )
@@ -305,15 +302,15 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             logger.error("Could not find the controller endpoints")
             raise ValueError("Could not find controller endpoints")
         for remediation_endpoint in config:
-            if f"{remediation_endpoint}_remediation" not in feature_endpoints:
+            if f"{remediation_endpoint.lower()}_remediation" not in feature_endpoints:
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in {feature_endpoints}",
+                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in {feature_endpoints}",
                     extra={"object": obj},
                 )
                 continue
-            if not cfg_cntx.get(f"{remediation_endpoint}_remediation", ""):
+            if not cfg_cntx.get(f"{remediation_endpoint.lower()}_remediation", ""):
                 logger.error(
-                    f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in the config context",
+                    f"Could not find the remediation endpoint: {remediation_endpoint.lower()}_remediation in the config context",
                     extra={"object": obj},
                 )
                 continue
@@ -321,15 +318,27 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 cls.resolve_remediation_endpoint(
                     controller_obj=controller_obj,
                     logger=logger,
-                    endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
-                    payload=config[remediation_endpoint],
+                    endpoint_context=cfg_cntx[
+                        f"{remediation_endpoint.lower()}_remediation"
+                    ],
+                    payload=config[remediation_endpoint.lower()],
                     **controller_dict,
                 )
             )
-        logger.info(f"result: {aggregated_results}", extra={"object": obj})
+        if can_diff:
+            logger.info(f"result: {aggregated_results}", extra={"object": obj})
+            result: dict[str, Any] = {
+                "changed": bool(aggregated_results),
+                "result": aggregated_results,
+            }
+        else:
+            result: dict[str, Any] = {
+                "changed": bool(aggregated_results),
+                "result": "Hidden to protect sensitive information",
+            }
 
         logger.info("Config merge ended", extra={"object": obj})
         return Result(
             host=task.host,
-            result={"changed": bool(aggregated_results), "result": aggregated_results},
+            result=result,
         )

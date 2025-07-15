@@ -220,7 +220,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     f"The method {method_context['method']} does not exist in the controller object",
                 )
                 continue
-            for param in method_context["parameters"]["non-optional"]:
+            for param in method_context["parameters"]["non_optional"]:
                 payload.update({param: kwargs[param]})
             try:
                 response: Any = method_callable(**payload)

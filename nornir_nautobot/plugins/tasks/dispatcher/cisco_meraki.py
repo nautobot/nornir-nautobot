@@ -98,22 +98,40 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
     @classmethod
     def controller_setup(
         cls,
+        device_obj: Device,
         controller_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
+            device_obj (Device): Nautobot Device object.
             controller_obj (Any): The controller object, i.e DashboardAPI for Meraki.
             logger (Logger): Logger object.
 
         Returns:
             dict[str, str]: Map for controller data.
         """
-        org_id: str = controller_obj.organizations.getOrganizations()[0].get("id", "")
+        orgs: list[dict[str, Any]] = controller_obj.organizations.getOrganizations()
+        org_name: str = device_obj.get_config_context().get("organization_name")
+        if not org_name:
+            logger.error(
+                "Could not find the Meraki organization name in config_context"
+            )
+            raise ValueError(
+                "Could not find the Meraki organization name in config_context"
+            )
+        org_id: str = ""
+        for org in orgs:
+            if org.get("name", "") == org_name:
+                if org.get("id"):
+                    org_id: str = org["id"]
+                    break
         if not org_id:
-            logger.error("Could not find the Meraki organization ID")
-            raise ValueError("Could not find Meraki organization ID")
+            logger.error("Could not find the Meraki organization ID in API response")
+            raise ValueError(
+                "Could not find the Meraki organization ID in API response"
+            )
         networkId = ""
         return {
             "organizationId": org_id,

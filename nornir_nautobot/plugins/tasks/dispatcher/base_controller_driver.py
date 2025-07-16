@@ -139,12 +139,14 @@ class BaseControllerDriver(NetmikoDefault, ABC):
     @abstractmethod
     def controller_setup(
         cls,
+        device_obj: Device,
         controller_obj: Any,
         logger: Logger,
     ) -> dict[str, str]:
         """Setup for controller.
 
         Args:
+            device_obj (Device): Nautobot Device object.
             controller_obj (Any): The controller object, i.e DashboardAPI for controller.
             logger (Logger): Logger object.
 
@@ -205,6 +207,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             obj=obj,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
+            device_obj=obj,
             controller_obj=controller_obj,
             logger=logger,
         )

@@ -8,6 +8,8 @@ import os
 import logging
 import importlib
 import traceback
+import unicodedata
+import re
 
 from nornir_nautobot.constants import ERROR_CODES
 
@@ -87,30 +89,44 @@ def get_error_message(error_code: str, **kwargs: Any) -> str:
     return f"{error_code}: {error_message}"
 
 
-def command_to_filename(command):
+def command_to_filename(command, replacement="_"):
     """
-    Convert a CLI command into a filesystem-friendly filename.
+    Convert a command string into a filesystem-safe filename.
 
-    If the command includes a pipe ('|'), it splits the command into two parts,
-    replaces spaces with underscores in each part, and joins them using a double underscore.
-    Otherwise, it replaces all spaces in the command with underscores.
+    This function sanitizes a command string so it can safely be used as a filename by:
+    1. Normalizing Unicode characters to their ASCII equivalents.
+    2. Replacing the pipe symbol '|' (with or without surrounding spaces) with two replacement characters.
+    3. Replacing characters that are illegal in most filesystems (e.g., / : * ? " < >) with the replacement character.
+    4. Replacing all spaces with the replacement character.
 
     Args:
-        command (str): The CLI command string to convert.
+        command (str): The input command string to sanitize.
+        replacement (str): The character to use as a substitute for illegal or special characters. Default is underscore ('_').
 
     Returns:
-        str: A filename-safe string representing the command.
+        str: A sanitized, ASCII-only, filesystem-safe version of the command string suitable for use as a filename.
     """
-    if "|" in command:
-        part1, part2 = command.split("|")
-        command_file_name = part1.strip().replace(" ", "_") + "__" + part2.strip().replace(" ", "_")
-    else:
-        command_file_name = command.replace(" ", "_")
+    # 1. Normalize Unicode characters (e.g., accented characters to ASCII equivalents)
+    #    and then ignore non-ASCII. This handles many international characters.
+    command_file_name = unicodedata.normalize("NFKD", command).encode("ascii", "ignore").decode("ascii")
+
+    # 2. Replace the '|' with the replacement character
+    command_file_name = re.sub(r"\s*\|\s*", 2 * replacement, command_file_name)
+
+    # 3. Replace characters illegal in most filesystems with the replacement character
+    #    Common illegal characters: / \ : * ? " < > |
+    #    Also replace leading/trailing whitespace, and control characters.
+    #    This regex targets common illegal filename characters and also handles multiple
+    #    replacement characters in a row (e.g., 'foo///bar' becomes 'foo_bar').
+    command_file_name = re.sub(r"[^\w\s\.-]+", replacement, command_file_name).strip()
+
+    # 4. Replace spaces with the replacement character
+    command_file_name = re.sub(r"\s+", replacement, command_file_name).strip(replacement)
 
     return command_file_name
 
 
-def get_command_file_from_git(git_repo_obj, device, command, command_relative_path=None):
+def get_command_file_from_git(git_repo_obj, device, command, commands_folder_name=None, command_relative_path=None):
     """
     Retrieve the path to a command output file from a local git repo.
 
@@ -127,10 +143,13 @@ def get_command_file_from_git(git_repo_obj, device, command, command_relative_pa
     """
     command_file_name = command_to_filename(command)
 
+    if not commands_folder_name:
+        commands_folder_name = "command_outputs"
+
     if not command_relative_path:
         command_relative_path = f"{device.platform.name}/{device.name}/{command_file_name}.raw"
 
-    command_file_path = Path(git_repo_obj.filesystem_path) / "command_outputs" / command_relative_path
+    command_file_path = Path(git_repo_obj.filesystem_path) / commands_folder_name / command_relative_path
 
     if command_file_path.exists():
         return command_file_path

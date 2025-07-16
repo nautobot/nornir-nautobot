@@ -20,11 +20,7 @@ jobs:
       - name: "Linting: Black"
         run: "invoke black"
   bandit:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -41,11 +37,7 @@ jobs:
     needs:
       - "black"
   pydocstyle:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -62,11 +54,7 @@ jobs:
     needs:
       - "black"
   flake8:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -83,11 +71,7 @@ jobs:
     needs:
       - "black"
   yamllint:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     env:
       INVOKE_LOCAL: "True"
     steps:
@@ -104,11 +88,7 @@ jobs:
     needs:
       - "black"
   build:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -126,11 +106,7 @@ jobs:
       - "flake8"
       - "yamllint"
   pylint:
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v2"
@@ -151,11 +127,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12"]
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     env:
       PYTHON_VER: "${{ matrix.python-version }}"
     steps:
@@ -175,11 +147,7 @@ jobs:
       - "pylint"
   publish_gh:
     name: "Publish to GitHub"
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - name: "Check out repository code"
@@ -208,11 +176,7 @@ jobs:
       - "pytest"
   publish_pypi:
     name: "Push Package to PyPI"
-<<<<<<< HEAD
     runs-on: "ubuntu-latest"
-=======
-    runs-on: "ubuntu-22.04"
->>>>>>> 5ba5f85 (Add support for the Git dispatcher)
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - name: "Check out repository code"

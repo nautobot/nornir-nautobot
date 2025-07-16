@@ -298,6 +298,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
             obj=obj,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
+            device_obj=obj,
             controller_obj=controller_obj,
             logger=logger,
         )

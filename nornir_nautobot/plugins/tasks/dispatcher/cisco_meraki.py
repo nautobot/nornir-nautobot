@@ -113,11 +113,9 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             dict[str, str]: Map for controller data.
         """
         config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
-        org_name: str = config_context.get("organization_name")
+        org_name: str = config_context.get("organization_id")
         if not org_name:
-            logger.error(
-                "Could not find the Meraki organization name in config_context"
-            )
+            logger.error("Could not find the Meraki organization id in config_context")
             raise ValueError(
                 "Could not find the Meraki organization name in config_context"
             )

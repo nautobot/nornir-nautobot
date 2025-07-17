@@ -1,7 +1,7 @@
 """nornir dispatcher for cisco Meraki controllers."""
 
 from logging import Logger
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, OrderedDict
 
 from meraki import DashboardAPI
 from nautobot.dcim.models import Controller, Device
@@ -112,8 +112,8 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             dict[str, str]: Map for controller data.
         """
-        orgs: list[dict[str, Any]] = controller_obj.organizations.getOrganizations()
-        org_name: str = device_obj.get_config_context().get("organization_name")
+        config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
+        org_name: str = config_context.get("organization_name")
         if not org_name:
             logger.error(
                 "Could not find the Meraki organization name in config_context"
@@ -121,18 +121,13 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             raise ValueError(
                 "Could not find the Meraki organization name in config_context"
             )
-        org_id: str = ""
-        for org in orgs:
-            if org.get("name", "") == org_name:
-                if org.get("id"):
-                    org_id: str = org["id"]
-                    break
+        org_id: str = config_context.get("organization_id")
         if not org_id:
             logger.error("Could not find the Meraki organization ID in API response")
             raise ValueError(
                 "Could not find the Meraki organization ID in API response"
             )
-        networkId = ""
+        networkId = config_context.get("network_id")
         return {
             "organizationId": org_id,
             "networkId": networkId,

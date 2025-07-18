@@ -1,16 +1,17 @@
-"""nornir dispatcher for cisco Meraki controllers."""
+"""nornir dispatcher for cisco Vmanage controllers."""
 
 from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
-from meraki import DashboardAPI
 from nautobot.dcim.models import Controller, Device
 from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
+    ConnectionMixin,
     resolve_jmespath,
     resolve_params,
 )
+from requests import Response, Session
 
 
 # Resolving endpoint private functions
@@ -53,8 +54,12 @@ def _resolve_method_callable(
     return method_callable
 
 
-class NetmikoCiscoMeraki(BaseControllerDriver):
-    """Meraki Controller Dispatcher class."""
+class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
+    """Vmanage Controller Dispatcher class."""
+
+    session: Session = cls.configure_session()
+    get_headers: dict[str, str] = {}
+    post_headers: dict[str, str] = {}
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -77,20 +82,52 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             controller_url = controller.external_integration.remote_url
         elif controllers := obj.controllers.all():
             for cntrlr in controllers:
-                if "meraki" in cntrlr.platform.name.lower():
+                if "vmanage" in cntrlr.platform.name.lower():
                     controller_url = cntrlr.external_integration.remote_url
         if not controller_url:
             logger.error("Could not find the Meraki Dashboard API URL")
             raise ValueError("Could not find the Meraki Dashboard API URL")
-        # api_key: str = get_api_key(secrets_group=obj.secrets_group)
-        api_key: str = task.host.password
-        controller_obj: DashboardAPI = DashboardAPI(
-            api_key=api_key,
-            base_url=controller_url,
-            output_log=False,
-            print_console=False,
+        username, password = task.host.username, task.host.password
+        j_security_headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+        j_security_payload = f"j_username={username}&j_password={password}"
+        # TODO: Change verify to true
+        security_resp: Response = cls.return_response_obj(
+            session=cls.session,
+            method="POST",
+            url=f"{controller_url}/j_security_check",
+            headers=j_security_headers,
+            body=j_security_payload,
+            verify=False,
         )
-        return controller_obj
+        j_session_id: str = security_resp.headers.get("Set-Cookie", "")
+        if not j_session_id:
+            logger.error(
+                "Could not find getJSESSIONID from vManage controller",
+            )
+            raise ValueError(
+                "Could not find getJSESSIONID from vManage controller",
+            )
+        token_headers = {
+            "Cookie": j_session_id,
+            "Content-Type": "application/json",
+        }
+        # TODO: Need to make a method to determine if there is a trailing forward slash in the URL
+        token_resp: str = cls.return_response_content(
+            session=cls.session,
+            method="GET",
+            url=f"{controller_url}dataservice/client/token",
+            headers=token_headers,
+            verify=False,
+        )
+        cls.get_headers.update(
+            {
+                "Cookie": j_session_id,
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": str(token_resp),
+            }
+        )
 
     @classmethod
     def controller_setup(
@@ -204,15 +241,13 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard
-                object or None.
+            controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
-            payload (dict[str, Any]): Payload to pass to the API call.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             kwargs (Any): Keyword arguments.
 
         Returns:
-            list[dict[str, Any]]: List of API responses.
+            Any: Dictionary of responses.
         """
         aggregated_results: list[Any] = []
         for method_context in endpoint_context:

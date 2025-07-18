@@ -3,7 +3,7 @@
 import json
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Any, Optional, OrderedDict
+from typing import Any, Optional, OrderedDict, Union
 
 import jmespath
 from nautobot.apps.choices import (
@@ -14,6 +14,119 @@ from nautobot.dcim.models import Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from nornir.core.task import Result, Task
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
+from requests import Response, Session
+from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError, JSONDecodeError
+from urllib3.util import Retry
+
+
+class ConnectionMixin:
+    """Mixin to connect to a service."""
+
+    @classmethod
+    def configure_session(cls) -> Session:
+        """Configure a requests session.
+
+        Returns:
+            Session: Requests session.
+        """
+        session: Session = Session()
+        retries = Retry(
+            total=3,
+            backoff_factor=10,
+            status_forcelist=[502, 503, 504],
+            allowed_methods=["GET", "POST"],
+        )
+        session.mount(
+            prefix="https://",
+            adapter=HTTPAdapter(max_retries=retries),
+        )
+        return session
+
+    @classmethod
+    def return_response_content(
+        cls,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        session: Session,
+        logger: Logger,
+        body: Optional[Union[dict[str, str], str]] = None,
+        verify: bool = True,
+    ) -> Any:
+        """Create request and return response payload.
+
+        Args:
+            method (str): HTTP Method to use.
+            url (str): URL to send request to.
+            headers (dict): Headers to use in request.
+            session (Session): Session to use.
+            logger (Logger): The dispatcher's logger.
+            body (Optional[Union[dict[str, str], str]]): Body of request.
+            verify (bool): Verify SSL certificate.
+
+        Returns:
+            Any: API Response.
+
+        Raises:
+            requests.exceptions.HTTPError:
+                If the HTTP request returns an unsuccessful status code.
+        """
+        try:
+            with session as ses:
+                response: Response = ses.request(
+                    method=method,
+                    url=url,
+                    headers=headers,
+                    data=body,
+                    timeout=(50.0, 100.0),
+                    verify=verify,
+                )
+                response.raise_for_status()
+                json_response: dict[str, Any] = response.json()
+                return json_response
+        except JSONDecodeError:
+            text_response: str = response.text
+            return text_response
+        except HTTPError as http_err:
+            logger.error(http_err)
+            return
+
+    @classmethod
+    def return_response_obj(
+        cls,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        session: Session,
+        body: Optional[Union[dict[str, str], str]] = None,
+        verify: bool = True,
+    ) -> Response:
+        """Create request for authentication and return response object.
+
+        Args:
+            method (str): HTTP Method to use.
+            url (str): URL to send request to.
+            headers (dict): Headers to use in request.
+            session (Session): Session to use.
+            logger (Logger): The dispatcher's logger.
+            body (Optional[Union[dict[str, str], str]]): Body of request.
+            verify (bool): Verify SSL certificate.
+
+        Returns:
+            Response: API Response object.
+        """
+        with session as ses:
+            response: Response = ses.request(
+                method=method,
+                url=url,
+                headers=headers,
+                data=body,
+                timeout=(50.0, 100.0),
+                verify=verify,
+            )
+            response.raise_for_status()
+            return response
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -116,22 +229,19 @@ class BaseControllerDriver(NetmikoDefault, ABC):
 
     @classmethod
     @abstractmethod
-    def authenticate(
-        cls,
-        logger: Logger,
-        obj: Device,
-    ) -> Any:
+    def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
         """Authenticate to controller.
 
         Args:
             logger (Logger): Logger object.
             obj (Device): Device object.
+            task (Task): Nornir Task object.
 
         Raises:
             ValueError: Could not find the controller API URL in config context.
 
         Returns:
-            Any: Controller object.
+            Any: Controller object or None.
         """
         pass
 
@@ -147,7 +257,8 @@ class BaseControllerDriver(NetmikoDefault, ABC):
 
         Args:
             device_obj (Device): Nautobot Device object.
-            controller_obj (Any): The controller object, i.e DashboardAPI for controller.
+            controller_obj (Any): The controller object, i.e DashboardAPI for
+                controller or None is not SDK.
             logger (Logger): Logger object.
 
         Returns:
@@ -167,7 +278,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object.
+            controller_obj (Any): Controller object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             kwargs (Any): Keyword arguments.
@@ -205,6 +316,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
+            task=task,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,
@@ -252,7 +364,8 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         """Resolve endpoint with parameters if any.
 
         Args:
-            controller_obj (Any): Controller object, i.e. Meraki Dashboard object.
+            controller_obj (Any): Controller object, i.e. Meraki Dashboard
+                object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[str, Any]): Payload to pass to the API call.

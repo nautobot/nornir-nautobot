@@ -178,6 +178,7 @@ def resolve_params(
         for k, v in param_mapper.items():
             if k.lower() == param.lower():
                 params.update({k: v})
+    return params
 
 
 def resolve_jmespath(

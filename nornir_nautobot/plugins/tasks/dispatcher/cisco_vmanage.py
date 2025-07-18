@@ -17,10 +17,10 @@ from requests import Response, Session
 class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     """Vmanage Controller Dispatcher class."""
 
-    session: Session = cls.configure_session()
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
     controller_url: str = ""
+    session = None
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -37,6 +37,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
+        cls.session: Session = cls.configure_session()
         if controller_group := obj.controller_managed_device_group:
             controller: Controller = controller_group.controller
             cls.controller_url = controller.external_integration.remote_url

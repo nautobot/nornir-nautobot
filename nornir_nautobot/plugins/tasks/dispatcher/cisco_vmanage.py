@@ -1,7 +1,7 @@
 """nornir dispatcher for cisco Vmanage controllers."""
 
 from logging import Logger
-from typing import Any, Callable, Optional, OrderedDict
+from typing import Any
 
 from nautobot.dcim.models import Controller, Device
 from nornir.core.task import Task
@@ -14,52 +14,13 @@ from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
 from requests import Response, Session
 
 
-# Resolving endpoint private functions
-def _resolve_method_callable(
-    controller_obj: Any,
-    method: str,
-    logger: Logger,
-) -> Optional[Callable[[Any], Any]]:
-    """Resolve method callable.
-
-    Args:
-        controller_obj (Any): Controller object, i.e. DashboardAPI for Meraki.
-        method (str): 'class.method' name.
-        logger (Logger): Logger object.
-
-    Returns:
-        Optional[Callable[[Any], Any]]: Method callable or None.
-    """
-    cotroller_class, controller_method = method.split(sep=".")
-    try:
-        class_callable: Callable[[Any], Any] = getattr(
-            controller_obj,
-            cotroller_class,
-        )
-    except AttributeError:
-        logger.error(
-            f"The class {cotroller_class} does not exist in the controller object",
-        )
-        return
-    try:
-        method_callable: Callable[[Any], Any] = getattr(
-            class_callable,
-            controller_method,
-        )
-    except AttributeError:
-        logger.error(
-            f"The method {controller_method} does not exist in the {cotroller_class} class",
-        )
-        return
-    return method_callable
-
-
 class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     """Vmanage Controller Dispatcher class."""
 
     session: Session = cls.configure_session()
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
+    controller_url: str = ""
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -76,17 +37,16 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        controller_url: str = ""
         if controller_group := obj.controller_managed_device_group:
             controller: Controller = controller_group.controller
-            controller_url = controller.external_integration.remote_url
+            cls.controller_url = controller.external_integration.remote_url
         elif controllers := obj.controllers.all():
             for cntrlr in controllers:
                 if "vmanage" in cntrlr.platform.name.lower():
-                    controller_url = cntrlr.external_integration.remote_url
-        if not controller_url:
-            logger.error("Could not find the Meraki Dashboard API URL")
-            raise ValueError("Could not find the Meraki Dashboard API URL")
+                    cls.controller_url = cntrlr.external_integration.remote_url
+        if not cls.controller_url:
+            logger.error("Could not find the vManage URL")
+            raise ValueError("Could not find the vManage URL")
         username, password = task.host.username, task.host.password
         j_security_headers = {
             "Content-Type": "application/x-www-form-urlencoded",
@@ -96,7 +56,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         security_resp: Response = cls.return_response_obj(
             session=cls.session,
             method="POST",
-            url=f"{controller_url}/j_security_check",
+            url=f"{cls.controller_url}/j_security_check",
             headers=j_security_headers,
             body=j_security_payload,
             verify=False,
@@ -117,7 +77,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         token_resp: str = cls.return_response_content(
             session=cls.session,
             method="GET",
-            url=f"{controller_url}dataservice/client/token",
+            url=f"{cls.controller_url}dataservice/client/token",
             headers=token_headers,
             verify=False,
         )
@@ -147,19 +107,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             dict[str, str]: Map for controller data.
         """
-        config_context: OrderedDict[Any, Any] = device_obj.get_config_context()
-        org_id: str = config_context.get("organization_id")
-        if not org_id:
-            logger.error("Could not find the Meraki organization ID in API response")
-            raise ValueError(
-                "Could not find the Meraki organization ID in API response"
-            )
-        networkId = config_context.get("network_id")
-        return {
-            "organizationId": org_id,
-            "networkId": networkId,
-            "serial": device_obj.serial,
-        }
+        return {}
 
     @classmethod
     def resolve_backup_endpoint(
@@ -180,44 +128,36 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Dictionary of responses.
         """
-        try:
-            organization_id: str = kwargs["organizationId"]
-            network_id: str = kwargs["networkId"]
-        except KeyError as exc:
-            missing: str = exc.args[0]
-            raise ValueError(
-                f"resolve_endpoint() needs '{missing}' in kwargs",
-            ) from exc
         responses: dict[str, dict[Any, Any]] = {}
-        param_mapper: dict[str, str] = {
-            "organizationId": organization_id,
-            "networkId": network_id,
-        }
+        param_mapper: dict[str, str] = {}
         for endpoint in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
-                controller_obj=controller_obj,
-                method=endpoint["method"],
-                logger=logger,
-            )
-            if not method_callable:
-                continue
+            api_endpoint: str = f"{cls.controller_url}{endpoint["method"]}"
             params: dict[Any, Any] = resolve_params(
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,
             )
-            try:
-                response: Any = method_callable(**params)
-            except TypeError as e:
-                logger.error(
-                    f"The params {params} are not valid/sufficient for the {method_callable} method",
-                )
-                logger.warning(
-                    e,
-                )
-                continue
-            except Exception as e:
-                logger.error(e)
-                continue
+            # try:
+            #     response: Any = api_endpoint(**params)
+            # except TypeError as e:
+            #     logger.error(
+            #         f"The params {params} are not valid/sufficient for the {api_endpoint} method",
+            #     )
+            #     logger.warning(
+            #         e,
+            #     )
+            #     continue
+            # except Exception as e:
+            #     logger.error(e)
+            #     continue
+            # TODO: NEED TO ADD METHOD (GET, POST, etc.) TO CONFIG CONTEXT
+            response = cls.return_response_content(
+                session=cls.session,
+                method="GET",
+                url=api_endpoint,
+                headers=cls.get_headers,
+                verify=False,
+                logger=logger,
+            )
             jpath_fields: dict[str, Any] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
@@ -229,51 +169,51 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
 
         return responses
 
-    @classmethod
-    def resolve_remediation_endpoint(
-        cls,
-        controller_obj: Any,
-        logger: Logger,
-        endpoint_context: list[dict[Any, Any]],
-        payload: dict[str, Any],
-        **kwargs: Any,
-    ) -> list[dict[str, Any]]:
-        """Resolve endpoint with parameters if any.
+    # @classmethod
+    # def resolve_remediation_endpoint(
+    #     cls,
+    #     controller_obj: Any,
+    #     logger: Logger,
+    #     endpoint_context: list[dict[Any, Any]],
+    #     payload: dict[str, Any],
+    #     **kwargs: Any,
+    # ) -> list[dict[str, Any]]:
+    #     """Resolve endpoint with parameters if any.
 
-        Args:
-            controller_obj (Any): Controller object or None.
-            logger (Logger): Logger object.
-            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
-            kwargs (Any): Keyword arguments.
+    #     Args:
+    #         controller_obj (Any): Controller object or None.
+    #         logger (Logger): Logger object.
+    #         endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+    #         kwargs (Any): Keyword arguments.
 
-        Returns:
-            Any: Dictionary of responses.
-        """
-        aggregated_results: list[Any] = []
-        for method_context in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
-                controller_obj=controller_obj,
-                method=method_context["method"],
-                logger=logger,
-            )
-            if not method_callable:
-                logger.error(
-                    f"The method {method_context['method']} does not exist in the controller object",
-                )
-                continue
-            for param in method_context["parameters"]["non_optional"]:
-                payload.update({param: kwargs[param]})
-            try:
-                response: Any = method_callable(**payload)
-            except TypeError:
-                logger.error(
-                    f"The params {payload} are not valid/sufficient for the {method_callable} method",
-                )
-                continue
-            except Exception as e:
-                logger.warning(
-                    e,
-                )
-                continue
-            aggregated_results.append(response)
-        return aggregated_results
+    #     Returns:
+    #         Any: Dictionary of responses.
+    #     """
+    #     aggregated_results: list[Any] = []
+    #     for method_context in endpoint_context:
+    #         method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+    #             controller_obj=controller_obj,
+    #             method=method_context["method"],
+    #             logger=logger,
+    #         )
+    #         if not method_callable:
+    #             logger.error(
+    #                 f"The method {method_context['method']} does not exist in the controller object",
+    #             )
+    #             continue
+    #         for param in method_context["parameters"]["non_optional"]:
+    #             payload.update({param: kwargs[param]})
+    #         try:
+    #             response: Any = method_callable(**payload)
+    #         except TypeError:
+    #             logger.error(
+    #                 f"The params {payload} are not valid/sufficient for the {method_callable} method",
+    #             )
+    #             continue
+    #         except Exception as e:
+    #             logger.warning(
+    #                 e,
+    #             )
+    #             continue
+    #         aggregated_results.append(response)
+    #     return aggregated_results

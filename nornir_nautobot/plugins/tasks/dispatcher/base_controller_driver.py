@@ -170,15 +170,14 @@ def resolve_params(
         dict[Any, Any]: _description_
     """
     params: dict[Any, Any] = {}
-    if parameters:
-        for param in parameters:
-            if param.lower() not in [p.lower() for p in param_mapper]:
-                continue
-            for k, v in param_mapper.items():
-                if k.lower() == param.lower():
-                    param_key, param_value = k, v
-                    params.update({param_key: param_value})
-    return params
+    if not parameters or not param_mapper:
+        return params
+    for param in parameters:
+        if param.lower() not in [p.lower() for p in param_mapper]:
+            continue
+        for k, v in param_mapper.items():
+            if k.lower() == param.lower():
+                params.update({k: v})
 
 
 def resolve_jmespath(

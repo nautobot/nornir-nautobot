@@ -81,6 +81,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             url=f"{cls.controller_url}dataservice/client/token",
             headers=token_headers,
             verify=False,
+            logger=logger,
         )
         cls.get_headers.update(
             {

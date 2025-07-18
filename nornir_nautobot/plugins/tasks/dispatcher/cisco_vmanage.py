@@ -131,7 +131,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         responses: dict[str, dict[Any, Any]] = {}
         param_mapper: dict[str, str] = {}
         for endpoint in endpoint_context:
-            api_endpoint: str = f"{cls.controller_url}{endpoint["method"]}"
+            api_endpoint: str = f"{cls.controller_url}{endpoint['method']}"
             params: dict[Any, Any] = resolve_params(
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,

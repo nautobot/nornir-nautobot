@@ -57,6 +57,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             method="POST",
             url=f"{cls.controller_url}/j_security_check",
             headers=j_security_headers,
+            logger=logger,
             body=j_security_payload,
             verify=False,
         )

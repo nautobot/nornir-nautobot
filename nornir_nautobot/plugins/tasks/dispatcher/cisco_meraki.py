@@ -158,7 +158,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         for endpoint in endpoint_context:
             method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
                 controller_obj=controller_obj,
-                method=endpoint["method"],
+                method=endpoint["endpoint"],
                 logger=logger,
             )
             if not method_callable:
@@ -217,12 +217,12 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         for method_context in endpoint_context:
             method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
                 controller_obj=controller_obj,
-                method=method_context["method"],
+                method=method_context["endpoint"],
                 logger=logger,
             )
             if not method_callable:
                 logger.error(
-                    f"The method {method_context['method']} does not exist in the controller object",
+                    f"The method {method_context['endpoint']} does not exist in the controller object",
                 )
                 continue
             for param in method_context["parameters"]["non_optional"]:

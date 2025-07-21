@@ -15,6 +15,31 @@ from requests.exceptions import HTTPError, JSONDecodeError
 from urllib3.util import Retry
 
 
+def format_base_url_with_endpoint(
+    base_url: str,
+    endpoint: str,
+) -> str:
+    """Format base url with API endpoint.
+
+    Args:
+        base_url (str): Base url to format.
+        endpoint (str): Endpoint to format with.
+
+    Returns:
+        str: Formatted url.
+    """
+    if not base_url or not endpoint:
+        raise ValueError("Base or endpoint not passed, can not properly format url.")
+
+    if base_url.endswith("/"):
+        base_url = base_url[:-1]
+
+    if endpoint.startswith("/"):
+        endpoint = endpoint[1:]
+
+    return f"{base_url}/{endpoint}"
+
+
 def get_api_key(secrets_group: SecretsGroup) -> str:
     """Get controller API Key.
 

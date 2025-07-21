@@ -8,7 +8,11 @@ from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
 )
-from nornir_nautobot.utils.controller import ConnectionMixin, resolve_jmespath
+from nornir_nautobot.utils.controller import (
+    ConnectionMixin,
+    format_base_url_with_endpoint,
+    resolve_jmespath,
+)
 from requests import Response, Session
 
 
@@ -52,10 +56,14 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         }
         j_security_payload = f"j_username={username}&j_password={password}"
         # TODO: Change verify to true
+        security_url: str = format_base_url_with_endpoint(
+            base_url=cls.controller_url,
+            endpoint="j_security_check",
+        )
         security_resp: Response = cls.return_response_obj(
             session=cls.session,
             method="POST",
-            url=f"{cls.controller_url}/j_security_check",
+            url=security_url,
             headers=j_security_headers,
             logger=logger,
             body=j_security_payload,
@@ -73,11 +81,14 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             "Cookie": j_session_id,
             "Content-Type": "application/json",
         }
-        # TODO: Need to make a method to determine if there is a trailing forward slash in the URL
+        token_url: str = format_base_url_with_endpoint(
+            base_url=cls.controller_url,
+            endpoint="dataservice/client/token",
+        )
         token_resp: str = cls.return_response_content(
             session=cls.session,
             method="GET",
-            url=f"{cls.controller_url}dataservice/client/token",
+            url=token_url,
             headers=token_headers,
             verify=False,
             logger=logger,
@@ -131,11 +142,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         """
         responses: dict[str, dict[Any, Any]] = {}
         for endpoint in endpoint_context:
-            api_endpoint: str = f"{cls.controller_url}{endpoint['method']}"
-            # TODO: NEED TO ADD METHOD (GET, POST, etc.) TO CONFIG CONTEXT
+            api_endpoint: str = f"{cls.controller_url}{endpoint['endpoint']}"
             response = cls.return_response_content(
                 session=cls.session,
-                method="GET",
+                method=endpoint["method"],
                 url=api_endpoint,
                 headers=cls.get_headers,
                 verify=False,
@@ -176,12 +186,12 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     #     for method_context in endpoint_context:
     #         method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
     #             controller_obj=controller_obj,
-    #             method=method_context["method"],
+    #             method=method_context["endpoint"],
     #             logger=logger,
     #         )
     #         if not method_callable:
     #             logger.error(
-    #                 f"The method {method_context['method']} does not exist in the controller object",
+    #                 f"The method {method_context['endpoint']} does not exist in the controller object",
     #             )
     #             continue
     #         for param in method_context["parameters"]["non_optional"]:

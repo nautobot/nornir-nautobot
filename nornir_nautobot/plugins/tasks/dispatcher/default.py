@@ -30,7 +30,7 @@ from nornir_nautobot.utils.helpers import (
     get_stack_trace,
     is_truthy,
     make_folder,
-    get_command_file_from_git,
+    get_file_contents_from_git,
 )
 
 _logger = logging.getLogger(__name__)
@@ -504,6 +504,7 @@ class NetmikoDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Netmiko."""
 
     config_command = "show run"
+    offline_commands = False
 
     @classmethod
     def _get_config_command(cls, obj) -> str:
@@ -546,7 +547,7 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
         command = cls.config_command
-        if cls.offline_commands(obj):
+        if cls._offline_commands(obj):
             getter_result = cls.get_command(
                 task,
                 logger,
@@ -633,7 +634,7 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
 
     @classmethod
-    def offline_commands(cls, obj):  # pylint: disable=too-many-return-statements
+    def _offline_commands(cls, obj):  # pylint: disable=too-many-return-statements
         """
         Determine whether offline commands should be used for the given device object.
 
@@ -647,29 +648,19 @@ class NetmikoDefault(DispatcherMixin):
                 - True or False if the key exists in any of the sources and is explicitly set.
                 - None if the key is not found or does not contain a valid boolean value.
         """
-        if "offline_commands" in obj.cf:
-            if obj.cf["offline_commands"] in (True, False):
-                return obj.cf["offline_commands"]
-            return None
-
-        if "offline_commands" in obj.get_config_context():
-            if obj.get_config_context()["offline_commands"] in (True, False):
-                return obj.cf["offline_commands"]
-            return None
-
-        if hasattr(cls, "offline_commands"):
-            if cls.offline_commands in (True, False):
-                return True
-            return None
-
-        return None
+        custom_field = obj.cf.get("offline_commands")
+        if isinstance(custom_field, bool):
+            return custom_field
+        config_context = obj.get_config_context().get("offline_commands")
+        if isinstance(config_context, bool):
+            return config_context
+        return cls._offline_commands
 
     @classmethod
     def get_git_command(
         cls,
         task: Task,
         logger,
-        obj,
         command: str,
         git_repo_obj,
         commands_folder_name: str = None,
@@ -688,12 +679,12 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
-        command_file_path = get_command_file_from_git(
+        command_file_path = get_file_contents_from_git(
             git_repo_obj=git_repo_obj,
-            device=obj,
-            command=command,
-            commands_folder_name=commands_folder_name,
-            command_relative_path=command_relative_path,
+            # device=obj,
+            # filename=filename,
+            git_folder_name=commands_folder_name,
+            file_relative_path=command_relative_path,
         )
 
         if not command_file_path:
@@ -740,12 +731,11 @@ class NetmikoDefault(DispatcherMixin):
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
         try:
-            if cls.offline_commands(obj):
+            if cls._offline_commands(obj):
                 logger.info("Getting Offline commands from {kwargs.get('git_repo_obj')}", extra={"object": obj})
                 result = task.run(
                     task=cls.get_git_command,
                     logger=logger,
-                    obj=obj,
                     command=command,
                     git_repo_obj=git_repo_obj,
                     commands_folder_name=commands_folder_name,
@@ -796,13 +786,12 @@ class NetmikoDefault(DispatcherMixin):
         command_results = {}
         for command in command_list:
             try:
-                if cls.offline_commands(obj):
+                if cls._offline_commands(obj):
                     command, *rest = command
                     command_relative_path = rest[0] if rest else None
                     result = task.run(
                         task=cls.get_git_command,
                         logger=logger,
-                        obj=obj,
                         command=command,
                         git_repo_obj=git_repo_obj,
                         commands_folder_name=commands_folder_name,

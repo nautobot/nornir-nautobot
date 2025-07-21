@@ -126,30 +126,19 @@ def command_to_filename(command, replacement="_"):
     return command_file_name
 
 
-def get_command_file_from_git(git_repo_obj, device, command, commands_folder_name=None, command_relative_path=None):
+def get_file_contents_from_git(git_repo_obj, git_folder_name, file_relative_path):
     """
-    Retrieve the path to a command output file from a local git repo.
+    Retrieve the path to a file within a specified folder of a local Git repository.
 
     Args:
-        git_repo: Git repository object with `.filesystem_path` attribute.
-        device: Device object used for rendering the path template.
-        command: Raw command string to be converted into a file name.
-        command_relative_path : The path to the command output file located under the command_outputs folder in the Git repository.
-                                The default relative path is "command_outputs/platform__name/device__name/command.raw"
-        logger: Logger instance for logging.
+        git_repo_obj: Git repository object with a `.filesystem_path` attribute.
+        git_folder_name (str): Name of the folder within the Git repository.
+        file_relative_path (str): Relative path to the file within the specified folder.
 
     Returns:
-        Path object to the command file if it exists, otherwise None.
+        Path: Path object pointing to the file if it exists, otherwise None.
     """
-    command_file_name = command_to_filename(command)
-
-    if not commands_folder_name:
-        commands_folder_name = "command_outputs"
-
-    if not command_relative_path:
-        command_relative_path = f"{device.platform.name}/{device.name}/{command_file_name}.raw"
-
-    command_file_path = Path(git_repo_obj.filesystem_path) / commands_folder_name / command_relative_path
+    command_file_path = Path(git_repo_obj.filesystem_path) / git_folder_name / file_relative_path
 
     if command_file_path.exists():
         return command_file_path

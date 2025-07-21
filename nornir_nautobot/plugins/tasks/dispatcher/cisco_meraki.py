@@ -8,9 +8,8 @@ from nautobot.dcim.models import Controller, Device
 from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
-    resolve_jmespath,
-    resolve_params,
 )
+from nornir_nautobot.utils.controller import resolve_jmespath, resolve_params
 
 
 # Resolving endpoint private functions

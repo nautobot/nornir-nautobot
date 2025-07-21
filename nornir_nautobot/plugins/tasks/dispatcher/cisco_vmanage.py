@@ -7,10 +7,8 @@ from nautobot.dcim.models import Controller, Device
 from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
-    ConnectionMixin,
-    resolve_jmespath,
-    resolve_params,
 )
+from nornir_nautobot.utils.controller import ConnectionMixin, resolve_jmespath
 from requests import Response, Session
 
 
@@ -131,26 +129,8 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             Any: Dictionary of responses.
         """
         responses: dict[str, dict[Any, Any]] = {}
-        param_mapper: dict[str, str] = {}
         for endpoint in endpoint_context:
             api_endpoint: str = f"{cls.controller_url}{endpoint['method']}"
-            params: dict[Any, Any] = resolve_params(
-                parameters=endpoint.get("parameters"),
-                param_mapper=param_mapper,
-            )
-            # try:
-            #     response: Any = api_endpoint(**params)
-            # except TypeError as e:
-            #     logger.error(
-            #         f"The params {params} are not valid/sufficient for the {api_endpoint} method",
-            #     )
-            #     logger.warning(
-            #         e,
-            #     )
-            #     continue
-            # except Exception as e:
-            #     logger.error(e)
-            #     continue
             # TODO: NEED TO ADD METHOD (GET, POST, etc.) TO CONFIG CONTEXT
             response = cls.return_response_content(
                 session=cls.session,

@@ -50,7 +50,6 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         pass
 
     @classmethod
-    @abstractmethod
     def controller_setup(
         cls,
         device_obj: Device,
@@ -68,7 +67,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             dict[str, str]: Map for controller data.
         """
-        pass
+        return {}
 
     @classmethod
     @abstractmethod

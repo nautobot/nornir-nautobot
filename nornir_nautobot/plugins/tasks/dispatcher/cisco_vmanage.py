@@ -51,20 +51,19 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             logger.error("Could not find the vManage URL")
             raise ValueError("Could not find the vManage URL")
         username, password = task.host.username, task.host.password
-        j_security_headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
         j_security_payload = f"j_username={username}&j_password={password}"
-        # TODO: Change verify to true
         security_url: str = format_base_url_with_endpoint(
             base_url=cls.controller_url,
             endpoint="j_security_check",
         )
+        # TODO: Change verify to true
         security_resp: Response = cls.return_response_obj(
             session=cls.session,
             method="POST",
             url=security_url,
-            headers=j_security_headers,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
             logger=logger,
             body=j_security_payload,
             verify=False,
@@ -72,15 +71,11 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         j_session_id: str = security_resp.headers.get("Set-Cookie", "")
         if not j_session_id:
             logger.error(
-                "Could not find getJSESSIONID from vManage controller",
+                "Could not find JSESSIONID from vManage controller",
             )
             raise ValueError(
-                "Could not find getJSESSIONID from vManage controller",
+                "Could not find JSESSIONID from vManage controller",
             )
-        token_headers = {
-            "Cookie": j_session_id,
-            "Content-Type": "application/json",
-        }
         token_url: str = format_base_url_with_endpoint(
             base_url=cls.controller_url,
             endpoint="dataservice/client/token",
@@ -89,7 +84,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             session=cls.session,
             method="GET",
             url=token_url,
-            headers=token_headers,
+            headers={
+                "Cookie": j_session_id,
+                "Content-Type": "application/json",
+            },
             verify=False,
             logger=logger,
         )
@@ -100,26 +98,6 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 "X-XSRF-TOKEN": str(token_resp),
             }
         )
-
-    @classmethod
-    def controller_setup(
-        cls,
-        device_obj: Device,
-        controller_obj: Any,
-        logger: Logger,
-    ) -> dict[str, str]:
-        """Setup for controller.
-
-        Args:
-            device_obj (Device): Nautobot Device object.
-            controller_obj (Any): The controller object, i.e DashboardAPI for
-                controller or None is not SDK.
-            logger (Logger): Logger object.
-
-        Returns:
-            dict[str, str]: Map for controller data.
-        """
-        return {}
 
     @classmethod
     def resolve_backup_endpoint(
@@ -142,7 +120,10 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         """
         responses: dict[str, dict[Any, Any]] = {}
         for endpoint in endpoint_context:
-            api_endpoint: str = f"{cls.controller_url}{endpoint['endpoint']}"
+            api_endpoint: str = format_base_url_with_endpoint(
+                base_url=cls.controller_url,
+                endpoint=endpoint["endpoint"],
+            )
             response = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],

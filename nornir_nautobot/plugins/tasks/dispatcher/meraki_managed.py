@@ -1,4 +1,4 @@
-"""nornir dispatcher for Meraki managed devices."""
+"""Netmiko dispatcher for Meraki managed devices."""
 
 from nornir_nautobot.plugins.tasks.dispatcher.cisco_meraki import NetmikoCiscoMeraki
 

@@ -1,4 +1,4 @@
-"""Base nornir dispatcher for controllers."""
+"""Base netmiko dispatcher for controllers."""
 
 import json
 from abc import ABC, abstractmethod
@@ -67,6 +67,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         Returns:
             dict[str, str]: Map for controller data.
         """
+        # Overwrite if needed in child class
         return {}
 
     @classmethod

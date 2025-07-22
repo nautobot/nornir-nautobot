@@ -1,4 +1,4 @@
-"""nornir dispatcher for cisco Meraki controllers."""
+"""Netmiko dispatcher for cisco Meraki controllers."""
 
 from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict

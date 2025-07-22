@@ -1,4 +1,4 @@
-"""nornir dispatcher for cisco Vmanage controllers."""
+"""Netmiko dispatcher for cisco vManage controllers."""
 
 from logging import Logger
 from typing import Any
@@ -143,26 +143,27 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
 
         return responses
 
-    # @classmethod
-    # def resolve_remediation_endpoint(
-    #     cls,
-    #     controller_obj: Any,
-    #     logger: Logger,
-    #     endpoint_context: list[dict[Any, Any]],
-    #     payload: dict[str, Any],
-    #     **kwargs: Any,
-    # ) -> list[dict[str, Any]]:
-    #     """Resolve endpoint with parameters if any.
+    @classmethod
+    def resolve_remediation_endpoint(
+        cls,
+        controller_obj: Any,
+        logger: Logger,
+        endpoint_context: list[dict[Any, Any]],
+        payload: dict[str, Any],
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        """Resolve endpoint with parameters if any.
 
-    #     Args:
-    #         controller_obj (Any): Controller object or None.
-    #         logger (Logger): Logger object.
-    #         endpoint_context (list[dict[Any, Any]]): controller endpoint context.
-    #         kwargs (Any): Keyword arguments.
+        Args:
+            controller_obj (Any): Controller object or None.
+            logger (Logger): Logger object.
+            endpoint_context (list[dict[Any, Any]]): controller endpoint context.
+            kwargs (Any): Keyword arguments.
 
-    #     Returns:
-    #         Any: Dictionary of responses.
-    #     """
+        Returns:
+            Any: Dictionary of responses.
+        """
+
     #     aggregated_results: list[Any] = []
     #     for method_context in endpoint_context:
     #         method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(

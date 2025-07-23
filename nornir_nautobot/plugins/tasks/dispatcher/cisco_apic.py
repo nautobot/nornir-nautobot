@@ -81,7 +81,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
                 "Could not find cookie from APIC controller",
             )
         cookie: str = (
-            auth_resp.get("imdata", [])[0]
+            auth_resp.get("imdata")[0]
             .get("aaaLogin", {})
             .get("attributes", {})
             .get("token", "")
@@ -95,8 +95,8 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             )
         cls.get_headers.update(
             {
-                "Cookie": cookie,
-                "Content-Type": "application/json",
+                "Cookie": f"APIC-cookie={cookie}",
+                "Content-Type": "text/plain",
             }
         )
 

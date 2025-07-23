@@ -12,6 +12,7 @@ from nornir_nautobot.utils.controller import (
     ConnectionMixin,
     format_base_url_with_endpoint,
     resolve_jmespath,
+    resolve_query,
 )
 from requests import Response, Session
 
@@ -125,6 +126,11 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 base_url=cls.controller_url,
                 endpoint=endpoint["endpoint"],
             )
+            if endpoint.get("query"):
+                api_endpoint = resolve_query(
+                    api_endpoint=api_endpoint,
+                    query=endpoint["query"],
+                )
             response = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],

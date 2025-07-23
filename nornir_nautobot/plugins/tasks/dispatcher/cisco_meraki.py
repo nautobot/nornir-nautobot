@@ -180,7 +180,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             except Exception as e:
                 logger.error(e)
                 continue
-            jpath_fields: dict[str, Any] = resolve_jmespath(
+            jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
                 api_response=response,
             )
@@ -197,7 +197,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
-        payload: dict[str, Any],
+        payload: dict[Any, Any] | list[dict[str, Any]],
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
@@ -207,7 +207,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
-            payload (dict[str, Any]): Payload to pass to the API call.
+            payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:
@@ -225,19 +225,45 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                     f"The method {method_context['endpoint']} does not exist in the controller object",
                 )
                 continue
-            for param in method_context["parameters"]["non_optional"]:
-                payload.update({param: kwargs[param]})
-            try:
-                response: Any = method_callable(**payload)
-            except TypeError:
-                logger.error(
-                    f"The params {payload} are not valid/sufficient for the {method_callable} method",
-                )
-                continue
-            except Exception as e:
-                logger.warning(
-                    e,
-                )
-                continue
-            aggregated_results.append(response)
+            if isinstance(payload, dict):
+                for param in method_context["parameters"]["non_optional"]:
+                    if not kwargs.get(param):
+                        logger.error(
+                            f"resolve_endpoint method needs '{param}' in kwargs",
+                        )
+                    payload.update({param: kwargs[param]})
+                try:
+                    response: Any = method_callable(**payload)
+                except TypeError:
+                    logger.error(
+                        f"The params {payload} are not valid/sufficient for the {method_callable} method",
+                    )
+                    continue
+                except Exception as e:
+                    logger.warning(
+                        e,
+                    )
+                    continue
+                aggregated_results.append(response)
+            if isinstance(payload, list):
+                for item in payload:
+                    for param in method_context["parameters"]["non_optional"]:
+                        if not kwargs.get(param):
+                            logger.error(
+                                f"resolve_endpoint method needs '{param}' in kwargs",
+                            )
+                        item.update({param: kwargs[param]})
+                    try:
+                        response: Any = method_callable(**item)
+                    except TypeError:
+                        logger.error(
+                            f"The params {item} are not valid/sufficient for the {method_callable} method",
+                        )
+                        continue
+                    except Exception as e:
+                        logger.warning(
+                            e,
+                        )
+                        continue
+                    aggregated_results.append(response)
         return aggregated_results

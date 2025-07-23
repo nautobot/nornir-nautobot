@@ -162,7 +162,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
-        payload: dict[str, Any],
+        payload: dict[Any, Any] | list[dict[str, Any]],
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
@@ -172,7 +172,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
                 object or None.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
-            payload (dict[str, Any]): Payload to pass to the API call.
+            payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
             kwargs (Any): Keyword arguments.
 
         Returns:

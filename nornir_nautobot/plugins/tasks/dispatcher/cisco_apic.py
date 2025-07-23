@@ -1,5 +1,6 @@
 """Netmiko dispatcher for cisco vManage controllers."""
 
+import json
 from logging import Logger
 from typing import Any
 
@@ -12,12 +13,13 @@ from nornir_nautobot.utils.controller import (
     ConnectionMixin,
     format_base_url_with_endpoint,
     resolve_jmespath,
+    resolve_query,
 )
 from requests import Response, Session
 
 
-class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
-    """Vmanage Controller Dispatcher class."""
+class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
+    """APIC Controller Dispatcher class."""
 
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
@@ -51,51 +53,49 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             logger.error("Could not find the vManage URL")
             raise ValueError("Could not find the vManage URL")
         username, password = task.host.username, task.host.password
-        j_security_payload = f"j_username={username}&j_password={password}"
-        security_url: str = format_base_url_with_endpoint(
+        auth_payload = {
+            "aaaUser": {"attributes": {"name": f"{username}", "pwd": f"{password}"}}
+        }
+        auth_url: str = format_base_url_with_endpoint(
             base_url=cls.controller_url,
-            endpoint="j_security_check",
+            endpoint="api/aaaLogin.json",
         )
         # TODO: Change verify to true
-        security_resp: Response = cls.return_response_obj(
+        auth_resp: Response = cls.return_response_content(
             session=cls.session,
             method="POST",
-            url=security_url,
+            url=auth_url,
             headers={
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "text/plain",
             },
             logger=logger,
-            body=j_security_payload,
+            body=json.dumps(auth_payload),
             verify=False,
         )
-        j_session_id: str = security_resp.headers.get("Set-Cookie", "")
-        if not j_session_id:
+        if not auth_resp.get("imdata") or not auth_resp.get("imdata")[0]:
             logger.error(
-                "Could not find JSESSIONID from vManage controller",
+                "Could not find cookie from APIC controller",
             )
             raise ValueError(
-                "Could not find JSESSIONID from vManage controller",
+                "Could not find cookie from APIC controller",
             )
-        token_url: str = format_base_url_with_endpoint(
-            base_url=cls.controller_url,
-            endpoint="dataservice/client/token",
+        cookie: str = (
+            auth_resp.get("imdata", [])[0]
+            .get("aaaLogin", {})
+            .get("attributes", {})
+            .get("token", "")
         )
-        token_resp: str = cls.return_response_content(
-            session=cls.session,
-            method="GET",
-            url=token_url,
-            headers={
-                "Cookie": j_session_id,
-                "Content-Type": "application/json",
-            },
-            verify=False,
-            logger=logger,
-        )
+        if not cookie:
+            logger.error(
+                "Could not find cookie from APIC controller",
+            )
+            raise ValueError(
+                "Could not find cookie from APIC controller",
+            )
         cls.get_headers.update(
             {
-                "Cookie": j_session_id,
+                "Cookie": cookie,
                 "Content-Type": "application/json",
-                "X-XSRF-TOKEN": str(token_resp),
             }
         )
 
@@ -124,6 +124,11 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
                 base_url=cls.controller_url,
                 endpoint=endpoint["endpoint"],
             )
+            if endpoint.get("query"):
+                api_endpoint = resolve_query(
+                    api_endpoint=api_endpoint,
+                    query=endpoint["query"],
+                )
             response = cls.return_response_content(
                 session=cls.session,
                 method=endpoint["method"],

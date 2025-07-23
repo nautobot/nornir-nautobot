@@ -117,6 +117,26 @@ def resolve_jmespath(
     return data_fields
 
 
+def resolve_query(api_endpoint: str, query: list[str]) -> str:
+    """Append query to api endpoint.
+
+    Args:
+        api_endpoint (str): API endpoint URL.
+        query (list[str]): Query list.
+
+    Returns:
+        str: API endpoint with query appended.
+    """
+    if api_endpoint.endswith("/"):
+        api_endpoint = api_endpoint[:-1]
+    api_endpoint = f"{api_endpoint}?{query.pop(0)}"
+    if not query:
+        return api_endpoint
+    for q in query:
+        api_endpoint = f"{api_endpoint}&{q}"
+    return api_endpoint
+
+
 class ConnectionMixin:
     """Mixin to connect to a service."""
 

@@ -213,6 +213,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         controller_obj: Any = cls.authenticate(
             logger=logger,
             obj=obj,
+            task=task,
         )
         controller_dict: dict[str, str] = cls.controller_setup(
             device_obj=obj,

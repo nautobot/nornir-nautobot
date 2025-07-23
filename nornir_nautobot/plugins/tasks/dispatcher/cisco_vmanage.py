@@ -23,6 +23,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     post_headers: dict[str, str] = {}
     controller_url: str = ""
     session = None
+    controller_type = "vmanage"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -45,7 +46,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             cls.controller_url = controller.external_integration.remote_url
         elif controllers := obj.controllers.all():
             for cntrlr in controllers:
-                if "vmanage" in cntrlr.platform.name.lower():
+                if cls.controller_type in cntrlr.platform.name.lower():
                     cls.controller_url = cntrlr.external_integration.remote_url
         if not cls.controller_url:
             logger.error("Could not find the vManage URL")

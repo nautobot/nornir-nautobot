@@ -150,91 +150,78 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         return responses
 
     # @classmethod
-    # def merge_config(  # pylint: disable=too-many-positional-arguments
+    # def resolve_remediation_endpoint(
     #     cls,
-    #     task: Task,
-    #     logger,
-    #     obj,
-    #     config: str,
-    #     can_diff: bool = True,
-    # ) -> Result:
-    #     """Send configuration to merge on the device.
+    #     controller_obj: Any,
+    #     logger: Logger,
+    #     endpoint_context: list[dict[Any, Any]],
+    #     payload: dict[Any, Any] | list[dict[str, Any]],
+    #     **kwargs: Any,
+    # ) -> list[dict[str, Any]]:
+    #     """Resolve endpoint with parameters if any.
 
     #     Args:
-    #         task (Task): Nornir Task.
-    #         logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
-    #         obj (Device): A Nautobot Device Django ORM object instance.
-    #         config (str): The remediation payload.
-    #         can_diff (bool, optional): Can diff the config. Defaults to True.
+    #         controller_obj (Any): Controller object, i.e. Meraki Dashboard
+    #             object or None.
+    #         logger (Logger): Logger object.
+    #         endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
+    #         payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
+    #         kwargs (Any): Keyword arguments.
 
     #     Returns:
-    #         Result: Nornir Result object with a dict as a result containing what changed and the result of the push.
+    #         list[dict[str, Any]]: List of API responses.
     #     """
-    #     if isinstance(config, str):
-    #         config = json.loads(config)
-    #     logger.info(
-    #         "Config merge via controller dispatcher starting", extra={"object": obj}
-    #     )
-    #     cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-    #     # The above Python code snippet is performing the following actions:
-    #     controller_obj: Any = cls.authenticate(
-    #         logger=logger,
-    #         obj=obj,
-    #         task=task,
-    #     )
-    #     controller_dict: dict[str, str] = cls.controller_setup(
-    #         device_obj=obj,
-    #         controller_obj=controller_obj,
-    #         logger=logger,
-    #     )
-    #     aggregated_results: list[list[dict[str, Any]]] = []
-    #     feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
-    #     if not feature_endpoints:
-    #         logger.error("Could not find the controller endpoints")
-    #         raise ValueError("Could not find controller endpoints")
-    #     for remediation_endpoint in config:
-    #         if f"{remediation_endpoint}_remediation" not in feature_endpoints:
+    #     aggregated_results: list[Any] = []
+    #     for method_context in endpoint_context:
+    #         method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+    #             controller_obj=controller_obj,
+    #             method=method_context["endpoint"],
+    #             logger=logger,
+    #         )
+    #         if not method_callable:
     #             logger.error(
-    #                 f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in {feature_endpoints}",
-    #                 extra={"object": obj},
+    #                 f"The method {method_context['endpoint']} does not exist in the controller object",
     #             )
     #             continue
-    #         if not cfg_cntx.get(f"{remediation_endpoint}_remediation", ""):
-    #             logger.error(
-    #                 f"Could not find the remediation endpoint: {remediation_endpoint}_remediation in the config context",
-    #                 extra={"object": obj},
-    #             )
-    #             continue
-    #         try:
-    #             aggregated_results.append(
-    #                 cls.resolve_remediation_endpoint(
-    #                     controller_obj=controller_obj,
-    #                     logger=logger,
-    #                     endpoint_context=cfg_cntx[
-    #                         f"{remediation_endpoint}_remediation"
-    #                     ],
-    #                     payload=config[remediation_endpoint],
-    #                     **controller_dict,
+    #         if isinstance(payload, dict):
+    #             for param in method_context["parameters"]["non_optional"]:
+    #                 if not kwargs.get(param):
+    #                     logger.error(
+    #                         f"resolve_endpoint method needs '{param}' in kwargs",
+    #                     )
+    #                 payload.update({param: kwargs[param]})
+    #             try:
+    #                 response: Any = method_callable(**payload)
+    #             except TypeError:
+    #                 logger.error(
+    #                     f"The params {payload} are not valid/sufficient for the {method_callable} method",
     #                 )
-    #             )
-    #         except NotImplementedError:
-    #             logger.error("resolve_remediation_endpoint was not overriden.")
-    #     if can_diff:
-    #         logger.info(f"result: {aggregated_results}", extra={"object": obj})
-    #         result: dict[str, Any] = {
-    #             "changed": bool(aggregated_results),
-    #             "result": aggregated_results,
-    #             "failed": False,
-    #         }
-    #     else:
-    #         result: dict[str, Any] = {
-    #             "changed": bool(aggregated_results),
-    #             "result": "Hidden to protect sensitive information",
-    #             "failed": False,
-    #         }
-
-    #     logger.info("Config merge ended", extra={"object": obj})
-    #     final_result: Result = Result(host=task.host, result=result)
-    #     final_result.changed = True
-    #     final_result.failed = False
-    #     return final_result
+    #                 continue
+    #             except Exception as e:
+    #                 logger.warning(
+    #                     e,
+    #                 )
+    #                 continue
+    #             aggregated_results.append(response)
+    #         if isinstance(payload, list):
+    #             for item in payload:
+    #                 for param in method_context["parameters"]["non_optional"]:
+    #                     if not kwargs.get(param):
+    #                         logger.error(
+    #                             f"resolve_endpoint method needs '{param}' in kwargs",
+    #                         )
+    #                     item.update({param: kwargs[param]})
+    #                 try:
+    #                     response: Any = method_callable(**item)
+    #                 except TypeError:
+    #                     logger.error(
+    #                         f"The params {item} are not valid/sufficient for the {method_callable} method",
+    #                     )
+    #                     continue
+    #                 except Exception as e:
+    #                     logger.warning(
+    #                         e,
+    #                     )
+    #                     continue
+    #                 aggregated_results.append(response)
+    #     return aggregated_results

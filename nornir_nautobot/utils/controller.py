@@ -72,13 +72,16 @@ def resolve_controller_url(
     obj: Device,
     controller_type: str,
     logger: Logger,
-) -> None:
+) -> str:
     """Resolve controller url.
 
     Args:
         obj (Device): Device object.
         controller_type (str): Name of the controller type.
         logger (Logger): Logger object.
+
+    Returns:
+        str: Controller url
 
     Raises:
         ValueError: Could not find the controller API URL from external integration.
@@ -94,6 +97,7 @@ def resolve_controller_url(
     if not controller_url:
         logger.error("Could not find the Meraki Dashboard API URL")
         raise ValueError("Could not find the Meraki Dashboard API URL")
+    return controller_url
 
 
 def resolve_params(

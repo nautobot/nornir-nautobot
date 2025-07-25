@@ -8,6 +8,7 @@ from nautobot.apps.choices import (
     SecretsGroupAccessTypeChoices,
     SecretsGroupSecretTypeChoices,
 )
+from nautobot.dcim.models import Controller, Device
 from nautobot.extras.models import SecretsGroup, SecretsGroupAssociation
 from requests import Response, Session
 from requests.adapters import HTTPAdapter
@@ -65,6 +66,34 @@ def get_api_key(secrets_group: SecretsGroup) -> str:
         )
         return api_key
     return api_key
+
+
+def resolve_controller_url(
+    obj: Device,
+    controller_type: str,
+    logger: Logger,
+) -> None:
+    """Resolve controller url.
+
+    Args:
+        obj (Device): Device object.
+        controller_type (str): Name of the controller type.
+        logger (Logger): Logger object.
+
+    Raises:
+        ValueError: Could not find the controller API URL from external integration.
+    """
+    controller_url: str = ""
+    if controller_group := obj.controller_managed_device_group:
+        controller: Controller = controller_group.controller
+        controller_url = controller.external_integration.remote_url
+    elif controllers := obj.controllers.all():
+        for cntrlr in controllers:
+            if controller_type in cntrlr.platform.name.lower():
+                controller_url = cntrlr.external_integration.remote_url
+    if not controller_url:
+        logger.error("Could not find the Meraki Dashboard API URL")
+        raise ValueError("Could not find the Meraki Dashboard API URL")
 
 
 def resolve_params(

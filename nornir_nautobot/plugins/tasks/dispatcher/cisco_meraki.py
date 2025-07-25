@@ -4,12 +4,16 @@ from logging import Logger
 from typing import Any, Callable, Optional, OrderedDict
 
 from meraki import DashboardAPI
-from nautobot.dcim.models import Controller, Device
+from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
 )
-from nornir_nautobot.utils.controller import resolve_jmespath, resolve_params
+from nornir_nautobot.utils.controller import (
+    resolve_controller_url,
+    resolve_jmespath,
+    resolve_params,
+)
 
 
 # Resolving endpoint private functions
@@ -52,8 +56,65 @@ def _resolve_method_callable(
     return method_callable
 
 
+def _send_call(
+    method_callable: Callable[[Any], Any],
+    logger: Logger,
+    payload: dict[Any, Any],
+) -> Any | None:
+    try:
+        return method_callable(**payload)
+    except TypeError as e:
+        logger.error(
+            f"The payload {payload} are not valid/sufficient for the {method_callable} method",
+        )
+        logger.warning(
+            e,
+        )
+        return
+    except Exception as e:
+        logger.error(e)
+        return
+
+
+def _send_remediation_call(
+    api_context: dict[str, Any],
+    method_callable: Callable[[Any], Any],
+    aggregated_results: list[Any],
+    logger: Logger,
+    payload: dict[Any, Any],
+    **kwargs: Any,
+) -> None:
+    """Send remediation call.
+
+    Args:
+        api_context (dict[str, Any]): API endpoint context.
+        method_callable (Callable[[Any], Any]): Method to call
+        aggregated_results (list[Any]): List of aggregated results.
+        logger (Logger): Logger object.
+        payload (dict[Any, Any]): Payload to pass to the API call.
+        kwargs (Any): Keyword arguments.
+    """
+    for param in api_context["parameters"]["non_optional"]:
+        if not kwargs.get(param):
+            logger.error(
+                f"resolve_endpoint method needs '{param}' in kwargs",
+            )
+        payload.update({param: kwargs[param]})
+    response: Any | None = _send_call(
+        method_callable=method_callable,
+        logger=logger,
+        payload=payload,
+    )
+    if not response:
+        return
+
+    aggregated_results.append(response)
+
+
 class NetmikoCiscoMeraki(BaseControllerDriver):
     """Meraki Controller Dispatcher class."""
+
+    controller_type = "meraki"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -70,18 +131,11 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Controller object or None.
         """
-        controller_url: str = ""
-        if controller_group := obj.controller_managed_device_group:
-            controller: Controller = controller_group.controller
-            controller_url = controller.external_integration.remote_url
-        elif controllers := obj.controllers.all():
-            for cntrlr in controllers:
-                if "meraki" in cntrlr.platform.name.lower():
-                    controller_url = cntrlr.external_integration.remote_url
-        if not controller_url:
-            logger.error("Could not find the Meraki Dashboard API URL")
-            raise ValueError("Could not find the Meraki Dashboard API URL")
-        # api_key: str = get_api_key(secrets_group=obj.secrets_group)
+        controller_url: str = resolve_controller_url(
+            obj=obj,
+            logger=logger,
+            controller_type=cls.controller_type,
+        )
         api_key: str = task.host.password
         controller_obj: DashboardAPI = DashboardAPI(
             api_key=api_key,
@@ -156,7 +210,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             "networkId": network_id,
         }
         for endpoint in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
                 method=endpoint["endpoint"],
                 logger=logger,
@@ -167,18 +221,12 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
                 parameters=endpoint.get("parameters"),
                 param_mapper=param_mapper,
             )
-            try:
-                response: Any = method_callable(**params)
-            except TypeError as e:
-                logger.error(
-                    f"The params {params} are not valid/sufficient for the {method_callable} method",
-                )
-                logger.warning(
-                    e,
-                )
-                continue
-            except Exception as e:
-                logger.error(e)
+            response: Any | None = _send_call(
+                method_callable=method_callable,
+                logger=logger,
+                payload=params,
+            )
+            if not response:
                 continue
             jpath_fields: dict[str, Any] | list[dict[str, Any]] = resolve_jmespath(
                 jmespath_values=endpoint["jmespath"],
@@ -214,56 +262,34 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
             list[dict[str, Any]]: List of API responses.
         """
         aggregated_results: list[Any] = []
-        for method_context in endpoint_context:
+        for api_context in endpoint_context:
             method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
                 controller_obj=controller_obj,
-                method=method_context["endpoint"],
+                method=api_context["endpoint"],
                 logger=logger,
             )
             if not method_callable:
                 logger.error(
-                    f"The method {method_context['endpoint']} does not exist in the controller object",
+                    f"The method {api_context['endpoint']} does not exist in the controller object",
                 )
                 continue
             if isinstance(payload, dict):
-                for param in method_context["parameters"]["non_optional"]:
-                    if not kwargs.get(param):
-                        logger.error(
-                            f"resolve_endpoint method needs '{param}' in kwargs",
-                        )
-                    payload.update({param: kwargs[param]})
-                try:
-                    response: Any = method_callable(**payload)
-                except TypeError:
-                    logger.error(
-                        f"The params {payload} are not valid/sufficient for the {method_callable} method",
-                    )
-                    continue
-                except Exception as e:
-                    logger.warning(
-                        e,
-                    )
-                    continue
-                aggregated_results.append(response)
+                _send_remediation_call(
+                    api_context=api_context,
+                    method_callable=method_callable,
+                    aggregated_results=aggregated_results,
+                    logger=logger,
+                    payload=payload,
+                    **kwargs,
+                )
             if isinstance(payload, list):
                 for item in payload:
-                    for param in method_context["parameters"]["non_optional"]:
-                        if not kwargs.get(param):
-                            logger.error(
-                                f"resolve_endpoint method needs '{param}' in kwargs",
-                            )
-                        item.update({param: kwargs[param]})
-                    try:
-                        response: Any = method_callable(**item)
-                    except TypeError:
-                        logger.error(
-                            f"The params {item} are not valid/sufficient for the {method_callable} method",
-                        )
-                        continue
-                    except Exception as e:
-                        logger.warning(
-                            e,
-                        )
-                        continue
-                    aggregated_results.append(response)
+                    _send_remediation_call(
+                        api_context=api_context,
+                        method_callable=method_callable,
+                        aggregated_results=aggregated_results,
+                        logger=logger,
+                        payload=item,
+                        **kwargs,
+                    )
         return aggregated_results

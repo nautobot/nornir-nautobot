@@ -4,7 +4,7 @@ import json
 from logging import Logger
 from typing import Any
 
-from nautobot.dcim.models import Controller, Device
+from nautobot.dcim.models import Device
 from nornir.core.task import Task
 from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
@@ -12,10 +12,11 @@ from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
 from nornir_nautobot.utils.controller import (
     ConnectionMixin,
     format_base_url_with_endpoint,
+    resolve_controller_url,
     resolve_jmespath,
     resolve_query,
 )
-from requests import Response, Session
+from requests import Response
 
 
 class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
@@ -42,17 +43,11 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        cls.session: Session = cls.configure_session()
-        if controller_group := obj.controller_managed_device_group:
-            controller: Controller = controller_group.controller
-            cls.controller_url = controller.external_integration.remote_url
-        elif controllers := obj.controllers.all():
-            for cntrlr in controllers:
-                if cls.controller_type in cntrlr.platform.name.lower():
-                    cls.controller_url = cntrlr.external_integration.remote_url
-        if not cls.controller_url:
-            logger.error("Could not find the APIC URL")
-            raise ValueError("Could not find the APIC URL")
+        resolve_controller_url(
+            obj=obj,
+            controller_type=cls.controller_type,
+            logger=logger,
+        )
         username, password = task.host.username, task.host.password
         auth_payload = {
             "aaaUser": {"attributes": {"name": f"{username}", "pwd": f"{password}"}}

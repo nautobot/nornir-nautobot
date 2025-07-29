@@ -71,7 +71,7 @@ ERROR_CODES = {
     "E1010": ErrorCode(
         troubleshooting="Coming soon....",
         description="Coming soon....",
-        error_message="Undefined variable in Jinja2 template",
+        error_message="Undefined variable in Jinja2 template - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
         recommendation="Coming soon....",
     ),
     "E1011": ErrorCode(

@@ -1,11 +1,5 @@
 """Pytest of Getting Command Outputs through Git."""
 
-# import pytest
-# import tempfile
-# from pathlib import Path
-# from unittest.mock import MagicMock
-# from nornir_nautobot.utils.helpers import command_to_filename, get_file_contents_from_git
-
 from nornir_nautobot.utils.helpers import command_to_filename
 
 

@@ -104,31 +104,43 @@ class DispatcherMixin:
         return cls.tcp_port
 ```
 
-## Netmiko Show Running Config Command
 
-The Netmiko `show_command` tells Netmiko which command to use to get the config, generally used to backup the configuration. You can override the default provided based on this logic:
+## Get command outputs through git repository
 
-- First prefer `obj.cf["config_command"]` if it is set and a valid string, which is to say if a custom field named `config_command` is present it should be preferred.
-- Second prefer `obj.get_config_context()["config_command"]` if it is set and a valid string, which is to say if a config context is rendered for this device named `config_command` is present it should be preferred.
-- Finally default to the command defined in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets it to `show run`.
+Raw command outputs stored in a Git repository can be used in scenarios where Nautobot is not able to connect directly to the network devices. This is useful for disconnected or air-gapped environments, lab setups, or testing purposes.
 
-Here is the implementation:
+The feature is integrated into the `NetmikoDefault` dispatcher and is controlled by the `offline_commands` setting with the following precedence:
+
+1. `obj.cf["offline_commands"]` — if it exists and is a valid boolean value.
+2. `obj.get_config_context()["offline_commands"]` — if it exists and is a valid boolean value.
+3. `cls.offline_commands` — the default class attribute defined in `NetmikoDefault`, which defaults to `False`.
+
+When enabled, the dispatcher attempts to read the expected command output from the filesystem instead of executing the command on a live device. This requires the output files to be named in a filesystem-safe format.
+
+The utility function `nornir_nautobot.utils.helpers.command_to_filename` is provided to help convert a command string into a valid filename. Here's how it works:
 
 ```python
-class NetmikoDefault(DispatcherMixin):
+def command_to_filename(command, replacement="_"):
+    """
+    Convert a command string into a filesystem-safe filename.
 
-    config_command = "show run"
+    This function sanitizes a command string so it can safely be used as a filename by:
+    1. Normalizing Unicode characters to their ASCII equivalents.
+    2. Replacing the pipe symbol '|' (with or without surrounding spaces) with two replacement characters.
+    3. Replacing characters that are illegal in most filesystems (e.g., / : * ? " < >) with the replacement character.
+    4. Replacing all spaces with the replacement character.
 
-    @classmethod
-    def _get_config_command(cls, obj) -> str:
-        custom_field = obj.cf.get("config_command")
-        if custom_field and isinstance(custom_field, str):
-            return custom_field
-        config_context = obj.get_config_context().get("config_command")
-        if config_context and isinstance(config_context, str):
-            return config_context
-        return cls.config_command
+    Args:
+        command (str): The input command string to sanitize.
+        replacement (str): The character to use as a substitute for illegal or special characters. Default is underscore ('_').
+
+    Returns:
+        str: A sanitized, ASCII-only, filesystem-safe version of the command string suitable for use as a filename.
+    """
 ```
+
+This ensures consistent and safe naming of command output files across different operating systems and Git repositories.
+
 
 ## Environment Variables
 

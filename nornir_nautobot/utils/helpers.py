@@ -118,7 +118,7 @@ def command_to_filename(command, replacement="_"):
     #    Also replace leading/trailing whitespace, and control characters.
     #    This regex targets common illegal filename characters and also handles multiple
     #    replacement characters in a row (e.g., 'foo///bar' becomes 'foo_bar').
-    command_file_name = re.sub(r"[^\w\s\.-]+", replacement, command_file_name).strip()
+    command_file_name = re.sub(r"\s*[\/\\:*?\"<>]\s*", replacement, command_file_name)
 
     # 4. Replace spaces with the replacement character
     command_file_name = re.sub(r"\s+", replacement, command_file_name).strip(replacement)

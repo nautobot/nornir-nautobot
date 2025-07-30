@@ -195,16 +195,16 @@ ERROR_CODES = {
         recommendation="Ensure that the actual command that is ran, is allowed for the user making the connection. As an example, if `show run` is allowed, but `show running-config` is not, would need to address that.",
     ),
     "E1031": ErrorCode(
-        troubleshooting="Ensure that the output file for the command `{command}` has been created.",
-        description="While using offline command outputs through Git, the output file for the command `{command}` could not be retrieved.",
+        troubleshooting="Verify that the file for the command `{command}` exists and is accessible in the expected Git path. Check for permission issues or problems with the Git working tree.",
+        description="While using offline command outputs through Git, the output file for the command `{command}` could not be retrieved due to a loading or access issue.",
         error_message="The command output file for `{command}` could not be retrieved.",
-        recommendation="Ensure that the output file for the command `{command}` has been created.",
+        recommendation="Ensure the file exists, the Git repository is properly cloned, and there are no permission or access issues.",
     ),
     "E1032": ErrorCode(
-        troubleshooting="Ensure that the output file for the command `{command}` has been created.",
-        description="While using offline command outputs through Git, the output file for the command `{command}` was not found.",
+        troubleshooting="Verify that the output file for the command `{command}` has been generated and committed to the Git repository.",
+        description="While using offline command outputs through Git, the output file for the command `{command}` was not found in the expected path.",
         error_message="The command output file for `{command}` could not be found.",
-        recommendation="Ensure that the output file for the command `{command}` has been created.",
+        recommendation="Ensure the command has been run and its output file has been properly stored in Git under the expected path.",
     ),
 }
 

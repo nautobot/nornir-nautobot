@@ -681,8 +681,6 @@ class NetmikoDefault(DispatcherMixin):
 
         command_file_path = get_file_contents_from_git(
             git_repo_obj=git_repo_obj,
-            # device=obj,
-            # filename=filename,
             git_folder_name=commands_folder_name,
             file_relative_path=command_relative_path,
         )
@@ -692,8 +690,6 @@ class NetmikoDefault(DispatcherMixin):
             raise FileNotFoundError(error_msg)
 
         try:
-            if not command_file_path:
-                raise FileNotFoundError("test")
             logger.info(f"Reading command output from: {command_file_path}")
             with command_file_path.open("r", encoding="utf-8") as file:
                 command_raw = file.read()

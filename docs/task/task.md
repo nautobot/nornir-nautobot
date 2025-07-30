@@ -115,7 +115,7 @@ The feature is integrated into the `NetmikoDefault` dispatcher and is controlled
 2. `obj.get_config_context()["offline_commands"]` — if it exists and is a valid boolean value.
 3. `cls.offline_commands` — the default class attribute defined in `NetmikoDefault`, which defaults to `False`.
 
-When enabled, the dispatcher attempts to read the expected command output from the filesystem instead of executing the command on a live device. This requires the output files to be named in a filesystem-safe format.
+When enabled, the dispatcher attempts to read the expected command output from the filesystem (via the keyword arguments git_repo_obj, commands_folder_name, and command_relative_path) instead of executing the command on a live device. This requires the output files to be named in a filesystem-safe format.
 
 The utility function `nornir_nautobot.utils.helpers.command_to_filename` is provided to help convert a command string into a valid filename. Here's how it works:
 

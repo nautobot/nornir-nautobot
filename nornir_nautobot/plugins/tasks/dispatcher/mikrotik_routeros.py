@@ -102,8 +102,17 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
     version_command = "system resource print"
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments,arguments-differ
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+    def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
+        git_repo_obj=None,
+        commands_folder_name=None,
+        command_relative_path=None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 

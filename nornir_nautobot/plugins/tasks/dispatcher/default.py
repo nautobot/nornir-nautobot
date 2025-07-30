@@ -677,7 +677,9 @@ class NetmikoDefault(DispatcherMixin):
             commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
             command_relative_path: The path to the command output file located under the command_outputs folder in the Git repository.
         """
-        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_git_command to retrieve the command output from Git for {task.host.name} on {task.host.platform}."
+        )
 
         command_file_path = get_file_contents_from_git(
             git_repo_obj=git_repo_obj,
@@ -708,8 +710,8 @@ class NetmikoDefault(DispatcherMixin):
         obj,
         command,
         git_repo_obj=None,
-        commands_folder_name=None,
-        command_relative_path=None,
+        commands_folder_name: str = None,
+        command_relative_path: str = None,
         **kwargs,
     ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the commands from a device.
@@ -728,7 +730,6 @@ class NetmikoDefault(DispatcherMixin):
 
         try:
             if cls._offline_commands(obj):
-                logger.info("Getting Offline commands from {kwargs.get('git_repo_obj')}", extra={"object": obj})
                 result = task.run(
                     task=cls.get_git_command,
                     logger=logger,
@@ -762,9 +763,9 @@ class NetmikoDefault(DispatcherMixin):
         task: Task,
         logger,
         obj,
-        command_list,
+        command_list: list[str] | list[tuple[str, str]],
         git_repo_obj=None,
-        commands_folder_name=None,
+        commands_folder_name: str = None,
         **kwargs,
     ):  # pylint: disable=too-many-positional-arguments, too-many-locals
         """A tasks to get the commands from a device.
@@ -773,7 +774,10 @@ class NetmikoDefault(DispatcherMixin):
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
-            command_list: A command to execute.
+            command_list (list[str] | list[tuple[str, str]]):
+                - In online mode (Netmiko), a list of command strings to execute on the device.
+                - In offline mode (Git), a list of (command_label, relative_file_path) tuples
+                  pointing to stored command output files in the Git repo.
             git_repo_obj: A Nautobot `GitRepository` object that stores raw command outputs for offline mode.
             commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
             kwargs: Additional arguments to pass to the netmiko_send_command task.

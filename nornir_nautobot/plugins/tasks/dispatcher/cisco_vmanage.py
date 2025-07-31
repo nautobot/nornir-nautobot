@@ -15,7 +15,7 @@ from nornir_nautobot.utils.controller import (
     resolve_jmespath,
     resolve_query,
 )
-from requests import Response
+from requests import Response, Session
 
 
 class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
@@ -24,8 +24,8 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
     controller_url: str = ""
-    session = None
-    controller_type = "vmanage"
+    session: Session
+    controller_type: str = "vmanage"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -42,7 +42,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        resolve_controller_url(
+        cls.controller_url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
@@ -54,6 +54,7 @@ class NetmikoCiscoVmanage(BaseControllerDriver, ConnectionMixin):
             endpoint="j_security_check",
         )
         # TODO: Change verify to true
+        cls.session = cls.configure_session()
         security_resp: Response = cls.return_response_obj(
             session=cls.session,
             method="POST",

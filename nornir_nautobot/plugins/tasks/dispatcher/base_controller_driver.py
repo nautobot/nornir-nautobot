@@ -3,7 +3,7 @@
 import json
 from abc import ABC, abstractmethod
 from logging import Logger
-from typing import Any, Optional, OrderedDict
+from typing import Any, OrderedDict
 
 from nautobot.dcim.models import Device
 from nornir.core.task import Result, Task
@@ -101,7 +101,7 @@ class BaseControllerDriver(NetmikoDefault, ABC):
         backup_file: str,
         remove_lines: list[str],
         substitute_lines: list[str],
-    ) -> Optional[Result]:
+    ) -> Result | None:
         """Get the latest configuration from controller.
 
         Args:

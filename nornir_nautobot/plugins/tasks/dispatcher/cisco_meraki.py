@@ -1,7 +1,7 @@
 """Netmiko dispatcher for cisco Meraki controllers."""
 
 from logging import Logger
-from typing import Any, Callable, Optional, OrderedDict
+from typing import Any, Callable, OrderedDict
 
 from meraki import DashboardAPI
 from nautobot.dcim.models import Device
@@ -10,6 +10,7 @@ from nornir_nautobot.plugins.tasks.dispatcher.base_controller_driver import (
     BaseControllerDriver,
 )
 from nornir_nautobot.utils.controller import (
+    add_api_path_to_url,
     resolve_controller_url,
     resolve_jmespath,
     resolve_params,
@@ -21,7 +22,7 @@ def _resolve_method_callable(
     controller_obj: Any,
     method: str,
     logger: Logger,
-) -> Optional[Callable[[Any], Any]]:
+) -> Callable[[Any], Any] | None:
     """Resolve method callable.
 
     Args:
@@ -30,7 +31,7 @@ def _resolve_method_callable(
         logger (Logger): Logger object.
 
     Returns:
-        Optional[Callable[[Any], Any]]: Method callable or None.
+        Callable[[Any], Any] | None: Method callable or None.
     """
     cotroller_class, controller_method = method.split(sep=".")
     try:
@@ -131,10 +132,14 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         Returns:
             Any: Controller object or None.
         """
-        controller_url: str = resolve_controller_url(
+        url: str = resolve_controller_url(
             obj=obj,
             logger=logger,
             controller_type=cls.controller_type,
+        )
+        controller_url: str = add_api_path_to_url(
+            api_path="api/v1",
+            base_url=url,
         )
         api_key: str = task.host.password
         controller_obj: DashboardAPI = DashboardAPI(
@@ -263,7 +268,7 @@ class NetmikoCiscoMeraki(BaseControllerDriver):
         """
         aggregated_results: list[Any] = []
         for api_context in endpoint_context:
-            method_callable: Optional[Callable[[Any], Any]] = _resolve_method_callable(
+            method_callable: Callable[[Any], Any] | None = _resolve_method_callable(
                 controller_obj=controller_obj,
                 method=api_context["endpoint"],
                 logger=logger,

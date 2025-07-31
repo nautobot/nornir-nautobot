@@ -1,7 +1,7 @@
 """Classes and functions for controller dispatcher utils."""
 
 from logging import Logger
-from typing import Any, Optional, Union
+from typing import Any
 
 import jmespath
 from nautobot.apps.choices import (
@@ -39,6 +39,22 @@ def format_base_url_with_endpoint(
         endpoint = endpoint[1:]
 
     return f"{base_url}/{endpoint}"
+
+
+def add_api_path_to_url(api_path: str, base_url: str) -> str:
+    """Add API path to base url.
+
+    Args:
+        api_path (str): API path, i.e. api/v1
+        base_url (str): Controller base url.
+
+    Returns:
+        str: Base url with API path.
+    """
+    if api_path not in base_url:
+        return format_base_url_with_endpoint(base_url=base_url, endpoint=api_path)
+    else:
+        return base_url
 
 
 def get_api_key(secrets_group: SecretsGroup) -> str:
@@ -207,7 +223,7 @@ class ConnectionMixin:
         url: str,
         headers: dict[str, str],
         session: Session,
-        body: Optional[Union[dict[str, str], str]] = None,
+        body: dict[str, str] | str | None = None,
         verify: bool = True,
     ) -> Response:
         """Create request for authentication and return response object.
@@ -217,7 +233,7 @@ class ConnectionMixin:
             url (str): URL to send request to.
             headers (dict): Headers to use in request.
             session (Session): Session to use.
-            body (Optional[Union[dict[str, str], str]]): Body of request.
+            body (dict[str, str] | str | None): Body of request.
             verify (bool): Verify SSL certificate.
 
         Returns:
@@ -243,7 +259,7 @@ class ConnectionMixin:
         headers: dict[str, str],
         session: Session,
         logger: Logger,
-        body: Optional[Union[dict[str, str], str]] = None,
+        body: dict[str, str] | str | None = None,
         verify: bool = True,
     ) -> Response:
         """Create request for authentication and return response object.
@@ -254,7 +270,7 @@ class ConnectionMixin:
             headers (dict): Headers to use in request.
             session (Session): Session to use.
             logger (Logger): The dispatcher's logger.
-            body (Optional[Union[dict[str, str], str]]): Body of request.
+            body (dict[str, str] | str | None): Body of request.
             verify (bool): Verify SSL certificate.
 
         Returns:
@@ -277,7 +293,7 @@ class ConnectionMixin:
         headers: dict[str, str],
         session: Session,
         logger: Logger,
-        body: Optional[Union[dict[str, str], str]] = None,
+        body: dict[str, str] | str | None = None,
         verify: bool = True,
     ) -> Any:
         """Create request and return response payload.
@@ -288,7 +304,7 @@ class ConnectionMixin:
             headers (dict): Headers to use in request.
             session (Session): Session to use.
             logger (Logger): The dispatcher's logger.
-            body (Optional[Union[dict[str, str], str]]): Body of request.
+            body (dict[str, str] | str | None): Body of request.
             verify (bool): Verify SSL certificate.
 
         Returns:

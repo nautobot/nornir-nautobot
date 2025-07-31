@@ -16,7 +16,7 @@ from nornir_nautobot.utils.controller import (
     resolve_jmespath,
     resolve_query,
 )
-from requests import Response
+from requests import Response, Session
 
 
 class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
@@ -25,8 +25,8 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
     get_headers: dict[str, str] = {}
     post_headers: dict[str, str] = {}
     controller_url: str = ""
-    session = None
-    controller_type = "apic"
+    session: Session
+    controller_type: str = "apic"
 
     @classmethod
     def authenticate(cls, logger: Logger, obj: Device, task: Task) -> Any:
@@ -43,7 +43,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
         Returns:
             Any: Controller object or None.
         """
-        resolve_controller_url(
+        cls.controller_url = resolve_controller_url(
             obj=obj,
             controller_type=cls.controller_type,
             logger=logger,
@@ -57,6 +57,7 @@ class NetmikoCiscoApic(BaseControllerDriver, ConnectionMixin):
             endpoint="api/aaaLogin.json",
         )
         # TODO: Change verify to true
+        cls.session: Session = cls.configure_session()
         auth_resp: Response = cls.return_response_content(
             session=cls.session,
             method="POST",

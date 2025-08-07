@@ -505,6 +505,16 @@ class NetmikoDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
+    def _get_config_command(cls, obj) -> str:
+        custom_field = obj.cf.get("config_command")
+        if custom_field and isinstance(custom_field, str):
+            return custom_field
+        config_context = obj.get_config_context().get("config_command")
+        if config_context and isinstance(config_context, str):
+            return config_context
+        return cls.config_command
+
+    @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
@@ -528,7 +538,7 @@ class NetmikoDefault(DispatcherMixin):
                 { "config: <running configuration> }
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = cls.config_command
+        command = cls._get_config_command(obj)
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)

@@ -132,6 +132,7 @@ nav:
           - Task Overview: "user/task.md"
           - Troubleshooting:
               - "user/troubleshooting/index.md"
+              - E1XXX: "user/troubleshooting/E1XXX.md"
               - E1001: "user/troubleshooting/E1001.md"
               - E1002: "user/troubleshooting/E1002.md"
               - E1003: "user/troubleshooting/E1003.md"
@@ -159,6 +160,9 @@ nav:
               - E1025: "user/troubleshooting/E1025.md"
               - E1026: "user/troubleshooting/E1026.md"
               - E1027: "user/troubleshooting/E1027.md"
+              - E1028: "user/troubleshooting/E1028.md"
+              - E1029: "user/troubleshooting/E1029.md"
+              - E1030: "user/troubleshooting/E1030.md"
   - Administrator Guide:
       - Install and Configure: "admin/install.md"
       - Upgrade: "admin/upgrade.md"
@@ -173,5 +177,6 @@ nav:
       - Extending the Library: "dev/extending.md"
       - Contributing to the Library: "dev/contributing.md"
       - Development Environment: "dev/dev_environment.md"
+      - Architecture Design Records: "dev/arch_decision.md"
       - Migrating to v3: "dev/migrating_to_v3.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

@@ -1,9 +1,9 @@
 """nornir dispatcher for Ruckus ICX/FastIron Switches."""
 
-from nornir.core.task import Result, Task
 from nornir.core.exceptions import NornirSubTaskError
-
+from nornir.core.task import Result, Task
 from nornir_netmiko.tasks import netmiko_save_config, netmiko_send_config
+
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher.default import NetmikoDefault
 from nornir_nautobot.utils.helpers import get_error_message
@@ -23,6 +23,7 @@ class NetmikoRuckusFastiron(NetmikoDefault):
             logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The config set.
+            can_diff (bool): Whether to use diff mode or not. Defaults to True.
 
         Raises:
             NornirNautobotException: Authentication error.

@@ -5,8 +5,9 @@
 import logging
 
 from nornir.core.task import Result, Task
+
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import snake_to_title_case, import_string
+from nornir_nautobot.utils.helpers import import_string, snake_to_title_case
 
 LOGGER = logging.getLogger(__name__)
 PATH_ROOT = "nornir_nautobot.plugins.tasks.dispatcher.default"
@@ -20,6 +21,11 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     Args:
         task: Nornir Task object.
         method: The string value of the method to dynamically find.
+        logger: Logger object to use for logging.
+        obj: The Nautobot object passed to the method.
+        framework: The framework to use for the dispatcher E.g. "netmiko", "napalm".
+        *args: Additional positional arguments to pass to the method.
+        **kwargs: Additional keyword arguments to pass to the method.
 
     Returns:
         Result: Nornir Task result object.

@@ -1,24 +1,24 @@
 """Nornir Nautobot Inventory Plugin."""
 
 # Python Imports
-import os
-import sys
 import ipaddress
 import logging
+import os
+import sys
 from typing import Any, Dict, Union
+
+# Other third party imports
+import pynautobot
 
 # Nornir Imports
 from nornir.core.inventory import (
-    Inventory,
     ConnectionOptions,
     Defaults,
     Groups,
     Host,
     Hosts,
+    Inventory,
 )
-
-# Other third party imports
-import pynautobot
 from requests import Session
 
 # Create Logger

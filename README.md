@@ -1,7 +1,16 @@
 # Nornir Nautobot
-[![GitHub Actions](https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nautobot/nornir-nautobot/actions)
-[![PyPI Version](https://img.shields.io/pypi/v/nornir-nautobot)](https://pypi.org/project/nornir-nautobot/)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/nornir-nautobot)](https://pypi.org/project/nornir-nautobot/)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/networktocode/nornir-nautobot/develop/docs/images/nornir-nautobot_logo.png" class="logo" height="200px">
+  <br>
+  <a href="https://github.com/networktocode/nornir-nautobot/actions"><img src="https://github.com/networktocode/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://nornir-nautobot.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/nornir-nautobot/badge/"></a>
+  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/v/nornir-nautobot"></a>
+  <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/dm/nornir-nautobot"></a>
+  <br>
+</p>
+
+## Overview
 
 Nornir-Nautobot is a set of utilities to help interact with Nautobot via Nornir. The nornir_nautobot project intends to solve two primary use cases.
 
@@ -10,27 +19,24 @@ Nornir-Nautobot is a set of utilities to help interact with Nautobot via Nornir.
 
 The set of plugins intend to provide mechanisms to include common networking workflows that will help enable network automation. As an example, there are method to get configurations or test network connectivity. Over time this will include functions to perform actions such as get vlans, neighbors, protocols, etc.
 
-# Installation
+## Documentation
 
-To install Nornir Nautobot install via Python PIP:
+Full web-based HTML documentation for this library can be found over on the [Nornir-Nautobot Docs](https://nornir-nautobot.readthedocs.io) website:
 
-```shell
-pip install nornir-nautobot
-```
-## Inventory
+- [User Guide](https://nornir-nautobot.readthedocs.io/en/latest/user/lib_overview/) - Overview, Using the library, Getting Started.
+- [Administrator Guide](https://nornir-nautobot.readthedocs.io/en/latest/admin/install/) - How to Install, Configure, Upgrade, or Uninstall the library.
+- [Developer Guide](https://nornir-nautobot.readthedocs.io/en/latest/dev/contributing/) - Extending the library, Code Reference, Contribution Guide.
+- [Release Notes / Changelog](https://nornir-nautobot.readthedocs.io/en/latest/admin/release_notes/).
+- [Frequently Asked Questions](https://nornir-nautobot.readthedocs.io/en/latest/user/faq/).
 
-The inventory plugin is used to gather inventory from a Nautobot instance. This queries the DCIM endpoint to gather information about the devices.  
+### Contributing to the Docs
 
-[Inventory](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/inventory/inventory/)
+All the Markdown source for the library documentation can be found under the [docs](https://github.com/networktocode/nornir-nautobot/tree/develop/docs) folder in this repository. For simple edits, a Markdown capable editor is sufficient - clone the repository and edit away.
 
-## Processor Plugin
+If you need to view the fully generated documentation site, you can build it with [mkdocs](https://www.mkdocs.org/). A container hosting the docs will be started using the invoke commands (details in the [Development Environment Guide](https://nornir-nautobot.readthedocs.io/en/latest/dev/dev_environment/#docker-development-environment)) on [http://localhost:8001](http://localhost:8001). As your changes are saved, the live docs will be automatically reloaded.
 
-This is an opinionated plugin to help with network automation workflows with Nautobot.
+Any PRs with fixes or improvements are very welcome!
 
-[Processor Plugin](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/processor/processor/)
+## Questions
 
-## Task Plugin
-
-The task plugin helps with dispatching specific functions with multiple underlying OS.
-
-[Task Plugin](https://docs.nautobot.com/projects/nornir-nautobot/en/latest/task/task/)
+For any questions or comments, please check the [FAQ](https://nornir-nautobot.readthedocs.io/en/latest/user/faq/) first. Feel free to also swing by the [Network to Code Slack](https://networktocode.slack.com/) (channel `#networktocode`), sign up [here](http://slack.networktocode.com/) if you don't have an account.

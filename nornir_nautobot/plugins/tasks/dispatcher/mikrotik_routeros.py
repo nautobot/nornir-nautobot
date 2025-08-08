@@ -103,7 +103,14 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
+        command_file_path: str = None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 

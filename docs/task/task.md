@@ -130,6 +130,42 @@ class NetmikoDefault(DispatcherMixin):
         return cls.config_command
 ```
 
+## Get command outputs through git repository
+
+Raw command outputs stored in a Git repository can be used in scenarios where Nautobot is not able to connect directly to the network devices. This is useful for disconnected or air-gapped environments, lab setups, or testing purposes.
+
+The feature is integrated into the `NetmikoDefault` dispatcher and is controlled by the `offline_commands` setting with the following precedence:
+
+1. `obj.cf["offline_commands"]` — if it exists and is a valid boolean value.
+2. `obj.get_config_context()["offline_commands"]` — if it exists and is a valid boolean value.
+3. `cls.offline_commands` — the default class attribute defined in `NetmikoDefault`, which defaults to `False`.
+
+When enabled, the dispatcher attempts to read the expected command output from the filesystem (via the keyword argument command_file_path) instead of executing the command on a live device. This requires the output files to be named in a filesystem-safe format.
+
+The utility function `nornir_nautobot.utils.helpers.command_to_filename` is provided to help convert a command string into a valid filename. Here's how it works:
+
+```python
+def command_to_filename(command, replacement="_"):
+    """
+    Convert a command string into a filesystem-safe filename.
+
+    This function sanitizes a command string so it can safely be used as a filename by:
+    1. Normalizing Unicode characters to their ASCII equivalents.
+    2. Replacing the pipe symbol '|' (with or without surrounding spaces) with two replacement characters.
+    3. Replacing characters that are illegal in most filesystems (e.g., / : * ? " < >) with the replacement character.
+    4. Replacing all spaces with the replacement character.
+
+    Args:
+        command (str): The input command string to sanitize.
+        replacement (str): The character to use as a substitute for illegal or special characters. Default is underscore ('_').
+
+    Returns:
+        str: A sanitized, ASCII-only, filesystem-safe version of the command string suitable for use as a filename.
+    """
+```
+
+This ensures consistent and safe naming of command output files across different operating systems and Git repositories.
+
 ## Environment Variables
 
 | Environment Variable | Explanation |

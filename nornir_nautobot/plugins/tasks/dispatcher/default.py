@@ -503,6 +503,7 @@ class NetmikoDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Netmiko."""
 
     config_command = "show run"
+    offline_commands = False
 
     @classmethod
     def _get_config_command(cls, obj) -> str:
@@ -523,6 +524,7 @@ class NetmikoDefault(DispatcherMixin):
         backup_file: str,
         remove_lines: list,
         substitute_lines: list,
+        command_file_path: str = None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
@@ -532,14 +534,24 @@ class NetmikoDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            command_file_path (str): The path to the command output file located in the Git repository.
 
         Returns:
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = cls._get_config_command(obj)
-        getter_result = cls.get_command(task, logger, obj, command)
+        command = cls.config_command
+        if cls._offline_commands(obj):
+            getter_result = cls.get_command(
+                task,
+                logger,
+                obj,
+                command,
+                command_file_path,
+            )
+        else:
+            getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
         return Result(host=task.host, result={"config": processed_config})
@@ -615,7 +627,73 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
 
     @classmethod
-    def get_command(cls, task: Task, logger, obj, command, **kwargs):
+    def _offline_commands(cls, obj):  # pylint: disable=too-many-return-statements
+        """
+        Determine whether offline commands should be used for the given device object.
+
+        This method checks multiple sources in the following order:
+        1. The object's custom fields (`obj.cf`) for the key `"offline_commands"`.
+        2. The object's configuration context (`obj.get_config_context()`) for the same key.
+        3. The class attribute `offline_commands` if it exists.
+
+        Returns:
+            bool:
+                - True or False if the key exists in any of the sources and is explicitly set.
+        """
+        custom_field = obj.cf.get("offline_commands")
+        if isinstance(custom_field, bool):
+            return custom_field
+        config_context = obj.get_config_context().get("offline_commands")
+        if isinstance(config_context, bool):
+            return config_context
+        return cls._offline_commands
+
+    @classmethod
+    def get_git_command(
+        cls,
+        task: Task,
+        logger,
+        command: str,
+        command_file_path: str,
+    ):  # pylint: disable=too-many-positional-arguments
+        """A tasks to get the command outputs from a git repository.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command (str): A command to execute.
+            command_file_path (str): The path to the command output file located in the Git repository.
+        """
+        logger.debug(
+            f"Executing get_git_command to retrieve the command output from Git for {task.host.name} on {task.host.platform}."
+        )
+
+        if not os.path.exists(command_file_path):
+            error_msg = get_error_message("E1032", command=command)
+            raise FileNotFoundError(error_msg)
+
+        try:
+            logger.info(f"Reading command output from: {command_file_path}")
+            with open(command_file_path, "r", encoding="utf-8") as file:
+                command_output_raw = file.read()
+        except OSError as exc:
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1031")
+            error_msg = get_error_message(error_code, exc=exc)
+            raise IOError(error_msg) from exc
+
+        return Result(host=task.host, result=command_output_raw)
+
+    @classmethod
+    def get_command(
+        cls,
+        task: Task,
+        logger,
+        obj,
+        command: str,
+        command_file_path: str = None,
+        **kwargs,
+    ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the commands from a device.
 
         Args:
@@ -623,44 +701,20 @@ class NetmikoDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
+            command_file_path (str): The path to the command output file located in the Git repository.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
         try:
-            result = task.run(
-                task=netmiko_send_command,
-                command_string=command,
-                enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
-                **kwargs,
-            )
-            failed, error_msg = cls._has_hidden_errors(result[0].result)
-            if failed:
-                logger.error(error_msg, extra={"object": obj})
-                raise NornirNautobotException(error_msg)
-        except NornirSubTaskError as exc:
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
-            error_msg = get_error_message(error_code, exc=exc)
-            logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
-
-        return Result(host=task.host, result={"output": {command: result[0].result}})
-
-    @classmethod
-    def get_commands(cls, task: Task, logger, obj, command_list, **kwargs):
-        """A tasks to get the commands from a device.
-
-        Args:
-            task (Task): Nornir Task.
-            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
-            obj (Device): A Nautobot Device Django ORM object instance.
-            command_list: A command to execute.
-            kwargs: Additional arguments to pass to the netmiko_send_command task.
-        """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
-        command_results = {}
-        for command in command_list:
-            try:
+            if cls._offline_commands(obj):
+                result = task.run(
+                    task=cls.get_git_command,
+                    logger=logger,
+                    command=command,
+                    command_file_path=command_file_path,
+                )
+            else:
                 result = task.run(
                     task=netmiko_send_command,
                     command_string=command,
@@ -671,6 +725,59 @@ class NetmikoDefault(DispatcherMixin):
                 if failed:
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
+        except NornirSubTaskError as exc:
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1016")
+            error_msg = get_error_message(error_code, exc=exc)
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+        return Result(host=task.host, result={"output": {command: result[0].result}})
+
+    @classmethod
+    def get_commands(
+        cls,
+        task: Task,
+        logger,
+        obj,
+        command_list: list[str] | list[tuple[str, str]],
+        **kwargs,
+    ):  # pylint: disable=too-many-positional-arguments, too-many-locals
+        """A tasks to get the commands from a device.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command_list (list[str] | list[tuple[str, str]]):
+                - In online mode (Netmiko), a list of command strings to execute on the device.
+                - In offline mode (Git), a list of (command_label, file location) tuples
+                  pointing to stored command output files in the Git repo.
+            kwargs: Additional arguments to pass to the netmiko_send_command task.
+        """
+        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        command_results = {}
+        for command in command_list:
+            try:
+                if cls._offline_commands(obj):
+                    command, *rest = command
+                    command_file_path = rest[0] if rest else None
+                    result = task.run(
+                        task=cls.get_git_command,
+                        logger=logger,
+                        command=command,
+                        command_file_path=command_file_path,
+                    )
+                else:
+                    result = task.run(
+                        task=netmiko_send_command,
+                        command_string=command,
+                        enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                        **kwargs,
+                    )
+                    failed, error_msg = cls._has_hidden_errors(result[0].result)
+                    if failed:
+                        logger.error(error_msg, extra={"object": obj})
+                        raise NornirNautobotException(error_msg)
                 command_results.update({command: result[0].result})
             except NornirSubTaskError as exc:
                 error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")

@@ -1,7 +1,6 @@
 """A set of helper utilities."""
 
 from typing import Any
-from pathlib import Path
 
 import errno
 import os
@@ -124,23 +123,3 @@ def command_to_filename(command, replacement="_"):
     command_file_name = re.sub(r"\s+", replacement, command_file_name).strip(replacement)
 
     return command_file_name
-
-
-def get_file_contents_from_git(git_repo_obj, git_folder_name, file_relative_path):
-    """
-    Retrieve the path to a file within a specified folder of a local Git repository.
-
-    Args:
-        git_repo_obj: Git repository object with a `.filesystem_path` attribute.
-        git_folder_name (str): Name of the folder within the Git repository.
-        file_relative_path (str): Relative path to the file within the specified folder.
-
-    Returns:
-        Path: Path object pointing to the file if it exists, otherwise None.
-    """
-    command_file_path = Path(git_repo_obj.filesystem_path) / git_folder_name / file_relative_path
-
-    if command_file_path.exists():
-        return command_file_path
-
-    return None

@@ -110,9 +110,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
         backup_file: str,
         remove_lines: list,
         substitute_lines: list,
-        git_repo_obj=None,
-        commands_folder_name=None,
-        command_relative_path=None,
+        command_file_path: str = None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 

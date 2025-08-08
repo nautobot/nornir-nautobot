@@ -30,7 +30,6 @@ from nornir_nautobot.utils.helpers import (
     get_stack_trace,
     is_truthy,
     make_folder,
-    get_file_contents_from_git,
 )
 
 _logger = logging.getLogger(__name__)
@@ -525,9 +524,7 @@ class NetmikoDefault(DispatcherMixin):
         backup_file: str,
         remove_lines: list,
         substitute_lines: list,
-        git_repo_obj=None,
-        commands_folder_name=None,
-        command_relative_path=None,
+        command_file_path: str = None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko.
 
@@ -537,9 +534,7 @@ class NetmikoDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
-            git_repo_obj: A Nautobot `GitRepository` object that stores raw command outputs for offline mode.
-            commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
-            command_relative_path: The relative path inside the `command_folder_name` where the specific command output file is located.
+            command_file_path (str): The path to the command output file located in the Git repository.
 
         Returns:
             Result: Nornir Result object with a dict as a result containing the running configuration
@@ -553,9 +548,7 @@ class NetmikoDefault(DispatcherMixin):
                 logger,
                 obj,
                 command,
-                git_repo_obj=git_repo_obj,
-                commands_folder_name=commands_folder_name,
-                command_relative_path=command_relative_path,
+                command_file_path,
             )
         else:
             getter_result = cls.get_command(task, logger, obj, command)
@@ -644,9 +637,8 @@ class NetmikoDefault(DispatcherMixin):
         3. The class attribute `offline_commands` if it exists.
 
         Returns:
-            bool or None:
+            bool:
                 - True or False if the key exists in any of the sources and is explicitly set.
-                - None if the key is not found or does not contain a valid boolean value.
         """
         custom_field = obj.cf.get("offline_commands")
         if isinstance(custom_field, bool):
@@ -662,9 +654,7 @@ class NetmikoDefault(DispatcherMixin):
         task: Task,
         logger,
         command: str,
-        git_repo_obj,
-        commands_folder_name: str = None,
-        command_relative_path: str = None,
+        command_file_path: str,
     ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the command outputs from a git repository.
 
@@ -672,35 +662,27 @@ class NetmikoDefault(DispatcherMixin):
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
-            command: A command to execute.
-            git_repo_obj: A Nautobot GitRepository Django ORM object instance.
-            commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
-            command_relative_path: The path to the command output file located under the command_outputs folder in the Git repository.
+            command (str): A command to execute.
+            command_file_path (str): The path to the command output file located in the Git repository.
         """
         logger.debug(
             f"Executing get_git_command to retrieve the command output from Git for {task.host.name} on {task.host.platform}."
         )
 
-        command_file_path = get_file_contents_from_git(
-            git_repo_obj=git_repo_obj,
-            git_folder_name=commands_folder_name,
-            file_relative_path=command_relative_path,
-        )
-
-        if not command_file_path:
+        if not os.path.exists(command_file_path):
             error_msg = get_error_message("E1032", command=command)
             raise FileNotFoundError(error_msg)
 
         try:
             logger.info(f"Reading command output from: {command_file_path}")
-            with command_file_path.open("r", encoding="utf-8") as file:
-                command_raw = file.read()
+            with open(command_file_path, "r", encoding="utf-8") as file:
+                command_output_raw = file.read()
         except OSError as exc:
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1031")
             error_msg = get_error_message(error_code, exc=exc)
             raise IOError(error_msg) from exc
 
-        return Result(host=task.host, result=command_raw)
+        return Result(host=task.host, result=command_output_raw)
 
     @classmethod
     def get_command(
@@ -708,10 +690,8 @@ class NetmikoDefault(DispatcherMixin):
         task: Task,
         logger,
         obj,
-        command,
-        git_repo_obj=None,
-        commands_folder_name: str = None,
-        command_relative_path: str = None,
+        command: str,
+        command_file_path: str = None,
         **kwargs,
     ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the commands from a device.
@@ -721,9 +701,7 @@ class NetmikoDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
-            git_repo_obj: A Nautobot `GitRepository` object that stores raw command outputs for offline mode.
-            commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
-            command_relative_path: The relative path inside the `command_folder_name` where the specific command output file is located.
+            command_file_path (str): The path to the command output file located in the Git repository.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
@@ -734,9 +712,7 @@ class NetmikoDefault(DispatcherMixin):
                     task=cls.get_git_command,
                     logger=logger,
                     command=command,
-                    git_repo_obj=git_repo_obj,
-                    commands_folder_name=commands_folder_name,
-                    command_relative_path=command_relative_path,
+                    command_file_path=command_file_path,
                 )
             else:
                 result = task.run(
@@ -764,8 +740,6 @@ class NetmikoDefault(DispatcherMixin):
         logger,
         obj,
         command_list: list[str] | list[tuple[str, str]],
-        git_repo_obj=None,
-        commands_folder_name: str = None,
         **kwargs,
     ):  # pylint: disable=too-many-positional-arguments, too-many-locals
         """A tasks to get the commands from a device.
@@ -776,10 +750,8 @@ class NetmikoDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             command_list (list[str] | list[tuple[str, str]]):
                 - In online mode (Netmiko), a list of command strings to execute on the device.
-                - In offline mode (Git), a list of (command_label, relative_file_path) tuples
+                - In offline mode (Git), a list of (command_label, file location) tuples
                   pointing to stored command output files in the Git repo.
-            git_repo_obj: A Nautobot `GitRepository` object that stores raw command outputs for offline mode.
-            commands_folder_name: Name of the folder within the Git repository where command outputs are stored.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
@@ -788,14 +760,12 @@ class NetmikoDefault(DispatcherMixin):
             try:
                 if cls._offline_commands(obj):
                     command, *rest = command
-                    command_relative_path = rest[0] if rest else None
+                    command_file_path = rest[0] if rest else None
                     result = task.run(
                         task=cls.get_git_command,
                         logger=logger,
                         command=command,
-                        git_repo_obj=git_repo_obj,
-                        commands_folder_name=commands_folder_name,
-                        command_relative_path=command_relative_path,
+                        command_file_path=command_file_path,
                     )
                 else:
                     result = task.run(

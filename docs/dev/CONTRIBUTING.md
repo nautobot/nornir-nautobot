@@ -1,75 +1,77 @@
 # Contributing
 
-This section describes how to install *nornir_nautobot* for development, how to run tests, and make sure you are a good contributor.
+Pull requests are welcomed and automatically built and tested against multiple versions of Python through GitHub Actions. 
 
-## Branches
+Except for unit tests, testing is only supported on Python 3.9.
 
-- `main` - Reserved for current release
-- `develop` - Ready to release code, bases for new PRs
-- `<feature>` - Individual feature branches, should be PR'd to `develop`.
+The project is packaged with a light development environment based on `Docker` to help with the local development of the project and to run tests within GitHub Actions.
 
-## Python Versions
+The project is following Network to Code software development guidelines and is leveraging the following:
 
-This leverages Python3.9 or later. All features will be tested against 3.9 - 3.12 versions of Python.
+- Python linting and formatting: `pylint` and `ruff`.
+- YAML linting is done with `yamllint`.
 
-## Versioning
+Documentation is built using [mkdocs](https://www.mkdocs.org/). The [Docker based development environment](dev_environment.md#docker-development-environment) can be started by running `invoke docs` [http://localhost:8001](http://localhost:8001) that auto-refreshes when you make any changes to your local files.
 
-This project utilizes Semver versioning. As part of PRs the maintainers should leverage Poetry versioning to support the increase in version numbers. Reference [Poetry Version Docs](https://python-poetry.org/docs/cli/#version) for more information on automatically adjusting the version.  
+## Creating Changelog Fragments
 
-## Installing dependencies for local development
+All pull requests to `next` or `develop` must include a changelog fragment file in the `./changes` directory. To create a fragment, use your GitHub issue number and fragment type as the filename. For example, `2362.added`. Valid fragment types are `added`, `changed`, `deprecated`, `fixed`, `removed`, and `security`. The change summary is added to the file in plain text. Change summaries should be complete sentences, starting with a capital letter and ending with a period, and be in past tense. Each line of the change fragment will generate a single change entry in the release notes. Use multiple lines in the same file if your change needs to generate multiple release notes in the same category. If the change needs to create multiple entries in separate categories, create multiple files.
 
-> These steps are also required for using the examples as provided in the repository for demonstration purposes.  
+!!! example
 
-This repository uses [poetry](https://python-poetry.org/) for dependency management and [invoke](http://www.pyinvoke.org) for task execution. To see what invoke commands are available, issue the command `invoke --list`.   
+    **Wrong**
+    ```plaintext title="changes/1234.fixed"
+    fix critical bug in documentation
+    ```
 
-Follow these steps to set up your local development environment:
+    **Right**
+    ```plaintext title="changes/1234.fixed"
+    Fixed critical bug in documentation.
+    ```
 
-```bash
-# Double check your version
-$ python --version
-Python 3.11.1
-# Activate the Poetry environment, which will auto create the virtual environment related to the project
-$ poetry shell
-# Install project dependencies as well as development dependencies
-$ poetry install
-```
+!!! example "Multiple Entry Example"
 
-When you install dependencies via Poetry you will get invoke as part of the process.
+    This will generate 2 entries in the `fixed` category and one entry in the `changed` category.
 
-## Running tests locally
+    ```plaintext title="changes/1234.fixed"
+    Fixed critical bug in documentation.
+    Fixed release notes generation.
+    ```
 
-Docker images are available to provide a consistent development environment from one machine to another. The best practice recommendation is to execute two steps to test:
+    ```plaintext title="changes/1234.changed"
+    Changed release notes generation.
+    ```
 
-1. Build Docker container image (`invoke build`)
-2. Execute test environment (`invoke tests`)
-   1. You can execute individual tests as well by looking at the tests with the command `invoke --list`
+## Branching Policy
 
-### Build Docker container image
+The branching policy includes the following tenets:
 
-Invoke tasks have a task to help build the containers. Executing the task with `invoke build` will build the Docker image for testing.
+- The develop branch is the primary branch to develop off of.
+- If there is a reason to have a patch version, the maintainers may use cherry-picking strategy.
+- PRs intended to add new features should be sourced from the develop branch.
+- PRs intended to address bug fixes and security patches should be sourced from the develop branch.
+- PRs intended to add new features that break backward compatibility should be discussed before a PR is created.
 
-### Execute tests
+Nornir-Nautobot will observe semantic versioning, as of 1.0. This may result in an quick turn around in minor versions to keep pace with an ever growing feature set.
 
-The Invoke task to execute the tests are then `invoke tests`. This will execute all of the linting and pytest functions on the code.
+## Release Policy
 
-## Testing
+Nornir-Nautobot has currently no intended scheduled release schedule, and will release new features in minor versions.
 
-All tests should be located within the `tests\` directory with `tests\unit` for the unit tests. Integration tests should be in the `tests\integration` directory.
+When a new release is created the following should happen.
 
-### Testing - Required
-
-The following linting tasks are required:
-
-* [Bandit](https://bandit.readthedocs.io/en/latest/)
-  * Basic security tests, should be run on Python3.11
-* [Black code style](https://github.com/psf/black)
-  * Code formatting with version 20.8b1. There are some differences in the format between versions 19 and 20.
-* [Flake8](https://flake8.pycqa.org/en/latest/)
-  * Black vs Flake conflicts: When conflicts arise between Black and Flake8, Black should win and Flake8 should be configured as such
-* [Pydocstyle](https://github.com/PyCQA/pydocstyle/)
-* [Pylint](https://www.pylint.org)
-* [Yamllint](https://yamllint.readthedocs.io)
-
-### Tests - Interim
-
-In the interim while the primary project is still in private access, any execution environments (pynautobot or Nautobot itself) should be packaged and stored in `tests\packages` for independent installation until the public images are available.
+- A release PR is created with:
+    - Update to the changelog in `docs/admin/release_notes/version_<major>.<minor>.md` file to reflect the changes.
+    - Change the version from `<major>.<minor>.<patch>-beta` to `<major>.<minor>.<patch>` in pyproject.toml.
+    - Set the PR to the main
+- Ensure the tests for the PR pass.
+- Merge the PR.
+- Create a new tag:
+    - The tag should be in the form of `v<major>.<minor>.<patch>`.
+    - The title should be in the form of `v<major>.<minor>.<patch>`.
+    - The description should be the changes that were added to the `version_<major>.<minor>.md` document.
+- If merged into `main`, then push from `main` to `develop`, in order to retain the merge commit created when the PR was merged
+- A post release PR is created with.
+    - Change the version from `<major>.<minor>.<patch>` to `<major>.<minor>.<patch + 1>-beta` pyproject.toml.
+    - Set the PR to the `develop`.
+    - Once tests pass, merge.

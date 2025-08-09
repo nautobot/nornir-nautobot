@@ -1,6 +1,7 @@
 """default driver for the network_importer."""
 
 # pylint: disable=raise-missing-from,too-many-arguments
+from __future__ import annotations
 
 import logging
 import os
@@ -23,6 +24,7 @@ from nornir_netmiko.tasks import (
     netmiko_send_config,
 )
 from nornir_scrapli.tasks import send_command as scrapli_send_command
+
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import (
@@ -454,6 +456,7 @@ class NapalmDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The config set.
+            can_diff (bool): Whether to show the diff or not. Defaults to True.
 
         Raises:
             NornirNautobotException: Authentication error.
@@ -535,6 +538,7 @@ class NetmikoDefault(DispatcherMixin):
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
             command_file_path (str): The path to the command output file located in the Git repository.
+            backup_file (str): The file location of where the back configuration should be saved.
 
         Returns:
             Result: Nornir Result object with a dict as a result containing the running configuration
@@ -572,6 +576,7 @@ class NetmikoDefault(DispatcherMixin):
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The config set.
+            can_diff (bool): Whether to show the diff or not. Defaults to True.
 
         Raises:
             NornirNautobotException: Authentication error.
@@ -811,6 +816,7 @@ class ScrapliDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            backup_file (str): The file location of where the back configuration should be saved.
 
         Returns:
             Result: Nornir Result object with a dict as a result containing the running configuration

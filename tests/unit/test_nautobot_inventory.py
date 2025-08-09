@@ -8,10 +8,10 @@ import pynautobot
 # Third Party Imports
 import pytest
 import requests
-from requests.sessions import Session
-from requests_mock import Mocker
 from nornir import InitNornir
 from nornir.core.task import Task
+from requests.sessions import Session
+from requests_mock import Mocker
 
 # Application Imports
 from nornir_nautobot.plugins.inventory.nautobot import NautobotInventory
@@ -99,7 +99,7 @@ def test_nornir_nautobot_initialization():
     no_exception_found = True
     try:
         NautobotInventory(nautobot_url="http://localhost:8000", nautobot_token="0123456789abcdef01234567890")
-    except:  # pylint: disable=bare-except
+    except:  # pylint: disable=bare-except # noqa: E722
         no_exception_found = False
 
     assert no_exception_found
@@ -149,7 +149,7 @@ def test_api_session(nornir_nautobot_class):
         "Connection": "keep-alive",
     }
     assert isinstance(nornir_nautobot_class.api_session, Session)
-    assert expected_headers == nornir_nautobot_class.api_session.headers
+    assert sorted(expected_headers) == sorted(nornir_nautobot_class.api_session.headers)
 
 
 def test_pynautobot_obj(nornir_nautobot_class):

@@ -6,8 +6,8 @@ authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
 license = "Apache-2.0"
 repository = "https://github.com/nautobot/nornir-nautobot"
-homepage = "https://nornir-nautobot.readthedocs.io"
-documentation = "https://nornir-nautobot.readthedocs.io"
+homepage = "https://github.com/nautobot/nornir-nautobot"
+documentation = "https://docs.nautobot.com/projects/nornir-nautobot/en/latest/"
 keywords = ["Nautobot", "Nornir", "Network Automation", "Network Management"]
 classifiers = [
     "Intended Audience :: Developers",

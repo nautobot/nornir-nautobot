@@ -2640,4 +2640,4 @@ mikrotik-driver = ["routeros-api"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.13"
-content-hash = "a40fa9c8fb1adcfa4221bf994b14616023246428223d387f5e266c710bdc3cf6"
+content-hash = "970f3027f781f2c257c31a4627aadb0a1fe23b677b4fabd134ed4d7b72d2eee2"

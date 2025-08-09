@@ -1,9 +1,9 @@
 # Nornir Nautobot
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/networktocode/nornir-nautobot/develop/docs/images/nautobot_logo.svg" class="logo" height="200px">
+  <img src="https://raw.githubusercontent.com/nautobot/nornir-nautobot/develop/docs/images/nautobot_logo.svg" class="logo" height="200px">
   <br>
-  <a href="https://github.com/networktocode/nornir-nautobot/actions"><img src="https://github.com/networktocode/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="https://github.com/nautobot/nornir-nautobot/actions"><img src="https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://nornir-nautobot.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/nornir-nautobot/badge/"></a>
   <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/v/nornir-nautobot"></a>
   <a href="https://pypi.org/project/nornir-nautobot/"><img src="https://img.shields.io/pypi/dm/nornir-nautobot"></a>
@@ -31,7 +31,7 @@ Full web-based HTML documentation for this library can be found over on the [Nor
 
 ### Contributing to the Docs
 
-All the Markdown source for the library documentation can be found under the [docs](https://github.com/networktocode/nornir-nautobot/tree/develop/docs) folder in this repository. For simple edits, a Markdown capable editor is sufficient - clone the repository and edit away.
+All the Markdown source for the library documentation can be found under the [docs](https://github.com/nautobot/nornir-nautobot/tree/develop/docs) folder in this repository. For simple edits, a Markdown capable editor is sufficient - clone the repository and edit away.
 
 If you need to view the fully generated documentation site, you can build it with [mkdocs](https://www.mkdocs.org/). A container hosting the docs will be started using the invoke commands (details in the [Development Environment Guide](https://nornir-nautobot.readthedocs.io/en/latest/dev/dev_environment/#docker-development-environment)) on [http://localhost:8001](http://localhost:8001). As your changes are saved, the live docs will be automatically reloaded.
 

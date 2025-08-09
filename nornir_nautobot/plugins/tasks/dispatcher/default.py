@@ -646,7 +646,7 @@ class NetmikoDefault(DispatcherMixin):
         config_context = obj.get_config_context().get("offline_commands")
         if isinstance(config_context, bool):
             return config_context
-        return cls._offline_commands
+        return cls.offline_commands
 
     @classmethod
     def get_git_command(

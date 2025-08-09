@@ -1,7 +1,7 @@
 # Nornir Nautobot
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/networktocode/nornir-nautobot/develop/docs/images/nornir-nautobot_logo.png" class="logo" height="200px">
+  <img src="https://raw.githubusercontent.com/networktocode/nornir-nautobot/develop/docs/images/nautobot_logo.png" class="logo" height="200px">
   <br>
   <a href="https://github.com/networktocode/nornir-nautobot/actions"><img src="https://github.com/networktocode/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://nornir-nautobot.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/nornir-nautobot/badge/"></a>

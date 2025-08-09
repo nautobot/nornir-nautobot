@@ -8,21 +8,10 @@ import socket
 from typing import Optional
 
 import jinja2
-from netutils.config.clean import clean_config, sanitize_config
-from netutils.config.compliance import compliance
-from netutils.dns import is_fqdn_resolvable
-from netutils.ip import is_ip
-from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_jinja2.plugins.tasks import template_file
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
-from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.utils.helpers import (
@@ -31,6 +20,18 @@ from nornir_nautobot.utils.helpers import (
     is_truthy,
     make_folder,
 )
+from nornir_netmiko.tasks import (
+    netmiko_save_config,
+    netmiko_send_command,
+    netmiko_send_config,
+)
+from nornir_scrapli.tasks import send_command as scrapli_send_command
+
+from netutils.config.clean import clean_config, sanitize_config
+from netutils.config.compliance import compliance
+from netutils.dns import is_fqdn_resolvable
+from netutils.ip import is_ip
+from netutils.ping import tcp_ping
 
 _logger = logging.getLogger(__name__)
 
@@ -179,7 +180,9 @@ class DispatcherMixin:
         except NornirSubTaskError as exc:
             stack_trace = get_stack_trace(exc.result.exception)
 
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(
+                type(exc.result.exception), "E1014"
+            )
             error_msg = get_error_message(error_code, exc=exc, stack_trace=stack_trace)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
@@ -203,11 +206,15 @@ class DispatcherMixin:
         """
         if not remove_lines:
             return _running_config
-        logger.debug("Removing lines from configuration based on `remove_lines` definition")
+        logger.debug(
+            "Removing lines from configuration based on `remove_lines` definition"
+        )
         return clean_config(_running_config, remove_lines)
 
     @classmethod
-    def _substitute_lines(cls, logger, _running_config: str, substitute_lines: list) -> str:
+    def _substitute_lines(
+        cls, logger, _running_config: str, substitute_lines: list
+    ) -> str:
         """Substitutes lines in configuration as specified in substitute Lines list.
 
         Args:
@@ -220,7 +227,9 @@ class DispatcherMixin:
         """
         if not substitute_lines:
             return _running_config
-        logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+        logger.debug(
+            "Substitute lines from configuration based on `substitute_lines` definition"
+        )
         return sanitize_config(_running_config, substitute_lines)
 
     @classmethod
@@ -298,7 +307,9 @@ class DispatcherMixin:
         if remove_lines:
             running_config = cls._remove_lines(logger, running_config, remove_lines)
         if substitute_lines:
-            running_config = cls._substitute_lines(logger, running_config, substitute_lines)
+            running_config = cls._substitute_lines(
+                logger, running_config, substitute_lines
+            )
         if backup_file:
             cls._save_file(logger, backup_file, running_config)
         return running_config
@@ -331,10 +342,20 @@ class NapalmDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        getter_result = cls.get_command(task, logger, obj, command="config", retrieve="running")
-        running_config = getter_result.result.get("output", {}).get("config", {}).get("running", None)
-        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        logger.debug(
+            f"Executing get_config for {task.host.name} on {task.host.platform}"
+        )
+        getter_result = cls.get_command(
+            task, logger, obj, command="config", retrieve="running"
+        )
+        running_config = (
+            getter_result.result.get("output", {})
+            .get("config", {})
+            .get("running", None)
+        )
+        processed_config = cls._process_config(
+            logger, running_config, remove_lines, substitute_lines, backup_file
+        )
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
@@ -348,7 +369,9 @@ class NapalmDefault(DispatcherMixin):
             command: A Napalm getter to execute.
             kwargs: Additional arguments to pass to the napalm_get task.
         """
-        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_command for {task.host.name} on {task.host.platform}"
+        )
 
         try:
             result = task.run(task=napalm_get, getters=[command], **kwargs)
@@ -374,7 +397,9 @@ class NapalmDefault(DispatcherMixin):
             command_list: Napalm getters to execute.
             kwargs: Additional arguments to pass to the napalm_get task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_commands for {task.host.name} on {task.host.platform}"
+        )
 
         try:
             result = task.run(task=napalm_get, getters=command_list, **kwargs)
@@ -427,7 +452,9 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = error_msg = get_error_message("E1015", method="replace_config", exc=exc)
+            error_msg = error_msg = get_error_message(
+                "E1015", method="replace_config", exc=exc
+            )
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -436,7 +463,10 @@ class NapalmDefault(DispatcherMixin):
             extra={"object": obj},
         )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -477,7 +507,9 @@ class NapalmDefault(DispatcherMixin):
                 revert_in=revert_in,
             )
         except NornirSubTaskError as exc:
-            error_msg = error_msg = get_error_message("E1015", method="merge_config", exc=exc)
+            error_msg = error_msg = get_error_message(
+                "E1015", method="merge_config", exc=exc
+            )
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
@@ -488,7 +520,9 @@ class NapalmDefault(DispatcherMixin):
 
         if push_result.diff:
             if can_diff:
-                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+                logger.info(
+                    f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj}
+                )
             else:
                 logger.warning(
                     "Diff was requested but may include sensitive data. Ignoring...",
@@ -496,7 +530,10 @@ class NapalmDefault(DispatcherMixin):
                 )
 
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -540,7 +577,9 @@ class NetmikoDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_config for {task.host.name} on {task.host.platform}"
+        )
         command = cls.config_command
         if cls._offline_commands(obj):
             getter_result = cls.get_command(
@@ -553,7 +592,9 @@ class NetmikoDefault(DispatcherMixin):
         else:
             getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
-        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        processed_config = cls._process_config(
+            logger, running_config, remove_lines, substitute_lines, backup_file
+        )
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
@@ -589,7 +630,9 @@ class NetmikoDefault(DispatcherMixin):
                 enable=True,
             )
         except NornirSubTaskError as exc:
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(
+                type(exc.result.exception), "E1016"
+            )
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
 
@@ -608,7 +651,9 @@ class NetmikoDefault(DispatcherMixin):
 
         if push_result.diff:
             if can_diff:
-                logger.info(f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj})
+                logger.info(
+                    f"Diff:\n```\n_{push_result.diff}\n```", extra={"object": obj}
+                )
             else:
                 logger.warning(
                     "Diff was requested but may include sensitive data. Ignoring...",
@@ -624,7 +669,10 @@ class NetmikoDefault(DispatcherMixin):
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result[0].changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def _offline_commands(cls, obj):  # pylint: disable=too-many-return-statements
@@ -646,7 +694,7 @@ class NetmikoDefault(DispatcherMixin):
         config_context = obj.get_config_context().get("offline_commands")
         if isinstance(config_context, bool):
             return config_context
-        return cls._offline_commands
+        return cls.offline_commands
 
     @classmethod
     def get_git_command(
@@ -704,7 +752,9 @@ class NetmikoDefault(DispatcherMixin):
             command_file_path (str): The path to the command output file located in the Git repository.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
-        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_command for {task.host.name} on {task.host.platform}"
+        )
 
         try:
             if cls._offline_commands(obj):
@@ -718,7 +768,11 @@ class NetmikoDefault(DispatcherMixin):
                 result = task.run(
                     task=netmiko_send_command,
                     command_string=command,
-                    enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                    enable=is_truthy(
+                        os.getenv(
+                            "NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True"
+                        )
+                    ),
                     **kwargs,
                 )
                 failed, error_msg = cls._has_hidden_errors(result[0].result)
@@ -754,7 +808,9 @@ class NetmikoDefault(DispatcherMixin):
                   pointing to stored command output files in the Git repo.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_commands for {task.host.name} on {task.host.platform}"
+        )
         command_results = {}
         for command in command_list:
             try:
@@ -771,7 +827,11 @@ class NetmikoDefault(DispatcherMixin):
                     result = task.run(
                         task=netmiko_send_command,
                         command_string=command,
-                        enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
+                        enable=is_truthy(
+                            os.getenv(
+                                "NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True"
+                            )
+                        ),
                         **kwargs,
                     )
                     failed, error_msg = cls._has_hidden_errors(result[0].result)
@@ -780,7 +840,9 @@ class NetmikoDefault(DispatcherMixin):
                         raise NornirNautobotException(error_msg)
                 command_results.update({command: result[0].result})
             except NornirSubTaskError as exc:
-                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(
+                    type(exc.result.exception), "E1016"
+                )
                 error_msg = get_error_message(error_code, exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
@@ -816,11 +878,15 @@ class ScrapliDefault(DispatcherMixin):
             Result: Nornir Result object with a dict as a result containing the running configuration
                 { "config: <running configuration> }
         """
-        logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_config for {task.host.name} on {task.host.platform}"
+        )
         command = cls.config_command
         getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
-        processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
+        processed_config = cls._process_config(
+            logger, running_config, remove_lines, substitute_lines, backup_file
+        )
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
@@ -834,7 +900,9 @@ class ScrapliDefault(DispatcherMixin):
             command: A command to execute.
             kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_commands for {task.host.name} on {task.host.platform}"
+        )
 
         try:
             result = task.run(
@@ -865,7 +933,9 @@ class ScrapliDefault(DispatcherMixin):
             command_list: A command to execute.
             kwargs: Additional arguments to pass to the scrapli_send_commands task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(
+            f"Executing get_commands for {task.host.name} on {task.host.platform}"
+        )
         command_results = {}
         for command in command_list:
             try:
@@ -881,7 +951,9 @@ class ScrapliDefault(DispatcherMixin):
                     raise NornirNautobotException(error_msg)
                 command_results.update({command: result[0].result})
             except NornirSubTaskError as exc:
-                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(
+                    type(exc.result.exception), "E1016"
+                )
                 error_msg = get_error_message(error_code, exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)

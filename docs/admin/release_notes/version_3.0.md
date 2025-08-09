@@ -2,33 +2,29 @@
 
 ## 3.3.1
 
-* [179] Fixes Default Netmiko merge_config missing can_diff argument.
-
-**Full Changelog**: https://github.com/nautobot/nornir-nautobot/compare/v3.3.0...v3.3.1
+* [179](https://github.com/nautobot/nornir-nautobot/issues/179) Fixes Default Netmiko merge_config missing can_diff argument.
 
 ## 3.3.0
 
-* [170] Add merge_config method to the Default Netmiko dispatcher.
-* [176] Drop Python3.8 support.
-* [174] Add a can_diff argument to *_config dispatcher methods to avoid logging sensitive data.
-* [162] Add a extreme_exos dispatcher.
-* [175] Add Scrapli support and a default Scrapli Dispatcher.
-* [173] Add get_command(s) methods to all default dispatchers and change get_config to use get_command.
+* [170](https://github.com/nautobot/nornir-nautobot/issues/170) Add merge_config method to the Default Netmiko dispatcher.
+* [176](https://github.com/nautobot/nornir-nautobot/issues/176) Drop Python3.8 support.
+* [174](https://github.com/nautobot/nornir-nautobot/issues/174) Add a can_diff argument to *_config dispatcher methods to avoid logging sensitive data.
+* [162](https://github.com/nautobot/nornir-nautobot/issues/162) Add a extreme_exos dispatcher.
+* [175](https://github.com/nautobot/nornir-nautobot/issues/175) Add Scrapli support and a default Scrapli Dispatcher.
+* [173](https://github.com/nautobot/nornir-nautobot/issues/173) Add get_command(s) methods to all default dispatchers and change get_config to use get_command.
 
 ## New Contributors
 * @EdificomSA made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/162
 
-**Full Changelog**: https://github.com/nautobot/nornir-nautobot/compare/v3.1.2...v3.3.0
 
 ## 3.2.0
 
-* [#144] force the enable call to allow many cisco ios platforms to work
-* [#149] Enhanced Jinja Error Handling and Stack Trace Logging by @jmpettit
+* [144](https://github.com/nautobot/nornir-nautobot/issues/144) force the enable call to allow many cisco ios platforms to work
+* [149](https://github.com/nautobot/nornir-nautobot/issues/149) Enhanced Jinja Error Handling and Stack Trace Logging by @jmpettit
 
 ### New Contributors
 * @jmpettit made their first contribution in https://github.com/nautobot/nornir-nautobot/pull/149
 
-**Full Changelog**: https://github.com/nautobot/nornir-nautobot/compare/v3.1.2...v3.2.0
 
 ## 3.1.2
 

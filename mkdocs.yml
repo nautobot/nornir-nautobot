@@ -4,7 +4,7 @@ edit_uri: "edit/main/nornir-nautobot/docs"
 site_dir: "nornir-nautobot/static/nornir-nautobot/docs"
 site_name: "Nornir Nautobot Documentation"
 site_url: "https://docs.nautobot.com/projects/nornir-nautobot/en/latest/"
-repo_url: "https://github.com/networktocode-llc/nornir-nautobot"
+repo_url: "https://github.com/nautobot/nornir-nautobot"
 copyright: "Copyright &copy; The Authors"
 theme:
   name: "material"

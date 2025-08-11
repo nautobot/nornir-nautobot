@@ -90,11 +90,11 @@ class DispatcherMixin:
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.username:
-            error_msg = get_error_message("E1005")
+            error_msg = get_error_message("E1005", hostname=hostname)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         if not task.host.password:
-            error_msg = get_error_message("E1006")
+            error_msg = get_error_message("E1006", hostname=hostname)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

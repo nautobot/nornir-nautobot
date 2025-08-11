@@ -9,5 +9,3 @@ class NapalmAristaEos(NapalmDefault):
 
 class NetmikoAristaEos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Arista EOS devices."""
-
-    config_command = "show run"

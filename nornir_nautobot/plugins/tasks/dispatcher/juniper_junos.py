@@ -9,5 +9,3 @@ class NapalmJuniperJunos(NapalmDefault):
 
 class NetmikoJuniperJunos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Juniper JUNOS devices."""
-
-    config_command = "show configuration | display set"

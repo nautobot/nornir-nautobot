@@ -9,5 +9,3 @@ class NapalmCiscoAsa(NapalmDefault):
 
 class NetmikoCiscoAsa(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco ASA devices."""
-
-    config_command = "show run"

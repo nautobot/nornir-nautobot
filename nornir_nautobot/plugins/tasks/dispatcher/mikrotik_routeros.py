@@ -143,7 +143,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
 
         major_version = result[0].result.split()[3].split(".")[0]
 
-        command = cls.config_command
+        command = cls._get_config_command(obj)
         if major_version > "6":
             command += " show-sensitive"
 

@@ -9,5 +9,3 @@ class NapalmCiscoNxos(NapalmDefault):
 
 class NetmikoCiscoNxos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco NXOS devices."""
-
-    config_command = "show run"

@@ -206,6 +206,12 @@ ERROR_CODES = {
         error_message="The command output file for `{command}` could not be found.",
         recommendation="Ensure the command has been run and its output file has been properly stored in Git under the expected path.",
     ),
+    "E1033": ErrorCode(
+        troubleshooting="Verify that that command `{command}` is valid for this device.",
+        description="While using the command `{command}`, return no configuration or an empty output.",
+        error_message="The command output for `{command}` was empty.",
+        recommendation="Review possibilites to override command sent in the docs `https://docs.nautobot.com/projects/nornir-nautobot/en/latest/user/task/#netmiko-show-running-config-command`.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

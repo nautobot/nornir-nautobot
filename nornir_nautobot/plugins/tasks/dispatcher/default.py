@@ -560,6 +560,10 @@ class NetmikoDefault(DispatcherMixin):
         else:
             getter_result = cls.get_command(task, logger, obj, command)
         running_config = getter_result.result.get("output").get(command)
+        if not running_config.strip():
+            error_msg = get_error_message("E1033", command=command)
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
         processed_config = cls._process_config(logger, running_config, remove_lines, substitute_lines, backup_file)
         return Result(host=task.host, result={"config": processed_config})
 

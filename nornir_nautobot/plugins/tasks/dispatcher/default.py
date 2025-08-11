@@ -13,6 +13,7 @@ from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
+from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
@@ -505,7 +506,7 @@ class NapalmDefault(DispatcherMixin):
 class NetmikoDefault(DispatcherMixin):
     """Default collection of Nornir Tasks based on Netmiko."""
 
-    config_command = "show run"
+    config_command = None  # This can be removed in future versions, as it is not used in the base class.
     offline_commands = False
 
     @classmethod
@@ -516,7 +517,9 @@ class NetmikoDefault(DispatcherMixin):
         config_context = obj.get_config_context().get("config_command")
         if config_context and isinstance(config_context, str):
             return config_context
-        return cls.config_command
+        if cls.config_command:
+            return cls.config_command
+        return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments
@@ -545,7 +548,7 @@ class NetmikoDefault(DispatcherMixin):
                 { "config: <running configuration> }
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = cls.config_command
+        command = cls._get_config_command(obj)
         if cls._offline_commands(obj):
             getter_result = cls.get_command(
                 task,

@@ -12,8 +12,6 @@ from nornir_nautobot.utils.helpers import get_error_message
 class NetmikoRuckusFastiron(NetmikoDefault):
     """Driver for Ruckus ICX/FastIron Switches."""
 
-    config_command = "show running-config"
-
     @staticmethod
     def merge_config(task: Task, logger, obj, config: str, can_diff: bool = True) -> Result:
         """Send configuration to merge on the device.

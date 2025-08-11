@@ -9,5 +9,3 @@ class NapalmCiscoXr(NapalmDefault):
 
 class NetmikoCiscoXr(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco XR devices."""
-
-    config_command = "show run"

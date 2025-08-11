@@ -110,14 +110,13 @@ The Netmiko `show_command` tells Netmiko which command to use to get the config,
 
 - First prefer `obj.cf["config_command"]` if it is set and a valid string, which is to say if a custom field named `config_command` is present it should be preferred.
 - Second prefer `obj.get_config_context()["config_command"]` if it is set and a valid string, which is to say if a config context is rendered for this device named `config_command` is present it should be preferred.
-- Finally default to the command defined in your Netmiko dispatcher, often defaulting to `NetmikoDefault` which sets it to `show run`.
+- Third prefer the command defined in your Netmiko dispatcher.
+- Finally default to what `RUNNING_CONFIG_MAPPER` (which comes from `netutils`) has in that dictionary or simply default to `show run`
 
 Here is the implementation:
 
 ```python
-class NetmikoDefault(DispatcherMixin):
-
-    config_command = "show run"
+    config_command = None
 
     @classmethod
     def _get_config_command(cls, obj) -> str:
@@ -127,7 +126,9 @@ class NetmikoDefault(DispatcherMixin):
         config_context = obj.get_config_context().get("config_command")
         if config_context and isinstance(config_context, str):
             return config_context
-        return cls.config_command
+        if cls.config_command:
+            return cls.config_command
+        return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
 ```
 
 ## Get command outputs through git repository

@@ -33,7 +33,7 @@ nornir-napalm = ">=0.5.0 <1.0.0"
 nornir-jinja2 = "^0.2.0"
 nornir-netmiko = ">=1.0.0,<2.0.0"
 pynautobot = ">=2.4.0,<3.0.0"
-netutils = ">1.9.0,<2.0.0"
+netutils = ">=1.14.1,<2.0.0"
 routeros-api = {version = "^0.17.0", optional = true}
 httpx = ">=0.23.0,<=0.27.0"
 nornir-scrapli = "^2025.1.30"

@@ -1,10 +1,10 @@
 """Holds constants for the Nornir Nautobot."""
 
 from collections import namedtuple
+from textwrap import dedent
 
 import jinja2
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
-from textwrap import dedent
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
 

@@ -4,6 +4,7 @@ from collections import namedtuple
 
 import jinja2
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
+from textwrap import dedent
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
 
@@ -18,7 +19,9 @@ ERROR_CODES = {
         troubleshooting="Ensure that the dispatcher path is correct and that the dispatcher is installed in both the web server and worker.",
         description="A dispatcher of `{checked_path}` was provided but not found.",
         error_message="Did not find a valid dispatcher in `{checked_path}`, preemptively failed.",
-        recommendation="Check that the dispatcher path is correctly spelled and that the dispatcher is installed in both the web server and worker.",
+        recommendation=dedent("""
+        - Check that the dispatcher path is correctly spelled and that the dispatcher is installed in both the web server and worker.
+        - Manually go into `nautobot-server nbshell` and attempt the import manually."""),
     ),
     "E1002": ErrorCode(
         troubleshooting="The dispatcher provided does not have the method `{method}`, if your system administrator has not installed the dispatcher please contact them to ensure this method is provided. If the method is not provided, please use a different dispatcher, and see `https://docs.nautobot.com/projects/nornir-nautobot/en/latest/user/task/#dispatcher-sender` for more details.",
@@ -30,7 +33,9 @@ ERROR_CODES = {
         troubleshooting="Ensure that the hostname is correct and that it is reachable from the worker and web server.",
         description="The hostname `{hostname}` did not have an IP nor was resolvable.",
         error_message="The hostname `{hostname}` did not have an IP nor was resolvable, preemptively failed.",
-        recommendation="Check the hostname and ensure it is reachable from the worker and web server.",
+        recommendation=dedent("""
+        - Check the hostname and ensure it is reachable from the worker and web server.
+        - Make sure your systems DNS configuration is accurate in order to resolve FQDNs."""),
     ),
     "E1004": ErrorCode(
         troubleshooting="Ensure that the IP address and port are correct and that the device is reachable from the worker and web server.",
@@ -120,12 +125,13 @@ ERROR_CODES = {
         troubleshooting="Standard network troubleshooting steps apply.",
         description="Failed with a timeout issue. `{exc.result.exception}`",
         error_message="Failed with a timeout issue. `{exc.result.exception}`",
-        recommendation="""Validated the following:
+        recommendation=dedent("""
+        Validated the following:
 
         - Ensure the IP and hostname are correct and reachable from the worker and web server.
         - The device is accessible and not overloaded or down.
         - If the device is "slow", potentially adjust the connection_options, as shown in the docs: https://docs.nautobot.com/projects/plugin-nornir/en/latest/user/app_feature_inventory/.
-        """,
+        """),
     ),
     "E1019": ErrorCode(
         troubleshooting="This messages has come from the vendor. Check the worker logs for which exact command was ran.",

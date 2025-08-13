@@ -3,10 +3,19 @@
 from collections import namedtuple
 from textwrap import dedent
 
-import jinja2
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
+
+JINJA_ERRORS = dedent("""\
+    Error rendering template `{template}` at `{filename}:{line_number}`\n
+    Line:\n
+    ```
+    {template_line}
+    ```\n
+    Error Type: `{error_type}`\n
+    Message: `{message}`\n
+""")
 
 ERROR_CODES = {
     "E1XXX": ErrorCode(
@@ -19,7 +28,7 @@ ERROR_CODES = {
         troubleshooting="Ensure that the dispatcher path is correct and that the dispatcher is installed in both the web server and worker.",
         description="A dispatcher of `{checked_path}` was provided but not found.",
         error_message="Did not find a valid dispatcher in `{checked_path}`, preemptively failed.",
-        recommendation=dedent("""
+        recommendation=dedent("""\
         - Check that the dispatcher path is correctly spelled and that the dispatcher is installed in both the web server and worker.
         - Manually go into `nautobot-server nbshell` and attempt the import manually."""),
     ),
@@ -33,7 +42,7 @@ ERROR_CODES = {
         troubleshooting="Ensure that the hostname is correct and that it is reachable from the worker and web server.",
         description="The hostname `{hostname}` did not have an IP nor was resolvable.",
         error_message="The hostname `{hostname}` did not have an IP nor was resolvable, preemptively failed.",
-        recommendation=dedent("""
+        recommendation=dedent("""\
         - Check the hostname and ensure it is reachable from the worker and web server.
         - Make sure your systems DNS configuration is accurate in order to resolve FQDNs."""),
     ),
@@ -76,38 +85,45 @@ ERROR_CODES = {
     "E1010": ErrorCode(
         troubleshooting="Ensure that the variable is defined in the context as it is expected to be used in the Jinja2 template.",
         description="Undefined variable in Jinja2 template.",
-        error_message="Undefined variable in Jinja2 template",
+        error_message=JINJA_ERRORS,
         recommendation="Look at the graphql query and ensure that the variable is defined in the context as it is expected to be used in the Jinja2 template.",
     ),
     "E1011": ErrorCode(
         troubleshooting="Ensure that the Jinja2 template is valid.",
         description="Syntax error in Jinja2 template.",
-        error_message="Syntax error in Jinja2 template - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
+        error_message=JINJA_ERRORS,
         recommendation="Jinja2 template syntax error, check the template for syntax issues. Nautobot provides a Jinja2 live viewer that can be used to validate templates before use.",
     ),
     "E1012": ErrorCode(
         troubleshooting="Ensure that the Jinja2 template file exists and is accessible.",
         description="Jinja2 template file not found.",
-        error_message="Jinja2 template not found - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
-        recommendation="Ensure that the Jinja2 template file exists and is accessible, generally as an include from one template to another.",
+        error_message=JINJA_ERRORS,
+        recommendation=dedent("""\
+            Ensure that the Jinja2 template file exists and is accessible, this is generally as an include from one template to another. Common issues include:
+
+            - Using incorrect relative paths from the file versus absolute paths from the root templates directory
+            - Incorrect file paths due to misspelling or wrong case
+            - File not included on this branch
+            - Permissions issues
+            """),
     ),
     "E1013": ErrorCode(
-        troubleshooting="Ensure that the Jinja2 template is valid.",
+        troubleshooting="Ensure that the Jinja2 template is valid, see error message for more details.",
         description="General Jinja2 template error.",
-        error_message="General Jinja2 template error - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
+        error_message=JINJA_ERRORS,
         recommendation="Ensure that the Jinja2 template is valid, see error message for more details.",
     ),
     "E1014": ErrorCode(
-        troubleshooting="",
-        description="Coming soon....",
+        troubleshooting="Evaluate the exception message and take action as needed.",
+        description="Catch all for unexpected issues of the referenced method.",
         error_message="Unknown error - `{exc.result.exception}`\n```\n{stack_trace}\n```",
-        recommendation="Coming soon....",
+        recommendation="Evaluate the exception message and take action as needed.",
     ),
     "E1015": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Evaluate the exception message and take action as needed.",
+        description="Catch all for unexpected issues of the referenced method.",
         error_message="The method {method} failed with an unexpected issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        recommendation="Evaluate the exception message and take action as needed.",
     ),
     "E1016": ErrorCode(
         troubleshooting="Review the exception message for more details.",
@@ -125,7 +141,7 @@ ERROR_CODES = {
         troubleshooting="Standard network troubleshooting steps apply.",
         description="Failed with a timeout issue. `{exc.result.exception}`",
         error_message="Failed with a timeout issue. `{exc.result.exception}`",
-        recommendation=dedent("""
+        recommendation=dedent("""\
         Validated the following:
 
         - Ensure the IP and hostname are correct and reachable from the worker and web server.
@@ -223,14 +239,16 @@ ERROR_CODES = {
         error_message="The command output for `{command}` was empty.",
         recommendation="Review possibilites to override command sent in the docs `https://docs.nautobot.com/projects/nornir-nautobot/en/latest/user/task/#netmiko-show-running-config-command`.",
     ),
+    "E1034": ErrorCode(
+        troubleshooting="Verify the name and availability of any custom Jinja2 filters used in the template.",
+        description="Reference to a Jinja2 filter that is not available in the environment.",
+        error_message=JINJA_ERRORS,
+        recommendation="Use a valid jinja filter, common reasons this error occurs include typos or jinja filter is not loaded into the Nautobot worker or web server.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {
     NetmikoAuthenticationException: "E1017",
     NetmikoTimeoutException: "E1018",
-    jinja2.exceptions.UndefinedError: "E1010",
-    jinja2.TemplateSyntaxError: "E1011",
-    jinja2.TemplateNotFound: "E1012",
-    jinja2.TemplateError: "E1013",
     OSError: "E1031",
 }

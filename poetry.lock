@@ -1314,21 +1314,6 @@ importlib-metadata = {version = ">=4,<5", markers = "python_version < \"3.10\""}
 setuptools = ">=43.0.0"
 
 [[package]]
-name = "nornir-jinja2"
-version = "0.2.0"
-description = "Jinja2 plugins for nornir"
-optional = false
-python-versions = ">=3.6,<4.0"
-files = [
-    {file = "nornir_jinja2-0.2.0-py3-none-any.whl", hash = "sha256:0c446bec7a8492923d4eb9ca00fb327603b41bc35d5f0112843c048737b506b1"},
-    {file = "nornir_jinja2-0.2.0.tar.gz", hash = "sha256:9ee5e725fe5543dcba4ec8b976804e9e88ecd356ea3b62bad97578cea0de1f75"},
-]
-
-[package.dependencies]
-jinja2 = ">=2.11.2,<4"
-nornir = ">=3,<4"
-
-[[package]]
 name = "nornir-napalm"
 version = "0.5.0"
 description = "NAPALM's plugins for nornir"
@@ -2407,4 +2392,4 @@ mikrotik-driver = ["routeros-api"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "ecb9098be33988841caa581d6f51ec8923f57ff1ec9236062af2b1a4bd2cf695"
+content-hash = "cde409eac602e2d2331dc8b2db0d696c38ba28f2c3760f373d16339aad24d4fc"

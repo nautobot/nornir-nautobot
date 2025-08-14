@@ -741,7 +741,7 @@ class NetmikoDefault(DispatcherMixin):
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1016")
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1014")
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
@@ -795,7 +795,7 @@ class NetmikoDefault(DispatcherMixin):
                         raise NornirNautobotException(error_msg)
                 command_results.update({command: result[0].result})
             except NornirSubTaskError as exc:
-                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
                 error_msg = get_error_message(error_code, exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
@@ -953,7 +953,7 @@ class ScrapliDefault(DispatcherMixin):
                     raise NornirNautobotException(error_msg)
                 command_results.update({command: result[0].result})
             except NornirSubTaskError as exc:
-                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
+                error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
                 error_msg = get_error_message(error_code, exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)

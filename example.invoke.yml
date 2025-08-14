@@ -1,0 +1,7 @@
+---
+nornir_nautobot:
+  python_ver: "3.11"
+  # local: false
+  # image_name: "nornir_nautobot"
+  # image_ver: "latest"
+  # pwd: "."

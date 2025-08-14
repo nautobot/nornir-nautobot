@@ -1,11 +1,21 @@
 """Holds constants for the Nornir Nautobot."""
 
 from collections import namedtuple
+from textwrap import dedent
 
-import jinja2
 from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
+
+JINJA_ERRORS = dedent("""\
+    Error rendering template `{template}` at `{filename}:{line_number}`\n
+    Line:\n
+    ```
+    {template_line}
+    ```\n
+    Error Type: `{error_type}`\n
+    Message: `{message}`\n
+""")
 
 ERROR_CODES = {
     "E1XXX": ErrorCode(
@@ -15,100 +25,111 @@ ERROR_CODES = {
         recommendation="Add the error code to the constants.py file.",
     ),
     "E1001": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Did not find a valid dispatcher in {checked_path}, preemptively failed.",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the dispatcher path is correct and that the dispatcher is installed in both the web server and worker.",
+        description="A dispatcher of `{checked_path}` was provided but not found.",
+        error_message="Did not find a valid dispatcher in `{checked_path}`, preemptively failed.",
+        recommendation=dedent("""\
+        - Check that the dispatcher path is correctly spelled and that the dispatcher is installed in both the web server and worker.
+        - Manually go into `nautobot-server nbshell` and attempt the import manually."""),
     ),
     "E1002": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Unable to locate the method {method} for {driver_class}, preemptively failed.",
-        recommendation="Coming soon....",
+        troubleshooting="The dispatcher provided does not have the method `{method}`, if your system administrator has not installed the dispatcher please contact them to ensure this method is provided. If the method is not provided, please use a different dispatcher, and see `https://docs.nautobot.com/projects/nornir-nautobot/en/latest/user/task/#dispatcher-sender` for more details.",
+        description="Dispatcher `{driver_class}` does not have the method `{method}`.",
+        error_message="Unable to locate the method `{method}` for `{driver_class}`, preemptively failed.",
+        recommendation="Contact your system administrator to ensure the dispatcher is installed and the method is provided, or use a different dispatcher.",
     ),
     "E1003": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="The hostname {hostname} did not have an IP nor was resolvable, preemptively failed.",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the hostname is correct and that it is reachable from the worker and web server.",
+        description="The hostname `{hostname}` did not have an IP nor was resolvable.",
+        error_message="The hostname `{hostname}` did not have an IP nor was resolvable, preemptively failed.",
+        recommendation=dedent("""\
+        - Check the hostname and ensure it is reachable from the worker and web server.
+        - Make sure your systems DNS configuration is accurate in order to resolve FQDNs."""),
     ),
     "E1004": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Ensure that the IP address and port are correct and that the device is reachable from the worker and web server.",
+        description="Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed.",
         error_message="Could not connect to IP: `{ip_addr}` and port: `{port}`, preemptively failed.",
-        recommendation="Coming soon....",
+        recommendation="Check the IP address and port and ensure the device is reachable.",
     ),
     "E1005": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="There was no username defined, preemptively failed.",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the username is defined and accessible for the device `{hostname}`.",
+        description="There was no username defined, preemptively failed on device `{hostname}`.",
+        error_message="There was no username defined, preemptively failed on device `{hostname}`.",
+        recommendation="Likely the credentials class is not setup correctly, check configuration here: https://docs.nautobot.com/projects/plugin-nornir/en/latest/user/app_feature_credentials/.",
     ),
     "E1006": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="There was no password defined, preemptively failed.",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the password is defined and accessible for the device `{hostname}`.",
+        description="There was no password defined, preemptively failed on device `{hostname}`.",
+        error_message="There was no password defined, preemptively failed on device `{hostname}`.",
+        recommendation="Likely the credentials class is not setup correctly, check configuration here: https://docs.nautobot.com/projects/plugin-nornir/en/latest/user/app_feature_credentials/.",
     ),
     "E1007": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Ensure that the backup file exists and is accessible.",
+        description="Backup file Not Found at location: `{backup_file}`, preemptively failed.",
         error_message="Backup file Not Found at location: `{backup_file}`, preemptively failed.",
-        recommendation="Coming soon....",
+        recommendation="Likely need to ensure that the backup has been created, or that the file path is correct.",
     ),
     "E1008": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Ensure that the intended config file exists and is accessible.",
+        description="Intended config file NOT Found at location: `{intended_file}`, preemptively failed.",
         error_message="Intended config file NOT Found at location: `{intended_file}`, preemptively failed.",
-        recommendation="Coming soon....",
+        recommendation="Likely need to ensure that the intended config has been created, or that the file path is correct.",
     ),
     "E1009": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="General failure, ideally the error message for more details as it was re-raised.",
+        description="General failure, ideally the error message for more details as it was re-raised.",
         error_message="UNKNOWN Failure of: {error}",
-        recommendation="Coming soon....",
+        recommendation="General failure, ideally the error message for more details as it was re-raised.",
     ),
     "E1010": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Undefined variable in Jinja2 template",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the variable is defined in the context as it is expected to be used in the Jinja2 template.",
+        description="Undefined variable in Jinja2 template.",
+        error_message=JINJA_ERRORS,
+        recommendation="Look at the graphql query and ensure that the variable is defined in the context as it is expected to be used in the Jinja2 template.",
     ),
     "E1011": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Syntax error in Jinja2 template - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the Jinja2 template is valid.",
+        description="Syntax error in Jinja2 template.",
+        error_message=JINJA_ERRORS,
+        recommendation="Jinja2 template syntax error, check the template for syntax issues. Nautobot provides a Jinja2 live viewer that can be used to validate templates before use.",
     ),
     "E1012": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Jinja2 template not found - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the Jinja2 template file exists and is accessible.",
+        description="Jinja2 template file not found.",
+        error_message=JINJA_ERRORS,
+        recommendation=dedent("""\
+            Ensure that the Jinja2 template file exists and is accessible, this is generally as an include from one template to another. Common issues include:
+
+            - Using incorrect relative paths from the file versus absolute paths from the root templates directory
+            - Incorrect file paths due to misspelling or wrong case
+            - File not included on this branch
+            - Permissions issues
+            """),
     ),
     "E1013": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="General Jinja2 template error - ``{exc.result.exception}``\n```\n{stack_trace}\n```",
-        recommendation="Coming soon....",
+        troubleshooting="Ensure that the Jinja2 template is valid, see error message for more details.",
+        description="General Jinja2 template error.",
+        error_message=JINJA_ERRORS,
+        recommendation="Ensure that the Jinja2 template is valid, see error message for more details.",
     ),
     "E1014": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Evaluate the exception message and take action as needed.",
+        description="Catch all for unexpected issues of the referenced method.",
         error_message="Unknown error - `{exc.result.exception}`\n```\n{stack_trace}\n```",
-        recommendation="Coming soon....",
+        recommendation="Evaluate the exception message and take action as needed.",
     ),
     "E1015": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Evaluate the exception message and take action as needed.",
+        description="Catch all for unexpected issues of the referenced method.",
         error_message="The method {method} failed with an unexpected issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        recommendation="Evaluate the exception message and take action as needed.",
     ),
     "E1016": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="Review the exception message for more details.",
         error_message="Saving Config Failed with an unknown issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        recommendation="The method `config_saved` failed with an unexpected issue: `{exc.result.exception}`",
     ),
     "E1017": ErrorCode(
         troubleshooting="Coming soon....",
@@ -117,22 +138,28 @@ ERROR_CODES = {
         recommendation="Coming soon....",
     ),
     "E1018": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Standard network troubleshooting steps apply.",
+        description="Failed with a timeout issue. `{exc.result.exception}`",
         error_message="Failed with a timeout issue. `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        recommendation=dedent("""\
+        Validated the following:
+
+        - Ensure the IP and hostname are correct and reachable from the worker and web server.
+        - The device is accessible and not overloaded or down.
+        - If the device is "slow", potentially adjust the connection_options, as shown in the docs: https://docs.nautobot.com/projects/plugin-nornir/en/latest/user/app_feature_inventory/.
+        """),
     ),
     "E1019": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="This messages has come from the vendor. Check the worker logs for which exact command was ran.",
+        description="The vendor returned a message that the command that was sent was not valid on the system.",
         error_message="Discovered `% Invalid input detected at` in the output",
-        recommendation="Coming soon....",
+        recommendation="Review the command that was sent to the device, and ensure it is valid for the device. This is generally seen on Cisco devices, but can be seen on others as well.",
     ),
     "E1020": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="There is a dependency that is not installed in this environment as described in the error message.",
+        description="The `{dependency}` is not installed in this environment.",
         error_message="The `{dependency}` is not installed in this environment.",
-        recommendation="Coming soon....",
+        recommendation="Ensure that the required dependency is installed in the Nautobot web server and worker.",
     ),
     "E1021": ErrorCode(
         troubleshooting="Coming soon....",
@@ -183,10 +210,10 @@ ERROR_CODES = {
         recommendation="Coming soon....",
     ),
     "E1029": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="This messages has come from the vendor. Check the worker logs for which exact command was ran.",
+        description="The vendor returned a message that the command that was sent was not valid on the system.",
         error_message="Discovered `% Ambiguous command` in the output",
-        recommendation="Coming soon....",
+        recommendation="Review the command that was sent to the device, and ensure it is valid for the device. This is generally seen on Cisco devices, but can be seen on others as well.",
     ),
     "E1030": ErrorCode(
         troubleshooting="This is generally seen on Cisco NXOS devices. Ensure user is allowed to run the command that is being requested.",
@@ -194,13 +221,34 @@ ERROR_CODES = {
         error_message="Discovered `% Permission denied for the role` in the output",
         recommendation="Ensure that the actual command that is ran, is allowed for the user making the connection. As an example, if `show run` is allowed, but `show running-config` is not, would need to address that.",
     ),
+    "E1031": ErrorCode(
+        troubleshooting="Verify that the file for the command `{command}` exists and is accessible in the expected Git path. Check for permission issues or problems with the Git working tree.",
+        description="While using offline command outputs through Git, the output file for the command `{command}` could not be retrieved due to a loading or access issue.",
+        error_message="The command output file for `{command}` could not be retrieved.",
+        recommendation="Ensure the file exists, the Git repository is properly cloned, and there are no permission or access issues.",
+    ),
+    "E1032": ErrorCode(
+        troubleshooting="Verify that the output file for the command `{command}` has been generated and committed to the Git repository.",
+        description="While using offline command outputs through Git, the output file for the command `{command}` was not found in the expected path.",
+        error_message="The command output file for `{command}` could not be found.",
+        recommendation="Ensure the command has been run and its output file has been properly stored in Git under the expected path.",
+    ),
+    "E1033": ErrorCode(
+        troubleshooting="Verify that that command `{command}` is valid for this device.",
+        description="While using the command `{command}`, return no configuration or an empty output.",
+        error_message="The command output for `{command}` was empty.",
+        recommendation="Review possibilites to override command sent in the docs `https://docs.nautobot.com/projects/nornir-nautobot/en/latest/user/task/#netmiko-show-running-config-command`.",
+    ),
+    "E1034": ErrorCode(
+        troubleshooting="Verify the name and availability of any custom Jinja2 filters used in the template.",
+        description="Reference to a Jinja2 filter that is not available in the environment.",
+        error_message=JINJA_ERRORS,
+        recommendation="Use a valid jinja filter, common reasons this error occurs include typos or jinja filter is not loaded into the Nautobot worker or web server.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {
     NetmikoAuthenticationException: "E1017",
     NetmikoTimeoutException: "E1018",
-    jinja2.exceptions.UndefinedError: "E1010",
-    jinja2.TemplateSyntaxError: "E1011",
-    jinja2.TemplateNotFound: "E1012",
-    jinja2.TemplateError: "E1013",
+    OSError: "E1031",
 }

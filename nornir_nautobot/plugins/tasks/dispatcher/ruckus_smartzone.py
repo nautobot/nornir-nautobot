@@ -1,16 +1,15 @@
 """default network_importer API-based driver for Ruckus Smartzone WLC."""
 
-import json
 import asyncio
+import json
+
 import httpx  # pylint: disable=E0401
 import requests
-
 from nornir.core.task import Result, Task
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import get_error_message
-
 from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin
+from nornir_nautobot.utils.helpers import get_error_message
 
 AP_PLATFORM_LIST = ["ruckus_access_point", "ruckus-access-point"]
 
@@ -55,9 +54,9 @@ class ApiRuckusSmartzone(DispatcherMixin):
         headers = {"Accept": "application/json", "Content-Type": "application/json;charset=UTF-8"}
         api_version = "v9_1"
         base_url = f"https://{controller_ip}:8443/wsg/api/public/{api_version}"
-        response = requests.post(  # nosec
+        response = requests.post(
             f"{base_url}/serviceTicket",
-            verify=False,
+            verify=False,  # noqa
             headers=headers,
             json={"username": username, "password": password},
             timeout=30,
@@ -91,7 +90,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
 
         for uri in endpoints.get("simple_endpoints"):
             if extras:
-                url_dict[uri] = f'{base_url}{uri}/{extras.get(uri, "")}?serviceTicket={token}'
+                url_dict[uri] = f"{base_url}{uri}/{extras.get(uri, '')}?serviceTicket={token}"
             else:
                 url_dict[uri] = f"{base_url}{uri}?serviceTicket={token}"
 
@@ -99,7 +98,10 @@ class ApiRuckusSmartzone(DispatcherMixin):
             if uri in simple_endpoints:
                 uri_list = []
                 response = requests.get(
-                    url=f"{base_url}{uri}?serviceTicket={token}", verify=False, headers=headers, timeout=30  # nosec
+                    url=f"{base_url}{uri}?serviceTicket={token}",
+                    verify=False,  # noqa
+                    headers=headers,
+                    timeout=30,
                 )
                 if response.status_code == 200:
                     item_list = response.json().get("list")
@@ -108,7 +110,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
 
-                uri_list = [f'{uri}/{item["id"]}' for item in item_list]
+                uri_list = [f"{uri}/{item['id']}" for item in item_list]
                 for uri_list_item in uri_list:
                     url_dict[uri_list_item] = f"{base_url}{uri_list_item}?serviceTicket={token}"
             else:
@@ -123,7 +125,7 @@ class ApiRuckusSmartzone(DispatcherMixin):
         # login use session params
         headers = {"Accept": "application/json", "Content-Type": "application/json;charset=UTF-8"}
 
-        async with httpx.AsyncClient(verify=False) as client:  # nosec
+        async with httpx.AsyncClient(verify=False) as client:  # noqa
             client.headers = headers
             coroutines = [client.get(url) for url in url_dict.values()]
             results = await asyncio.gather(*coroutines)

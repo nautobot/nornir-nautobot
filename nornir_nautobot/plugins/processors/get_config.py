@@ -76,7 +76,7 @@ class GetConfig(BaseProcessor):
 
         if os.path.exists(self.config_filename[host.name]):
             current_config = Path(self.config_filename[host.name]).read_text(encoding="utf-8")
-            self.previous_md5[host.name] = hashlib.md5(current_config.encode("utf-8")).hexdigest()  # nosec
+            self.previous_md5[host.name] = hashlib.md5(current_config.encode("utf-8")).hexdigest()  # noqa
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         """Verify the configuration returned and store it to disk.
@@ -125,7 +125,7 @@ class GetConfig(BaseProcessor):
 
         host.data["has_config"] = True
 
-        self.current_md5[host.name] = hashlib.md5(conf.encode("utf-8")).hexdigest()  # nosec
+        self.current_md5[host.name] = hashlib.md5(conf.encode("utf-8")).hexdigest()  # noqa
         # changed = False
 
         if host.name in self.previous_md5 and self.previous_md5[host.name] == self.current_md5[host.name]:

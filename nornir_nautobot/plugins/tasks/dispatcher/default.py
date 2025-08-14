@@ -813,7 +813,7 @@ class NetmikoDefault(DispatcherMixin):
         regex_flags=re.IGNORECASE,
         escape_sequence=chr(3),  # Ctrl-C
         **kwargs,
-    ):
+    ):  # pylint: disable=too-many-positional-arguments, too-many-locals
         """A task to run a command on a device and react to resulting prompts.
 
         Args:

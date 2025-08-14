@@ -167,6 +167,40 @@ def command_to_filename(command, replacement="_"):
 
 This ensures consistent and safe naming of command output files across different operating systems and Git repositories.
 
+## Reacting to Prompts
+
+The Netmiko dispatcher has a method called `get_command_with_prompts` that can be used to react to prompts.
+
+Let's say we wanted to mimic the following interaction with a network device:
+
+```text
+my-device# copy scp: bootflash:
+Enter source filename: my-files/test.txt
+Enter vrf (If no input, current vrf 'default' is considered): management
+Enter hostname for the scp server: 192.0.2.3
+Enter username: ntc
+ntc@192.0.2.3's password:
+test.txt                                   100%    0     0.0KB/s   00:00
+Copy complete, now saving to disk (please wait)...
+my-device#
+```
+
+We could use the following prompts (order does not matter):
+
+```python
+prompts = {
+    "enter source filename:": "my-files/test.txt",
+    "enter vrf": "management",
+    "enter hostname:": "192.0.2.3",
+    "enter username:": "ntc",
+    "password:": "ntc123",
+}
+```
+
+You must provide all the expected prompts. Any unexpected prompt, besides the default device prompt, will trigger an escape sequence being sent to the device to break out of the current prompt. By default, the escape sequence is `chr(3)`, which is the `Ctrl-C` sequence. You can override this by passing the `escape_sequence` keyword argument.
+
+By default, the flags added to re.search are `re.IGNORECASE`. You can override this by passing the `regex_flags` keyword argument.
+
 ## Environment Variables
 
 | Environment Variable | Explanation |

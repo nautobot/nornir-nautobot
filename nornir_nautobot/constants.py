@@ -245,6 +245,12 @@ ERROR_CODES = {
         error_message=JINJA_ERRORS,
         recommendation="Use a valid jinja filter, common reasons this error occurs include typos or jinja filter is not loaded into the Nautobot worker or web server.",
     ),
+    "E1035": ErrorCode(
+        troubleshooting="Verify that the username and password are correct.",
+        description="The authentication credentials were not accepted.",
+        error_message="Discovered `% Authentication failed` in the output",
+        recommendation="Ensure that the username and password are correct.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

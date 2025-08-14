@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import socket
 from typing import Optional
 
@@ -275,6 +276,8 @@ class DispatcherMixin:
             return True, get_error_message("E1029")
         if "% Permission denied for the role" in result_output:
             return True, get_error_message("E1030")
+        if "% Authentication failed" in result_output:
+            return True, get_error_message("E1035")
         return False, ""
 
     @classmethod
@@ -798,6 +801,62 @@ class NetmikoDefault(DispatcherMixin):
                 raise NornirNautobotException(error_msg)
 
         return Result(host=task.host, result={"output": command_results})
+
+    @classmethod
+    def get_command_with_prompts(
+        cls,
+        task: Task,
+        logger,
+        obj,
+        command,
+        prompts,
+        regex_flags=re.IGNORECASE,
+        escape_sequence=chr(3),  # Ctrl-C
+        **kwargs,
+    ):
+        """A task to run a command on a device and react to resulting prompts.
+
+        Args:
+            task (Task): Nornir Task.
+            logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
+            obj (Device): A Nautobot Device Django ORM object instance.
+            command: A command to execute.
+            prompts: A dictionary of regex pattern prompts and responses.
+            regex_flags: Flags to pass to re.search.
+            escape_sequence: The escape sequence to send if no prompt is matched.
+            **kwargs: Additional keyword arguments to pass to netmiko.
+        """
+        logger.debug(f"Executing get_command_with_prompts for {task.host.name} on {task.host.platform}")
+
+        net_connect = task.host.get_connection("netmiko", task.nornir.config)
+        base_prompt = net_connect.find_prompt()
+        # We disable stripping the prompt to detect if the command is complete
+        last_output = net_connect.send_command_timing(command, strip_prompt=False, **kwargs)
+        full_output = last_output
+        while True:
+            failed, error_msg = cls._has_hidden_errors(last_output)
+            if failed:
+                logger.error(error_msg, extra={"object": obj})
+                raise NornirNautobotException(error_msg)
+
+            if last_output.endswith(base_prompt):
+                logger.debug("Base prompt found. Command complete.")
+                break
+
+            for prompt, response in prompts.items():
+                if re.search(prompt, last_output, regex_flags):
+                    logger.debug(f"Matched prompt: {prompt}")
+                    last_output = net_connect.send_command_timing(response, strip_prompt=False, **kwargs)
+                    full_output += last_output
+                    # If we matched a prompt, we need to start the loop again to handle any subsequent prompts
+                    break
+            else:
+                logger.error(f"No prompt matched for ```\n{last_output}\n```")
+                last_output = net_connect.send_command_timing(escape_sequence, **kwargs)
+                full_output += last_output
+                break
+
+        return Result(host=task.host, result={"output": full_output})
 
 
 class ScrapliDefault(DispatcherMixin):

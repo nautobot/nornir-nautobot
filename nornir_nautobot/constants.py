@@ -251,6 +251,12 @@ ERROR_CODES = {
         error_message="Discovered `% Authentication failed` in the output",
         recommendation="Ensure that the username and password are correct.",
     ),
+    "E1036": ErrorCode(
+        troubleshooting="Verify that all expected prompts are defined in the prompts dictionary.",
+        description="A prompt was encountered that was not defined in the prompts dictionary.",
+        error_message="No prompt matched for ```\n{last_output}\n```",
+        recommendation="Verify that all expected prompts are defined in the prompts dictionary.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

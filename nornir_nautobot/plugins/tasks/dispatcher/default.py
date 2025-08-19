@@ -851,10 +851,11 @@ class NetmikoDefault(DispatcherMixin):
                     # If we matched a prompt, we need to start the loop again to handle any subsequent prompts
                     break
             else:
-                logger.error(f"No prompt matched for ```\n{last_output}\n```")
+                error_msg = get_error_message("E1036", last_output=last_output)
+                logger.error(error_msg)
+                logger.debug(f"Sending escape sequence: {escape_sequence}")
                 last_output = net_connect.send_command_timing(escape_sequence, **kwargs)
-                full_output += last_output
-                break
+                raise NornirNautobotException(error_msg)
 
         return Result(host=task.host, result={"output": full_output})
 

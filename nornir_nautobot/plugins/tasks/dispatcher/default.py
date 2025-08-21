@@ -857,7 +857,7 @@ class NetmikoDefault(DispatcherMixin):
                 last_output = net_connect.send_command_timing(escape_sequence, **kwargs)
                 raise NornirNautobotException(error_msg)
 
-        return Result(host=task.host, result={"output": full_output})
+        return Result(host=task.host, result={"output": {command: full_output}})
 
 
 class ScrapliDefault(DispatcherMixin):

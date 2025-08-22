@@ -1,0 +1,1 @@
+Adds Offline command getters and generic Git dispatcher functionality for pulling in files from a Nautobot Git repository.

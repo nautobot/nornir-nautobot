@@ -820,11 +820,11 @@ class NetmikoDefault(DispatcherMixin):
             task (Task): Nornir Task.
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
-            command: A command to execute.
-            prompts: A dictionary of regex pattern prompts and responses.
-            regex_flags: Flags to pass to re.search.
-            escape_sequence: The escape sequence to send if no prompt is matched.
-            **kwargs: Additional keyword arguments to pass to netmiko.
+            command (str): A command to execute.
+            prompts (dict): A dictionary of regex pattern prompts and responses.
+            regex_flags (re.RegexFlag): Flags to pass to re.search.
+            escape_sequence (str): The escape sequence to send if no prompt is matched.
+            kwargs (dict): Additional keyword arguments to pass to Netmiko.
         """
         logger.debug(f"Executing get_command_with_prompts for {task.host.name} on {task.host.platform}")
 

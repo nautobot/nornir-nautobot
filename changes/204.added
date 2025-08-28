@@ -1,1 +1,0 @@
-Move config_command to use Netutils functionality to make it dynamic.

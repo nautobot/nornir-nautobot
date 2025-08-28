@@ -1,24 +1,29 @@
 ---
 dev_addr: "127.0.0.1:8001"
+edit_uri: "edit/main/nornir-nautobot/docs"
+site_dir: "nornir-nautobot/static/nornir-nautobot/docs"
 site_name: "Nornir Nautobot Documentation"
-edit_uri: "edit/develop/docs"
 site_url: "https://docs.nautobot.com/projects/nornir-nautobot/en/latest/"
 repo_url: "https://github.com/nautobot/nornir-nautobot"
-copyright: "Copyright &copy; Network To Code"
+copyright: "Copyright &copy; The Authors"
 theme:
   name: "material"
   navigation_depth: 4
+  custom_dir: "docs/assets/overrides"
   hljs_languages:
-    - "django"
+    - "python"
     - "yaml"
   features:
-    - "navigation.tracking"
+    - "content.code.annotate"
+    - "content.code.copy"
+    - "content.tabs.link"
+    - "navigation.footer"
     - "navigation.tabs"
     - "navigation.tabs.sticky"
-    - "navigation.indexes"
-    - "search.suggest"
+    - "navigation.tracking"
     - "search.highlight"
     - "search.share"
+    - "search.suggest"
   favicon: "assets/favicon.ico"
   logo: "assets/nautobot_logo.svg"
   palette:
@@ -37,67 +42,144 @@ theme:
       toggle:
         icon: "material/weather-night"
         name: "Switch to light mode"
+
+validation:
+  absolute_links: "warn"
+  anchors: "warn"
+  omitted_files: "warn"
+  unrecognized_links: "warn"
+
 extra_css:
   - "assets/extra.css"
 
 extra:
-  generator: true
-
+  generator: false
+  ntc_sponsor: true
+  social:
+    - icon: "fontawesome/solid/rss"
+      link: "https://blog.networktocode.com/"
+      name: "Network to Code Blog"
+    - icon: "fontawesome/brands/youtube"
+      link: "https://www.youtube.com/channel/UCwBh-dDdoqzxXKyvTw3BuTw"
+      name: "Network to Code Videos"
+    - icon: "fontawesome/brands/slack"
+      link: "https://www.networktocode.com/community/"
+      name: "Network to Code Community"
+    - icon: "fontawesome/brands/github"
+      link: "https://github.com/networktocode/"
+      name: "GitHub Organization"
+    - icon: "fontawesome/brands/twitter"
+      link: "https://twitter.com/networktocode"
+      name: "Network to Code Twitter"
 markdown_extensions:
+  - "markdown_version_annotations":
+      admonition_tag: "???"
   - "admonition"
   - "toc":
       permalink: true
   - "attr_list"
+  - "markdown_data_tables":
+      base_path: "docs"
   - "md_in_html"
+  - "pymdownx.details"
+  # Need pymdownx.emoji for Grid icon search
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - "pymdownx.highlight":
       anchor_linenums: true
   - "pymdownx.inlinehilite"
   - "pymdownx.snippets"
-  - "pymdownx.superfences"
-  - "footnotes"
+  - "pymdownx.superfences":
+      custom_fences:
+        - name: "mermaid"
+          class: "mermaid"
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - "pymdownx.tabbed":
+      "alternate_style": true
+  - "pymdownx.tilde"
+
 plugins:
   - "search"
-  - "mkdocs-version-annotations"
+  - "glightbox":
+      manual: true # See https://blueswen.github.io/mkdocs-glightbox/flexibility/enable-by-image-or-page/
+  - "section-index"
+  - "mkdocstrings":
+      default_handler: "python"
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            heading_level: 1
+            show_root_heading: true
+            show_root_members_full_path: true
+            show_source: false
 
 nav:
   - Overview: "index.md"
-  - Inventory:
-      - Inventory Overview: "inventory/inventory.md"
-      - Common Issues: "inventory/common_issues.md"
-  - Processor Plugin: "processor/processor.md"
-  - Task Plugin:
-      - Task Overview: "task/task.md"
-      - Troubleshooting:
-          - "task/troubleshooting/index.md"
-          - E1001: "task/troubleshooting/E1001.md"
-          - E1002: "task/troubleshooting/E1002.md"
-          - E1003: "task/troubleshooting/E1003.md"
-          - E1004: "task/troubleshooting/E1004.md"
-          - E1005: "task/troubleshooting/E1005.md"
-          - E1006: "task/troubleshooting/E1006.md"
-          - E1007: "task/troubleshooting/E1007.md"
-          - E1008: "task/troubleshooting/E1008.md"
-          - E1009: "task/troubleshooting/E1009.md"
-          - E1010: "task/troubleshooting/E1010.md"
-          - E1011: "task/troubleshooting/E1011.md"
-          - E1012: "task/troubleshooting/E1012.md"
-          - E1013: "task/troubleshooting/E1013.md"
-          - E1014: "task/troubleshooting/E1014.md"
-          - E1015: "task/troubleshooting/E1015.md"
-          - E1016: "task/troubleshooting/E1016.md"
-          - E1017: "task/troubleshooting/E1017.md"
-          - E1018: "task/troubleshooting/E1018.md"
-          - E1019: "task/troubleshooting/E1019.md"
-          - E1020: "task/troubleshooting/E1020.md"
-          - E1021: "task/troubleshooting/E1021.md"
-          - E1022: "task/troubleshooting/E1022.md"
-          - E1023: "task/troubleshooting/E1023.md"
-          - E1024: "task/troubleshooting/E1024.md"
-          - E1025: "task/troubleshooting/E1025.md"
-          - E1026: "task/troubleshooting/E1026.md"
-          - E1027: "task/troubleshooting/E1027.md"
+  - User Guide:
+      - Library Overview: "user/lib_overview.md"
+      - Getting Started: "user/lib_getting_started.md"
+      - Frequently Asked Questions: "user/faq.md"
+      - Inventory:
+          - Inventory Overview: "user/inventory.md"
+          - Common Issues: "user/common_issues.md"
+      - Processor Plugin: "user/processor.md"
+      - Task Plugin:
+          - Task Overview: "user/task.md"
+          - Troubleshooting:
+              - "user/troubleshooting/index.md"
+              - E1XXX: "user/troubleshooting/E1XXX.md"
+              - E1001: "user/troubleshooting/E1001.md"
+              - E1002: "user/troubleshooting/E1002.md"
+              - E1003: "user/troubleshooting/E1003.md"
+              - E1004: "user/troubleshooting/E1004.md"
+              - E1005: "user/troubleshooting/E1005.md"
+              - E1006: "user/troubleshooting/E1006.md"
+              - E1007: "user/troubleshooting/E1007.md"
+              - E1008: "user/troubleshooting/E1008.md"
+              - E1009: "user/troubleshooting/E1009.md"
+              - E1010: "user/troubleshooting/E1010.md"
+              - E1011: "user/troubleshooting/E1011.md"
+              - E1012: "user/troubleshooting/E1012.md"
+              - E1013: "user/troubleshooting/E1013.md"
+              - E1014: "user/troubleshooting/E1014.md"
+              - E1015: "user/troubleshooting/E1015.md"
+              - E1016: "user/troubleshooting/E1016.md"
+              - E1017: "user/troubleshooting/E1017.md"
+              - E1018: "user/troubleshooting/E1018.md"
+              - E1019: "user/troubleshooting/E1019.md"
+              - E1020: "user/troubleshooting/E1020.md"
+              - E1021: "user/troubleshooting/E1021.md"
+              - E1022: "user/troubleshooting/E1022.md"
+              - E1023: "user/troubleshooting/E1023.md"
+              - E1024: "user/troubleshooting/E1024.md"
+              - E1025: "user/troubleshooting/E1025.md"
+              - E1026: "user/troubleshooting/E1026.md"
+              - E1027: "user/troubleshooting/E1027.md"
+              - E1028: "user/troubleshooting/E1028.md"
+              - E1029: "user/troubleshooting/E1029.md"
+              - E1030: "user/troubleshooting/E1030.md"
+              - E1031: "user/troubleshooting/E1031.md"
+              - E1032: "user/troubleshooting/E1032.md"
+              - E1033: "user/troubleshooting/E1033.md"
+              - E1034: "user/troubleshooting/E1034.md"
+  - Administrator Guide:
+      - Install and Configure: "admin/install.md"
+      - Upgrade: "admin/upgrade.md"
+      - Uninstall: "admin/uninstall.md"
+      - Release Notes:
+          - "admin/release_notes/index.md"
+          - v3.4: "admin/release_notes/version_3.4.md"
+          - v3.0: "admin/release_notes/version_3.0.md"
+          - v2.0: "admin/release_notes/version_2.0.md"
+          - v1.0: "admin/release_notes/version_1.0.md"
+          - v0.0: "admin/release_notes/version_0.0.md"
   - Developer Guide:
-      - Contributing: "dev/CONTRIBUTING.md"
-      - Changelog: "dev/CHANGELOG.md"
+      - Extending the Library: "dev/extending.md"
+      - Contributing to the Library: "dev/CONTRIBUTING.md"
+      - Development Environment: "dev/dev_environment.md"
+      - Release Checklist: "dev/release_checklist.md"
+      - Architecture Design Records: "dev/arch_decision.md"
       - Migrating to v3: "dev/migrating_to_v3.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

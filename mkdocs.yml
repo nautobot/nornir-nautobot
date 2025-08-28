@@ -170,10 +170,11 @@ nav:
       - Uninstall: "admin/uninstall.md"
       - Release Notes:
           - "admin/release_notes/index.md"
-          - v0.0: "admin/release_notes/version_0.0.md"
-          - v1.0: "admin/release_notes/version_1.0.md"
-          - v2.0: "admin/release_notes/version_2.0.md"
+          - v3.4: "admin/release_notes/version_3.4.md"
           - v3.0: "admin/release_notes/version_3.0.md"
+          - v2.0: "admin/release_notes/version_2.0.md"
+          - v1.0: "admin/release_notes/version_1.0.md"
+          - v0.0: "admin/release_notes/version_0.0.md"
   - Developer Guide:
       - Extending the Library: "dev/extending.md"
       - Contributing to the Library: "dev/CONTRIBUTING.md"

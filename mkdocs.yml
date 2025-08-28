@@ -178,6 +178,7 @@ nav:
       - Extending the Library: "dev/extending.md"
       - Contributing to the Library: "dev/CONTRIBUTING.md"
       - Development Environment: "dev/dev_environment.md"
+      - Release Checklist: "dev/release_checklist.md"
       - Architecture Design Records: "dev/arch_decision.md"
       - Migrating to v3: "dev/migrating_to_v3.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

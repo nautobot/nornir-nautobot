@@ -185,16 +185,25 @@ Copy complete, now saving to disk (please wait)...
 my-device#
 ```
 
-We could use the following prompts (order does not matter):
+We could use the following example:
 
 ```python
-prompts = {
-    "enter source filename:": "my-files/test.txt",
-    "enter vrf": "management",
-    "enter hostname:": "192.0.2.3",
-    "enter username:": "ntc",
-    "password:": "ntc123",
+command = "copy scp: bootflash:"
+prompt_responses = {
+    r"(.*)filename[:]?": "my-files/test.txt",
+    r"(.*)vrf[:]?": "management",
+    r"(.*)hostname[:]?": "192.0.2.3",
+    r"(.*)username[:]?": "ntc",
+    r"(.*)password[:]?": "ntc123",
 }
+task.run(
+    task=dispatcher,
+    obj=obj,
+    logger=logger,
+    method="get_command_with_prompts",
+    command=command,
+    prompt_responses=prompt_responses,
+)
 ```
 
 You must provide all the expected prompts. Any unexpected prompt, besides the default device prompt, will trigger an escape sequence being sent to the device to break out of the current prompt. By default, the escape sequence is `chr(3)`, which is the `Ctrl-C` sequence. You can override this by passing the `escape_sequence` keyword argument.

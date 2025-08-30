@@ -1,25 +1,23 @@
 """nornir dispatcher for Juniper Junos."""
+
 import os
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_config,
-    netmiko_commit
-)
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_confirm_commit
+from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_config
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
-
+from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
 from nornir_nautobot.utils.helpers import get_error_message
+
 
 class NapalmJuniperJunos(NapalmDefault):
     """Collection of Napalm Nornir Tasks specific to Juniper JUNOS devices."""
 
     @classmethod
-    def merge_config(  # pylint: disable=too-many-positional-arguments
+    def merge_config(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         cls,
         task: Task,
         logger,
@@ -62,7 +60,7 @@ class NapalmJuniperJunos(NapalmDefault):
         except NornirSubTaskError as exc:
             error_msg = error_msg = get_error_message("E1015", method="merge_config", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-            raise NornirNautobotException(error_msg)
+            raise NornirNautobotException(error_msg)  # pylint: disable=raise-missing-from
 
         logger.info(
             f"result: {push_result[0].result}, changed: {push_result.changed}",
@@ -86,7 +84,7 @@ class NetmikoJuniperJunos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Juniper JUNOS devices."""
 
     @classmethod
-    def merge_config(  # pylint: disable=too-many-positional-arguments
+    def merge_config(  # pylint: disable=too-many-positional-arguments,too-many-arguments
         cls,
         task: Task,
         logger,

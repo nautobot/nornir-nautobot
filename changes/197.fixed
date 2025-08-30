@@ -1,0 +1,1 @@
+Add the missing `netmiko_commit` to the JUNOS `merge_config` method.

@@ -60,7 +60,7 @@ def template_file(  # pylint: disable=too-many-arguments,too-many-positional-arg
 
     try:
         jinja_template = env.get_template(template)
-        text = jinja_template.render(host=task.host, **kwargs)
+        text = jinja_template.render(host=task.host, obj=obj, **kwargs)
         return Result(host=task.host, result=text)
     except Exception as error:
         error_type = type(error).__name__

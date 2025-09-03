@@ -511,6 +511,8 @@ class NetmikoDefault(DispatcherMixin):
 
     config_command = None  # This can be removed in future versions, as it is not used in the base class.
     offline_commands = False
+    # Regex of commands to pass to netmiko's send_config_set that should bypass command prompt verification
+    # Defaults to r"^banner .*$" if not set
     bypass_commands = None
 
     @classmethod

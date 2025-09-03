@@ -1,0 +1,1 @@
+Fixed the Arista EOS "action bash" command causing config deployment on netmiko to fail.

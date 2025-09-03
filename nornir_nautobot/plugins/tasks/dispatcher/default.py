@@ -511,6 +511,7 @@ class NetmikoDefault(DispatcherMixin):
 
     config_command = None  # This can be removed in future versions, as it is not used in the base class.
     offline_commands = False
+    bypass_commands = None
 
     @classmethod
     def _get_config_command(cls, obj) -> str:
@@ -602,6 +603,7 @@ class NetmikoDefault(DispatcherMixin):
                 task=netmiko_send_config,
                 config_commands=config.splitlines(),
                 enable=True,
+                bypass_commands=cls.bypass_commands,
             )
         except NornirSubTaskError as exc:
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")

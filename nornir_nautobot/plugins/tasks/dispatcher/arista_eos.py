@@ -10,4 +10,4 @@ class NapalmAristaEos(NapalmDefault):
 class NetmikoAristaEos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Arista EOS devices."""
 
-    bypass_commands = r"^\s*action bash\s*$"
+    bypass_commands = r"(^\s*action bash\s*$)|(^banner .*$)"

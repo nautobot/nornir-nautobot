@@ -19,12 +19,7 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-    netmiko_commit
-)
+from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER

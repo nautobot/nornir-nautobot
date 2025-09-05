@@ -3,6 +3,8 @@
 # pylint: disable=raise-missing-from,too-many-arguments
 from __future__ import annotations
 
+import inspect
+import json
 import logging
 import os
 import re
@@ -10,6 +12,7 @@ import socket
 from typing import Optional
 
 import jinja2
+import netmiko
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
@@ -513,6 +516,22 @@ class NetmikoDefault(DispatcherMixin):
     offline_commands = False
 
     @classmethod
+    def _get_netmiko_kwargs(cls, obj) -> dict:
+        custom_field = obj.cf.get("netmiko_kwargs")
+        if custom_field and isinstance(custom_field, str):
+            try:
+                return json.loads(custom_field)
+            except json.decoder.JSONDecodeError:
+                return {}
+        config_context = obj.get_config_context().get("netmiko_kwargs")
+        if config_context and isinstance(config_context, str):
+            try:
+                return json.loads(config_context)
+            except json.decoder.JSONDecodeError:
+                return {}
+        return {}
+
+    @classmethod
     def _get_config_command(cls, obj) -> str:
         custom_field = obj.cf.get("config_command")
         if custom_field and isinstance(custom_field, str):
@@ -598,10 +617,17 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.info("Config merge via netmiko starting", extra={"object": obj})
         try:
+            valid_params = inspect.signature(netmiko.BaseConnection.send_config_set).parameters
+            allowed_kwargs = {
+                netmiko_kwarg: netmiko_kwarg_value
+                for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs.items()
+                if netmiko_kwarg in valid_params
+            }
             push_result = task.run(
                 task=netmiko_send_config,
                 config_commands=config.splitlines(),
                 enable=True,
+                **allowed_kwargs,
             )
         except NornirSubTaskError as exc:
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
@@ -730,11 +756,18 @@ class NetmikoDefault(DispatcherMixin):
                     command_file_path=command_file_path,
                 )
             else:
+                valid_params = inspect.signature(netmiko.BaseConnection.send_command).parameters
+                allowed_kwargs = {
+                    netmiko_kwarg: netmiko_kwarg_value
+                    for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs.items()
+                    if netmiko_kwarg in valid_params
+                }
                 result = task.run(
                     task=netmiko_send_command,
                     command_string=command,
                     enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
                     **kwargs,
+                    **allowed_kwargs,
                 )
                 failed, error_msg = cls._has_hidden_errors(result[0].result)
                 if failed:

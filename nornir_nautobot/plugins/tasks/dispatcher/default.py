@@ -23,6 +23,7 @@ from nornir_netmiko.tasks import (
     netmiko_save_config,
     netmiko_send_command,
     netmiko_send_config,
+    netmiko_commit
 )
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
@@ -632,10 +633,10 @@ class NetmikoDefault(DispatcherMixin):
 
         logger.info("Config merge ended", extra={"object": obj})
         try:
-            task.run(
-                task=netmiko_save_config,
-                confirm=True,
-            )
+            try:
+                task.run(task=netmiko_save_config, confirm=True)
+            except (NotImplementedError, AttributeError):
+                task.run(task=netmiko_commit)
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})

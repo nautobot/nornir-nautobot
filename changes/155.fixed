@@ -1,1 +1,0 @@
-Fix lack of `napalm_confirm_commit` call on JUNOS `merge_config` in Napalm dispatcher.

@@ -514,6 +514,7 @@ class NetmikoDefault(DispatcherMixin):
 
     config_command = None  # This can be removed in future versions, as it is not used in the base class.
     offline_commands = False
+    netmiko_kwargs = {}
 
     @classmethod
     def _get_netmiko_kwargs(cls, obj) -> dict:
@@ -522,14 +523,14 @@ class NetmikoDefault(DispatcherMixin):
             try:
                 return json.loads(custom_field)
             except json.decoder.JSONDecodeError:
-                return {}
+                pass
         config_context = obj.get_config_context().get("netmiko_kwargs")
         if config_context and isinstance(config_context, str):
             try:
                 return json.loads(config_context)
             except json.decoder.JSONDecodeError:
-                return {}
-        return {}
+                pass
+        return cls.netmiko_kwargs
 
     @classmethod
     def _get_config_command(cls, obj) -> str:

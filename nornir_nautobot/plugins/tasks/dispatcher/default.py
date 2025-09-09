@@ -514,18 +514,29 @@ class NetmikoDefault(DispatcherMixin):
 
     @classmethod
     def _get_netmiko_kwargs(cls, obj) -> dict:
-        custom_field = obj.cf.get("netmiko_kwargs")
-        if custom_field and isinstance(custom_field, str):
-            try:
-                return json.loads(custom_field)
-            except json.decoder.JSONDecodeError:
-                pass
-        config_context = obj.get_config_context().get("netmiko_kwargs")
-        if config_context and isinstance(config_context, str):
-            try:
-                return json.loads(config_context)
-            except json.decoder.JSONDecodeError:
-                pass
+        """
+        Retrieves Netmiko keyword arguments from various sources with a class attribute fallback.
+
+        Order of precedence:
+            1. Custom field 'netmiko_kwargs' (string, then dict)
+            2. Config context 'netmiko_kwargs' (string, then dict)
+            3. Class default `cls.netmiko_kwargs`
+        """
+        sources = [
+            obj.cf.get("netmiko_kwargs"),
+            obj.get_config_context().get("netmiko_kwargs"),
+        ]
+
+        for source in sources:
+            if isinstance(source, dict):
+                return source
+            if isinstance(source, str):
+                try:
+                    return json.loads(source)
+                except json.JSONDecodeError:
+                    # Fall through to the next source if JSON parsing fails
+                    pass
+
         return cls.netmiko_kwargs
 
     @classmethod
@@ -617,9 +628,10 @@ class NetmikoDefault(DispatcherMixin):
             valid_params = inspect.signature(netmiko.BaseConnection.send_config_set).parameters
             allowed_kwargs = {
                 netmiko_kwarg: netmiko_kwarg_value
-                for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs.items()
+                for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs(obj).items()
                 if netmiko_kwarg in valid_params
             }
+            print(f"allowed_kwargs: {allowed_kwargs}")
             push_result = task.run(
                 task=netmiko_send_config,
                 config_commands=config.splitlines(),
@@ -756,7 +768,7 @@ class NetmikoDefault(DispatcherMixin):
                 valid_params = inspect.signature(netmiko.BaseConnection.send_command).parameters
                 allowed_kwargs = {
                     netmiko_kwarg: netmiko_kwarg_value
-                    for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs.items()
+                    for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs(obj).items()
                     if netmiko_kwarg in valid_params
                 }
                 result = task.run(

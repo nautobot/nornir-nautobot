@@ -631,7 +631,6 @@ class NetmikoDefault(DispatcherMixin):
                 for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs(obj).items()
                 if netmiko_kwarg in valid_params
             }
-            print(f"allowed_kwargs: {allowed_kwargs}")
             push_result = task.run(
                 task=netmiko_send_config,
                 config_commands=config.splitlines(),

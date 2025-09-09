@@ -1,6 +1,6 @@
 """default driver for the network_importer."""
 
-# pylint: disable=raise-missing-from,too-many-arguments
+# pylint: disable=raise-missing-from,too-many-arguments,too-many-lines
 from __future__ import annotations
 
 import inspect

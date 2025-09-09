@@ -5,10 +5,14 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
-- Changes to compatibility with Nautobot and/or other apps, libraries etc.
+- Fix a regression where Jinja templating data context was missing "obj" access.
+- Add the ability to inject Netmiko Keyword Arguments through to Netmiko. This allows for default overrides to be accepted from Nautobot and Golden Config.
 
 ## [v3.5.0 (2025-09-09)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.5.0)
+
+### Added
+
+- [#225](https://github.com/nautobot/nornir-nautobot/pull/225) - Add ability to inject netmiko_kwargs to pass through to Netmiko base classes.
 
 ### Fixed
 

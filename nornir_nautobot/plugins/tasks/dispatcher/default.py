@@ -528,15 +528,16 @@ class NetmikoDefault(DispatcherMixin):
         ]
 
         for source in sources:
-            if source:
-                if isinstance(source, dict):
-                    return source
-                if isinstance(source, str):
-                    try:
-                        return json.loads(source)
-                    except json.JSONDecodeError:
-                        # Fall through to the next source if JSON parsing fails
-                        pass
+            if not source:
+                continue
+            if isinstance(source, dict):
+                return source
+            if isinstance(source, str):
+                try:
+                    return json.loads(source)
+                except json.JSONDecodeError:
+                    # Fall through to the next source if JSON parsing fails
+                    pass
 
         return cls.netmiko_kwargs
 

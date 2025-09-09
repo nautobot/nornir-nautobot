@@ -1,8 +1,10 @@
 """default driver for the network_importer."""
 
-# pylint: disable=raise-missing-from,too-many-arguments
+# pylint: disable=raise-missing-from,too-many-arguments,too-many-lines
 from __future__ import annotations
 
+import inspect
+import json
 import logging
 import os
 import re
@@ -10,6 +12,7 @@ import socket
 from typing import Optional
 
 import jinja2
+import netmiko
 from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
@@ -19,11 +22,7 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
+from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
@@ -511,6 +510,36 @@ class NetmikoDefault(DispatcherMixin):
 
     config_command = None  # This can be removed in future versions, as it is not used in the base class.
     offline_commands = False
+    netmiko_kwargs = {}
+
+    @classmethod
+    def _get_netmiko_kwargs(cls, obj) -> dict:
+        """
+        Retrieves Netmiko keyword arguments from various sources with a class attribute fallback.
+
+        Order of precedence:
+            1. Custom field 'netmiko_kwargs' (string, then dict)
+            2. Config context 'netmiko_kwargs' (string, then dict)
+            3. Class default `cls.netmiko_kwargs`
+        """
+        sources = [
+            obj.cf.get("netmiko_kwargs"),
+            obj.get_config_context().get("netmiko_kwargs"),
+        ]
+
+        for source in sources:
+            if not source:
+                continue
+            if isinstance(source, dict):
+                return source
+            if isinstance(source, str):
+                try:
+                    return json.loads(source)
+                except json.JSONDecodeError:
+                    # Fall through to the next source if JSON parsing fails
+                    pass
+
+        return cls.netmiko_kwargs
 
     @classmethod
     def _get_config_command(cls, obj) -> str:
@@ -598,10 +627,17 @@ class NetmikoDefault(DispatcherMixin):
         """
         logger.info("Config merge via netmiko starting", extra={"object": obj})
         try:
+            valid_params = inspect.signature(netmiko.BaseConnection.send_config_set).parameters
+            allowed_kwargs = {
+                netmiko_kwarg: netmiko_kwarg_value
+                for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs(obj).items()
+                if netmiko_kwarg in valid_params
+            }
             push_result = task.run(
                 task=netmiko_send_config,
                 config_commands=config.splitlines(),
                 enable=True,
+                **allowed_kwargs,
             )
         except NornirSubTaskError as exc:
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
@@ -632,10 +668,10 @@ class NetmikoDefault(DispatcherMixin):
 
         logger.info("Config merge ended", extra={"object": obj})
         try:
-            task.run(
-                task=netmiko_save_config,
-                confirm=True,
-            )
+            try:
+                task.run(task=netmiko_save_config, confirm=True)
+            except (NotImplementedError, AttributeError):
+                task.run(task=netmiko_commit)
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
@@ -730,11 +766,18 @@ class NetmikoDefault(DispatcherMixin):
                     command_file_path=command_file_path,
                 )
             else:
+                valid_params = inspect.signature(netmiko.BaseConnection.send_command).parameters
+                allowed_kwargs = {
+                    netmiko_kwarg: netmiko_kwarg_value
+                    for netmiko_kwarg, netmiko_kwarg_value in cls._get_netmiko_kwargs(obj).items()
+                    if netmiko_kwarg in valid_params
+                }
                 result = task.run(
                     task=netmiko_send_command,
                     command_string=command,
                     enable=is_truthy(os.getenv("NORNIR_NAUTOBOT_NETMIKO_ENABLE_DEFAULT", default="True")),
                     **kwargs,
+                    **allowed_kwargs,
                 )
                 failed, error_msg = cls._has_hidden_errors(result[0].result)
                 if failed:

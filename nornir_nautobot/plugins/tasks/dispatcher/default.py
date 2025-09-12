@@ -17,7 +17,7 @@ from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
-from netutils.lib_mapper import RUNNING_CONFIG_MAPPER, NETMIKO_LIB_MAPPER
+from netutils.lib_mapper import NETMIKO_LIB_MAPPER, RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task

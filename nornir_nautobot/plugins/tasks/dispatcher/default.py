@@ -19,7 +19,7 @@ from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
-from nornir.core.exceptions import NornirSubTaskError, NornirExecutionError
+from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config

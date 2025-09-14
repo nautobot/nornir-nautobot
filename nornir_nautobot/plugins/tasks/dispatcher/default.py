@@ -17,7 +17,7 @@ from netutils.config.clean import clean_config, sanitize_config
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
-from netutils.lib_mapper import NETMIKO_LIB_MAPPER, RUNNING_CONFIG_MAPPER
+from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
@@ -551,7 +551,7 @@ class NetmikoDefault(DispatcherMixin):
             return config_context
         if cls.config_command:
             return cls.config_command
-        return RUNNING_CONFIG_MAPPER.get(NETMIKO_LIB_MAPPER.get(str(obj.platform.network_driver)), "show run")
+        return RUNNING_CONFIG_MAPPER.get(str(obj.platform.network_driver_mappings.get("netmiko")), "show run")
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments

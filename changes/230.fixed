@@ -1,1 +1,0 @@
-Fixed config_command to use the Platform's network_driver to NetMiko Driver mapping rather than the Platform name.

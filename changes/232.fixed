@@ -1,1 +1,0 @@
-Fixed NotImplemented error on Juniper merge_config. Better handling of save vs commit.

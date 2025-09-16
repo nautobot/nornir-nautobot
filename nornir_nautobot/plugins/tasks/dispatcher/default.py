@@ -19,7 +19,7 @@ from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
-from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
 from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
@@ -551,7 +551,7 @@ class NetmikoDefault(DispatcherMixin):
             return config_context
         if cls.config_command:
             return cls.config_command
-        return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
+        return RUNNING_CONFIG_MAPPER.get(str(obj.platform.network_driver_mappings.get("netmiko")), "show run")
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments
@@ -669,9 +669,13 @@ class NetmikoDefault(DispatcherMixin):
         logger.info("Config merge ended", extra={"object": obj})
         try:
             try:
-                task.run(task=netmiko_save_config, confirm=True)
-            except (NotImplementedError, AttributeError):
-                task.run(task=netmiko_commit)
+                # Now, we want to run the `save` task, but WITHOUT the processor. Otherwise our default processor raises the error.
+                # To do this, we get the current Nornir object from the `task` and create a
+                # new one with an empty list of processors.
+                nr_without_processors = task.nornir.with_processors([])
+                nr_without_processors.run(task=netmiko_save_config, confirm=True, raise_on_error=True)
+            except (NotImplementedError, AttributeError, NornirExecutionError):
+                nr_without_processors.run(task=netmiko_commit)
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})

@@ -551,7 +551,7 @@ class NetmikoDefault(DispatcherMixin):
             return config_context
         if cls.config_command:
             return cls.config_command
-        return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
+        return RUNNING_CONFIG_MAPPER.get(str(obj.platform.network_driver_mappings.get("netmiko")), "show run")
 
     @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments

@@ -7,6 +7,16 @@ This document describes all new features and changes in the release. The format 
 
 - Fix a regression where Jinja templating data context was missing "obj" access.
 - Add the ability to inject Netmiko Keyword Arguments through to Netmiko. This allows for default overrides to be accepted from Nautobot and Golden Config.
+- Fix Juniper merge_config.
+
+## [v3.5.1 (2025-09-16)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.5.1)
+
+### Fixed
+
+- [#228](https://github.com/nautobot/nornir-nautobot/issues/228) - Fix the GitHub release failures occurring in CI.
+- [#230](https://github.com/nautobot/nornir-nautobot/issues/230) - Fixed config_command to use the Platform's network_driver to NetMiko Driver mapping rather than the Platform name.
+- [#232](https://github.com/nautobot/nornir-nautobot/issues/232) - Fixed NotImplemented error on Juniper merge_config. Better handling of save vs commit.
+
 
 ## [v3.5.0 (2025-09-09)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.5.0)
 

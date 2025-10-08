@@ -28,12 +28,7 @@ from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.template_file import template_file
-from nornir_nautobot.utils.helpers import (
-    get_error_message,
-    get_stack_trace,
-    is_truthy,
-    make_folder,
-)
+from nornir_nautobot.utils.helpers import get_error_message, get_stack_trace, is_truthy, make_folder
 
 _logger = logging.getLogger(__name__)
 
@@ -788,7 +783,7 @@ class NetmikoDefault(DispatcherMixin):
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1014")
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)

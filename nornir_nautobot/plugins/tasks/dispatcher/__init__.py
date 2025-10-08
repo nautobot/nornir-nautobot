@@ -30,6 +30,11 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     Returns:
         Result: Nornir Task result object.
     """
+    # If no obj is passed in, check the host data for one.
+    # data.get("obj") is for inventories from nautobot-plugin-nornir
+    # data.get("pynautobot_object") is for inventories from nornir_nautobot.
+    if not obj:
+        obj = task.host.data.get("obj", task.host.data.get("pynautobot_object"))
     custom_dispatcher = ""
     if kwargs.get("custom_dispatcher"):
         custom_dispatcher = kwargs["custom_dispatcher"]

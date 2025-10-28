@@ -16,7 +16,10 @@ from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    DispatcherMixin,
+    NetmikoDefault,
+)
 from nornir_nautobot.utils.helpers import get_error_message
 
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
@@ -40,7 +43,13 @@ class ApiMikrotikRouteros(DispatcherMixin):
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device.
 
@@ -204,7 +213,10 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
             raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
-            logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
+            logger.warning(
+                "Config merged with errors, please check full info log below.",
+                extra={"object": obj},
+            )
             error_msg = get_error_message("E1028", push_result=push_result)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)

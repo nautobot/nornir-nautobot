@@ -22,7 +22,12 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
+from nornir_netmiko.tasks import (
+    netmiko_commit,
+    netmiko_save_config,
+    netmiko_send_command,
+    netmiko_send_config,
+)
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
@@ -441,7 +446,10 @@ class NapalmDefault(DispatcherMixin):
             extra={"object": obj},
         )
         logger.info("Config provision ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -502,7 +510,10 @@ class NapalmDefault(DispatcherMixin):
                 )
 
         logger.info("Config merge ended", extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result.changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result.changed, "result": push_result[0].result},
+        )
 
 
 class NetmikoDefault(DispatcherMixin):
@@ -679,7 +690,10 @@ class NetmikoDefault(DispatcherMixin):
         except NornirSubTaskError as exc:
             get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-        return Result(host=task.host, result={"changed": push_result[0].changed, "result": push_result[0].result})
+        return Result(
+            host=task.host,
+            result={"changed": push_result[0].changed, "result": push_result[0].result},
+        )
 
     @classmethod
     def _offline_commands(cls, obj):  # pylint: disable=too-many-return-statements
@@ -788,7 +802,7 @@ class NetmikoDefault(DispatcherMixin):
                     logger.error(error_msg, extra={"object": obj})
                     raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1014")
+            error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1014")
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)

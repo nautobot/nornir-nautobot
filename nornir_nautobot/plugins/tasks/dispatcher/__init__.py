@@ -33,7 +33,7 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     # If no obj is passed in, check the host data for one.
     # data.get("obj") is for inventories from nautobot-plugin-nornir
     # data.get("pynautobot_object") is for inventories from nornir_nautobot.
-    if not obj and not (obj := task.host.data.get("obj") or task.host.data.get("pynautobot_object")):
+    if not obj and not (obj := task.host.data.get("obj", task.host.data.get("pynautobot_object")):
         error_msg = get_error_message("E1000")
         logger.error(error_msg)
         raise NornirNautobotException(error_msg)

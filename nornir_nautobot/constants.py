@@ -24,6 +24,12 @@ ERROR_CODES = {
         error_message="Un-Registered Error Code used.",
         recommendation="Add the error code to the constants.py file.",
     ),
+    "E1000": ErrorCode(
+        troubleshooting="Ensure that a valid Nautobot Device object is being passed to the dispatcher.",
+        description="No Nautobot Device object was found to pass to the dispatcher.",
+        error_message="No Nautobot Device object was pass to dispatcher task.",
+        recommendation="Ensure that a valid Nautobot Device object is being passed to the dispatcher.",
+    ),
     "E1001": ErrorCode(
         troubleshooting="Ensure that the dispatcher path is correct and that the dispatcher is installed in both the web server and worker.",
         description="A dispatcher of `{checked_path}` was provided but not found.",

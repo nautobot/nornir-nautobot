@@ -165,6 +165,8 @@ nav:
               - E1032: "user/troubleshooting/E1032.md"
               - E1033: "user/troubleshooting/E1033.md"
               - E1034: "user/troubleshooting/E1034.md"
+              - E1035: "user/troubleshooting/E1035.md"
+              - E1036: "user/troubleshooting/E1036.md"
   - Administrator Guide:
       - Install and Configure: "admin/install.md"
       - Upgrade: "admin/upgrade.md"

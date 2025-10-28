@@ -7,7 +7,11 @@ import logging
 from nornir.core.task import Result, Task
 
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import get_error_message, import_string, snake_to_title_case
+from nornir_nautobot.utils.helpers import (
+    get_error_message,
+    import_string,
+    snake_to_title_case,
+)
 
 LOGGER = logging.getLogger(__name__)
 PATH_ROOT = "nornir_nautobot.plugins.tasks.dispatcher.default"

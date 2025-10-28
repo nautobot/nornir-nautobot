@@ -57,7 +57,10 @@ class GetConfig(BaseProcessor):
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
         """At the end, remove all configs files that have not been updated."""
         if len(self.existing_config_hostnames) > 0:
-            LOGGER.info("Will delete %s config(s) that have not been updated", len(self.existing_config_hostnames))
+            LOGGER.info(
+                "Will delete %s config(s) that have not been updated",
+                len(self.existing_config_hostnames),
+            )
 
             for hostname in self.existing_config_hostnames:
                 os.remove(os.path.join(self.config_dir, f"{hostname}.{self.config_extension}"))
@@ -98,7 +101,10 @@ class GetConfig(BaseProcessor):
             if result[0].exception:
                 LOGGER.warning("%s | %s", task.host.name, result[0].exception)
             else:
-                LOGGER.warning("%s | Something went wrong while trying to update the configuration ", task.host.name)
+                LOGGER.warning(
+                    "%s | Something went wrong while trying to update the configuration ",
+                    task.host.name,
+                )
             host.data["status"] = "fail-other"
             return
 

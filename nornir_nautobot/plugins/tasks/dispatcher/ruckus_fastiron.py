@@ -46,7 +46,10 @@ class NetmikoRuckusFastiron(NetmikoDefault):
             raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
-            logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
+            logger.warning(
+                "Config merged with errors, please check full info log below.",
+                extra={"object": obj},
+            )
             error_msg = get_error_message("E1026", push_result=push_result)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)

@@ -1,6 +1,9 @@
 """nornir dispatcher for cisco NXOS."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    NapalmDefault,
+    NetmikoDefault,
+)
 
 
 class NapalmCiscoNxos(NapalmDefault):

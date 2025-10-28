@@ -51,7 +51,10 @@ class ApiRuckusSmartzone(DispatcherMixin):
     @classmethod
     def _api_auth(cls, obj, logger, session_params: tuple) -> dict:
         controller_ip, username, password = session_params
-        headers = {"Accept": "application/json", "Content-Type": "application/json;charset=UTF-8"}
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+        }
         api_version = "v9_1"
         base_url = f"https://{controller_ip}:8443/wsg/api/public/{api_version}"
         response = requests.post(
@@ -81,7 +84,10 @@ class ApiRuckusSmartzone(DispatcherMixin):
         extras: dict,
     ) -> dict:
         url_dict = {}
-        headers = {"Accept": "application/json", "Content-Type": "application/json;charset=UTF-8"}
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+        }
         api_version = "v9_1"
         simple_endpoints = endpoints.get("simple_endpoints", [])
         nested_endpoints = endpoints.get("nested_endpoints", [])
@@ -123,7 +129,10 @@ class ApiRuckusSmartzone(DispatcherMixin):
     @classmethod
     async def _async_get_data(cls, url_dict: dict) -> dict:
         # login use session params
-        headers = {"Accept": "application/json", "Content-Type": "application/json;charset=UTF-8"}
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json;charset=UTF-8",
+        }
 
         async with httpx.AsyncClient(verify=False) as client:  # noqa
             client.headers = headers
@@ -136,7 +145,13 @@ class ApiRuckusSmartzone(DispatcherMixin):
 
     @classmethod
     def get_config(  # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device.
 

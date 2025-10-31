@@ -1,5 +1,5 @@
-# Local build
-/localbuild
+# Ansible Retry Files
+*.retry
 
 # Swap files
 *.swp
@@ -294,3 +294,15 @@ fabric.properties
 ### vscode ###
 .vscode/*
 *.code-workspace
+
+# Rando
+creds.env
+development/*.txt
+
+# Invoke overrides
+invoke.yml
+
+# Docs
+docs/README.md
+docs/CHANGELOG.md
+public

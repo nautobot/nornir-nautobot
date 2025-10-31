@@ -1,6 +1,9 @@
 """nornir dispatcher for cisco IOS."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    NapalmDefault,
+    NetmikoDefault,
+)
 
 
 class NapalmCiscoIos(NapalmDefault):
@@ -9,5 +12,3 @@ class NapalmCiscoIos(NapalmDefault):
 
 class NetmikoCiscoIos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco IOS devices."""
-
-    config_command = "show run"

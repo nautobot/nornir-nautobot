@@ -12,7 +12,7 @@ def patch_http_connection_pool(**constructor_kwargs):
     you want to give to the connection pool)
 
     Args:
-      **constructor_kwargs:
+      **constructor_kwargs: Keyword arguments to pass to the HTTPConnectionPool constructor.
     """
 
     class MyHTTPConnectionPool(connectionpool.HTTPConnectionPool):

@@ -1,6 +1,9 @@
 """nornir dispatcher for cisco XR."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    NapalmDefault,
+    NetmikoDefault,
+)
 
 
 class NapalmCiscoXr(NapalmDefault):
@@ -9,5 +12,3 @@ class NapalmCiscoXr(NapalmDefault):
 
 class NetmikoCiscoXr(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco XR devices."""
-
-    config_command = "show run"

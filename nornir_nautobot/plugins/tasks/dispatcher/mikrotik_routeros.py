@@ -2,8 +2,8 @@
 
 # pylint: disable=raise-missing-from
 
-import ssl
 import json
+import ssl
 
 try:
     import routeros_api  # pylint: disable=E0401
@@ -14,11 +14,13 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
-from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.plugins.tasks.dispatcher.default import DispatcherMixin, NetmikoDefault
-from nornir_nautobot.utils.helpers import get_error_message
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
-
+from nornir_nautobot.exceptions import NornirNautobotException
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    DispatcherMixin,
+    NetmikoDefault,
+)
+from nornir_nautobot.utils.helpers import get_error_message
 
 NETMIKO_DEVICE_TYPE = "mikrotik_routeros"
 
@@ -41,7 +43,13 @@ class ApiMikrotikRouteros(DispatcherMixin):
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
     ) -> Result:
         """Get the latest configuration from the device.
 
@@ -103,7 +111,14 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
 
     @classmethod
     def get_config(  # pylint: disable=R0913,R0914,too-many-positional-arguments
-        cls, task: Task, logger, obj, backup_file: str, remove_lines: list, substitute_lines: list
+        cls,
+        task: Task,
+        logger,
+        obj,
+        backup_file: str,
+        remove_lines: list,
+        substitute_lines: list,
+        command_file_path: str = None,
     ) -> Result:
         """Get the latest configuration from the device using Netmiko. Overrides default get_config.
 
@@ -115,6 +130,8 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
             obj (Device): A Nautobot Device Django ORM object instance.
             remove_lines (list): A list of regex lines to remove configurations.
             substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            backup_file (str): The file location of where the back configuration should be saved.
+            command_file_path (str, optional): Path to a file containing additional commands to run. Defaults to None.
 
         Returns:
             Result: Nornir Result object with a dict as a result containing the running configuration
@@ -135,7 +152,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
 
         major_version = result[0].result.split()[3].split(".")[0]
 
-        command = cls.config_command
+        command = cls._get_config_command(obj)
         if major_version > "6":
             command += " show-sensitive"
 
@@ -171,6 +188,7 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
             logger (NornirLogger): Custom NornirLogger object to reflect job_results (via Nautobot Jobs) and Python logger.
             obj (Device): A Nautobot Device Django ORM object instance.
             config (str): The config set.
+            can_diff (bool): Whether to use diff mode or not. Defaults to True.
 
         Raises:
             NornirNautobotException: Authentication error.
@@ -195,7 +213,10 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
             raise NornirNautobotException(error_msg) from exc
 
         if any(msg in push_result[0].result.lower() for msg in NETMIKO_FAIL_MSG):
-            logger.warning("Config merged with errors, please check full info log below.", extra={"object": obj})
+            logger.warning(
+                "Config merged with errors, please check full info log below.",
+                extra={"object": obj},
+            )
             error_msg = get_error_message("E1028", push_result=push_result)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)

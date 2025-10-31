@@ -5,8 +5,13 @@
 import logging
 
 from nornir.core.task import Result, Task
+
 from nornir_nautobot.exceptions import NornirNautobotException
-from nornir_nautobot.utils.helpers import snake_to_title_case, import_string
+from nornir_nautobot.utils.helpers import (
+    get_error_message,
+    import_string,
+    snake_to_title_case,
+)
 
 LOGGER = logging.getLogger(__name__)
 PATH_ROOT = "nornir_nautobot.plugins.tasks.dispatcher.default"
@@ -20,10 +25,22 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
     Args:
         task: Nornir Task object.
         method: The string value of the method to dynamically find.
+        logger: Logger object to use for logging.
+        obj: The Nautobot object passed to the method.
+        framework: The framework to use for the dispatcher E.g. "netmiko", "napalm".
+        *args: Additional positional arguments to pass to the method.
+        **kwargs: Additional keyword arguments to pass to the method.
 
     Returns:
         Result: Nornir Task result object.
     """
+    # If no obj is passed in, check the host data for one.
+    # data.get("obj") is for inventories from nautobot-plugin-nornir
+    # data.get("pynautobot_object") is for inventories from nornir_nautobot.
+    if not obj and not (obj := task.host.data.get("obj", task.host.data.get("pynautobot_object"))):
+        error_msg = get_error_message("E1000")
+        logger.error(error_msg)
+        raise NornirNautobotException(error_msg)
     custom_dispatcher = ""
     if kwargs.get("custom_dispatcher"):
         custom_dispatcher = kwargs["custom_dispatcher"]
@@ -49,14 +66,14 @@ def dispatcher(  # pylint: disable=too-many-arguments,too-many-locals
         checked_path = [framework_path, framework_default_path]
 
     if not driver_class:
-        error_msg = f"`E1001:` Did not find a valid dispatcher in {checked_path}, preemptively failed."
+        error_msg = get_error_message("E1001", checked_path=checked_path)
         logger.error(error_msg, extra={"object": obj})
         raise NornirNautobotException(error_msg)
 
     try:
         driver_task = getattr(driver_class, method)
     except AttributeError:
-        error_msg = f"`E1002:` Unable to locate the method {method} for {driver_class}, preemptively failed."
+        error_msg = get_error_message("E1002", method=method, driver_class=driver_class)
         logger.error(error_msg, extra={"object": obj})
         raise NornirNautobotException(error_msg)
 

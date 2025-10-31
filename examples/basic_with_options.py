@@ -2,12 +2,13 @@
 
 import logging
 import os
+
 from netutils.lib_mapper import NAPALM_LIB_MAPPER_REVERSE
 from nornir import InitNornir
 from nornir.core.inventory import ConnectionOptions
 from nornir_utils.plugins.functions import print_result
-from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
 
+from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
 
 LOGGER = logging.getLogger(__name__)
 

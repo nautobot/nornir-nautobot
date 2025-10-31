@@ -1,6 +1,9 @@
 """nornir dispatcher for cisco_asa."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    NapalmDefault,
+    NetmikoDefault,
+)
 
 
 class NapalmCiscoAsa(NapalmDefault):
@@ -9,5 +12,3 @@ class NapalmCiscoAsa(NapalmDefault):
 
 class NetmikoCiscoAsa(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Cisco ASA devices."""
-
-    config_command = "show run"

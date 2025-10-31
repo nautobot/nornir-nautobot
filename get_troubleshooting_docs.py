@@ -3,6 +3,7 @@
 import os
 
 from jinja2 import Environment, FileSystemLoader
+
 from nornir_nautobot.constants import ERROR_CODES
 
 
@@ -24,7 +25,7 @@ def generate_files_from_template(template_file):
         data["error_code"] = error_code
         data["error"] = error
         output_filename = f"{error_code}.md"  # Customize the filename as needed
-        output_filepath = os.path.join(template_dir, "docs", "task", "troubleshooting", output_filename)
+        output_filepath = os.path.join(template_dir, "docs", "user", "troubleshooting", output_filename)
         output_content = template.render(data)
 
         with open(output_filepath, "w", encoding="utf-8") as doc_file:

@@ -1,6 +1,9 @@
 """nornir dispatcher for arista_eos."""
 
-from nornir_nautobot.plugins.tasks.dispatcher.default import NapalmDefault, NetmikoDefault
+from nornir_nautobot.plugins.tasks.dispatcher.default import (
+    NapalmDefault,
+    NetmikoDefault,
+)
 
 
 class NapalmAristaEos(NapalmDefault):
@@ -9,5 +12,3 @@ class NapalmAristaEos(NapalmDefault):
 
 class NetmikoAristaEos(NetmikoDefault):
     """Collection of Netmiko Nornir Tasks specific to Arista EOS devices."""
-
-    config_command = "show run"

@@ -57,7 +57,10 @@ class GetConfig(BaseProcessor):
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
         """At the end, remove all configs files that have not been updated."""
         if len(self.existing_config_hostnames) > 0:
-            LOGGER.info("Will delete %s config(s) that have not been updated", len(self.existing_config_hostnames))
+            LOGGER.info(
+                "Will delete %s config(s) that have not been updated",
+                len(self.existing_config_hostnames),
+            )
 
             for hostname in self.existing_config_hostnames:
                 os.remove(os.path.join(self.config_dir, f"{hostname}.{self.config_extension}"))
@@ -76,7 +79,7 @@ class GetConfig(BaseProcessor):
 
         if os.path.exists(self.config_filename[host.name]):
             current_config = Path(self.config_filename[host.name]).read_text(encoding="utf-8")
-            self.previous_md5[host.name] = hashlib.md5(current_config.encode("utf-8")).hexdigest()  # nosec
+            self.previous_md5[host.name] = hashlib.md5(current_config.encode("utf-8")).hexdigest()  # noqa
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         """Verify the configuration returned and store it to disk.
@@ -98,7 +101,10 @@ class GetConfig(BaseProcessor):
             if result[0].exception:
                 LOGGER.warning("%s | %s", task.host.name, result[0].exception)
             else:
-                LOGGER.warning("%s | Something went wrong while trying to update the configuration ", task.host.name)
+                LOGGER.warning(
+                    "%s | Something went wrong while trying to update the configuration ",
+                    task.host.name,
+                )
             host.data["status"] = "fail-other"
             return
 
@@ -125,7 +131,7 @@ class GetConfig(BaseProcessor):
 
         host.data["has_config"] = True
 
-        self.current_md5[host.name] = hashlib.md5(conf.encode("utf-8")).hexdigest()  # nosec
+        self.current_md5[host.name] = hashlib.md5(conf.encode("utf-8")).hexdigest()  # noqa
         # changed = False
 
         if host.name in self.previous_md5 and self.previous_md5[host.name] == self.current_md5[host.name]:

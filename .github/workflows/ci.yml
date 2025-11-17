@@ -185,13 +185,19 @@ jobs:
     needs:
       - "poetry"
   changelog:
+    # Disable for develop branch
+    # Disable for main branch
+    # Disable for LTM branches
+    # Disable for Next branches
+    # Disable for Release branches
+    # Disable for manual CI runs
     if: >
-      (github.head_ref != 'develop')  # Disable for develop branch
-      && (github.head_ref != 'main')  # Disable for main branch
-      && (!startsWith(github.head_ref, 'ltm'))  # Disable for LTM branches
-      && (!startsWith(github.head_ref, 'next'))  # Disable for Next branches
-      && (!startsWith(github.head_ref, 'release'))  # Disable for Release branches
-      && (github.event_name != 'workflow_dispatch')  # Disable for manual CI runs
+      (github.head_ref != 'develop')
+      && (github.head_ref != 'main')
+      && (!startsWith(github.head_ref, 'ltm'))
+      && (!startsWith(github.head_ref, 'next'))
+      && (!startsWith(github.head_ref, 'release'))
+      && (github.event_name != 'workflow_dispatch')
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"

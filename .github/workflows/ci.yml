@@ -186,8 +186,12 @@ jobs:
       - "poetry"
   changelog:
     if: >
-      contains(fromJson('["develop"]'), github.base_ref) &&
-      (github.head_ref != 'main') && (!startsWith(github.head_ref, 'release'))
+      (github.head_ref != 'develop')  # Disable for develop branch
+      && (github.head_ref != 'main')  # Disable for main branch
+      && (!startsWith(github.head_ref, 'ltm'))  # Disable for LTM branches
+      && (!startsWith(github.head_ref, 'next'))  # Disable for Next branches
+      && (!startsWith(github.head_ref, 'release'))  # Disable for Release branches
+      && (github.event_name != 'workflow_dispatch')  # Disable for manual CI runs
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out repository code"

@@ -1,0 +1,1 @@
+Fixed CI workflow to disable changelog check for reserved branch names.

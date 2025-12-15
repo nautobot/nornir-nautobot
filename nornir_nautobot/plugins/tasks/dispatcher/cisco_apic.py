@@ -5,18 +5,17 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from logging import Logger
-
-    from nornir.core.task import Task
-    from requests import Session
-
-
 from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
 from nornir_nautobot.utils.helpers import (
     format_base_url_with_endpoint,
     resolve_controller_url,
 )
+
+if TYPE_CHECKING:
+    from logging import Logger
+
+    from nornir.core.task import Task
+    from requests import Session
 
 
 class ApiCiscoApic(ApiDefault):

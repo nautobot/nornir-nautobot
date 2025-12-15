@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
+
 if TYPE_CHECKING:
     from logging import Logger
 
     from nornir.core.task import Task
     from requests import Session
-
-from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
 
 
 def use_snip_hostname(hostname: str) -> str:

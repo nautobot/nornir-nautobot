@@ -38,7 +38,7 @@ class ConnectionMixin:
         return session
 
     @classmethod
-    def _return_response(
+    def _return_response(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         cls,
         method: str,
         url: str,
@@ -73,24 +73,16 @@ class ConnectionMixin:
                     verify=verify,
                 )
             except req_exceptions.SSLError as exc_ssl:
-                exc_msg: str = f"SSL error occurred: {exc_ssl}"
-                logger.error(exc_msg)
+                logger.error(f"SSL error occurred: {exc_ssl}")
                 response = None
             except req_exceptions.Timeout as exc_timeout:
-                exc_msg: str = f"Request timed out: {exc_timeout}"
-                logger.error(exc_msg)
+                logger.error(f"Request timed out: {exc_timeout}")
                 response = None
             except req_exceptions.ConnectionError as exc_conn:
-                exc_msg: str = f"Connection error occurred: {exc_conn}"
-                logger.error(exc_msg)
+                logger.error(f"Connection error occurred: {exc_conn}")
                 response = None
             except req_exceptions.RequestException as exc_req:
-                exc_msg: str = f"Request exception occurred: {exc_req}"
-                logger.error(exc_msg)
-                response = None
-            except Exception as exc:
-                exc_msg: str = f"An error occurred: {exc}"
-                logger.error(exc_msg)
+                logger.error(f"Request exception occurred: {exc_req}")
                 response = None
         if response is None:
             return response
@@ -102,7 +94,7 @@ class ConnectionMixin:
         return response
 
     @classmethod
-    def return_response_obj(
+    def return_response_obj(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         cls,
         method: str,
         url: str,
@@ -137,7 +129,7 @@ class ConnectionMixin:
         )
 
     @classmethod
-    def return_response_content(
+    def return_response_content(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         cls,
         method: str,
         url: str,

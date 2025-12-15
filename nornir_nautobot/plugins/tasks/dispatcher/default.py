@@ -36,26 +36,22 @@ from nornir_scrapli.tasks import send_command as scrapli_send_command
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.template_file import template_file
+from nornir_nautobot.utils.base_connection import ConnectionMixin
 from nornir_nautobot.utils.helpers import (
+    format_base_url_with_endpoint,
     get_error_message,
     get_stack_trace,
     is_truthy,
     make_folder,
+    render_jinja_template,
+    resolve_jmespath,
+    resolve_query,
 )
 
 if TYPE_CHECKING:
     from logging import Logger
 
     from requests import Session
-
-
-from nornir_nautobot.utils.base_connection import ConnectionMixin
-from nornir_nautobot.utils.helpers import (
-    format_base_url_with_endpoint,
-    render_jinja_template,
-    resolve_jmespath,
-    resolve_query,
-)
 
 _logger = logging.getLogger(__name__)
 
@@ -581,7 +577,7 @@ class NetmikoDefault(DispatcherMixin):
         return RUNNING_CONFIG_MAPPER.get(str(obj.platform.network_driver_mappings.get("netmiko")), "show run")
 
     @classmethod
-    def get_config(  # pylint: disable=too-many-positional-arguments
+    def get_config(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-branches
         cls,
         task: Task,
         logger,
@@ -1099,45 +1095,20 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
         """
 
     @classmethod
-    def controller_setup(
+    def resolve_backup_endpoint(  # pylint: disable=too-many-positional-arguments
         cls,
-        device_obj,
-        authenticated_obj: Any,
-        logger: Logger,
-    ) -> dict[str, str]:
-        """Setup for controller.
-
-        Args:
-            device_obj (Device): Nautobot Device object.
-            authenticated_obj (Any): The controller object, i.e DashboardAPI for
-                controller or None is not SDK.
-            logger (Logger): Logger object.
-
-        Returns:
-            dict[str, str]: Map for controller data.
-        """
-        # Overwrite if needed in child class
-        return {}
-
-    @classmethod
-    def resolve_backup_endpoint(
-        cls,
-        authenticated_obj: Any,
         device_obj,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         feature_name: str,
-        **kwargs: Any,
     ) -> Union[list[Any], dict[str, dict[Any, Any]]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            authenticated_obj (Any): Controller object or None.
             device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint context.
             feature_name (str): Feature name being collected.
-            kwargs (Any): Keyword arguments.
 
         Returns:
             Union[list[Any], dict[str, dict[Any, Any]]]: Dictionary of responses.
@@ -1210,7 +1181,7 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
         return {}
 
     @classmethod
-    def get_config(  # pylint: disable=R0913,R0914
+    def get_config(  # pylint: disable=R0913,R0914,R0917,R0912
         cls,
         task: Task,
         logger: Logger,
@@ -1237,18 +1208,10 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
             ValueError: If controller endpoints cannot be found in the config context.
         """
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
-        authenticated_obj: Any = cls.authenticate(
+        cls.authenticate(
             logger=logger,
             obj=obj,
             task=task,
-        )
-        logger.info(
-            f"Authenticated to {obj.name} platform: {obj.platform.name}",
-        )
-        controller_dict: dict[str, str] = cls.controller_setup(
-            device_obj=obj,
-            authenticated_obj=authenticated_obj,
-            logger=logger,
         )
         feature_endpoints: list[str] = cfg_cntx.get("backup_endpoints", "")
         if not feature_endpoints:
@@ -1268,12 +1231,10 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
                 )
                 continue
             feature_response_raw: dict[str, dict[Any, Any]] | list[Any] = cls.resolve_backup_endpoint(
-                authenticated_obj=authenticated_obj,
                 device_obj=obj,
                 logger=logger,
                 endpoint_context=endpoints,
                 feature_name=feature_name,
-                **controller_dict,
             )
             if not feature_response_raw:
                 logger.error(
@@ -1301,24 +1262,20 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    def resolve_remediation_endpoint(
+    def resolve_remediation_endpoint(  # pylint: disable=too-many-positional-arguments
         cls,
-        authenticated_obj: Any,
         device_obj,
         logger: Logger,
         endpoint_context: list[dict[Any, Any]],
         payload: dict[Any, Any] | list[dict[str, Any]],
-        **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """Resolve endpoint with parameters if any.
 
         Args:
-            authenticated_obj (Any): Controller object, i.e. Meraki Dashboard object or None.
             device_obj (Device): Nautobot Device object.
             logger (Logger): Logger object.
             endpoint_context (list[dict[Any, Any]]): controller endpoint config context.
             payload (dict[Any, Any] | list[dict[str, Any]]): Payload to pass to the API call.
-            kwargs (Any): Keyword arguments.
 
         Returns:
             list[dict[str, Any]]: List of API responses.
@@ -1337,23 +1294,8 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
                 base_url=cls.url,
                 endpoint=uri,
             )
-            req_params: list[str] = (
-                endpoint["parameters"]["non_optional"]
-                if "parameters" in endpoint and "non_optional" in endpoint["parameters"]
-                else []
-            )
             if isinstance(payload, dict):
                 payload_copy = payload.copy()
-                for param in req_params:
-                    if not kwargs:
-                        continue
-                    if not kwargs.get(param):
-                        logger.error(
-                            "resolve_endpoint method needs '%s' in kwargs",
-                            param,
-                        )
-                    elif kwargs.get(param):
-                        payload_copy.update({param: kwargs[param]})
                 response: Any = cls.return_response_content(
                     session=cls.session,
                     method=endpoint["method"],
@@ -1375,16 +1317,6 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
                     if not isinstance(item, dict):
                         continue
                     item_copy = item.copy()
-                    for param in req_params:
-                        if not kwargs:
-                            continue
-                        if not kwargs.get(param):
-                            logger.error(
-                                "resolve_endpoint method needs '%s' in kwargs",
-                                param,
-                            )
-                        else:
-                            item_copy.update({param: kwargs[param]})
                     response: Any = cls.return_response_content(
                         session=cls.session,
                         method=endpoint["method"],
@@ -1435,15 +1367,10 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
         )
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         # The above Python code snippet is performing the following actions:
-        authenticated_obj: Any = cls.authenticate(
+        cls.authenticate(
             logger=logger,
             obj=obj,
             task=task,
-        )
-        controller_dict: dict[str, str] = cls.controller_setup(
-            device_obj=obj,
-            authenticated_obj=authenticated_obj,
-            logger=logger,
         )
         aggregated_results: list[list[dict[str, Any]]] = []
         feature_endpoints: str = cfg_cntx.get("remediation_endpoints", "")
@@ -1467,12 +1394,10 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
             try:
                 aggregated_results.append(
                     cls.resolve_remediation_endpoint(
-                        authenticated_obj=authenticated_obj,
                         logger=logger,
                         endpoint_context=cfg_cntx[f"{remediation_endpoint}_remediation"],
                         payload=config[remediation_endpoint],
                         device_obj=obj,
-                        **controller_dict,
                     ),
                 )
             except NotImplementedError:

@@ -39,6 +39,8 @@ nornir-scrapli = "^2025.1.30"
 netmiko = ">=4.4.0,<5.0.0"
 napalm = ">=5.0.0,<6.0.0"
 scrapli = ">=2024.01.30"
+jinja2 = "^3.1.6"
+meraki = "^2.0.3"
 
 [tool.poetry.group.dev.dependencies]
 requests_mock = "*"

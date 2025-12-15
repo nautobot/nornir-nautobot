@@ -10,16 +10,14 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
     from requests import Response, Session
 
-from nornir_nautobot.plugins.tasks.dispatcher.api_base_dispatcher import (
-    ApiBaseDispatcher,
-)
+from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
 from nornir_nautobot.utils.helpers import (
     format_base_url_with_endpoint,
     resolve_controller_url,
 )
 
 
-class NetmikoCiscoVmanage(ApiBaseDispatcher):
+class NetmikoCiscoVmanage(ApiDefault):
     """Vmanage Controller Dispatcher class."""
 
     controller_type: str = "vmanage"

@@ -10,9 +10,7 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
     from requests import Session
 
-from nornir_nautobot.plugins.tasks.dispatcher.api_base_dispatcher import (
-    ApiBaseDispatcher,
-)
+from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
 
 
 def use_snip_hostname(hostname: str) -> str:
@@ -30,7 +28,7 @@ def use_snip_hostname(hostname: str) -> str:
     return hostname
 
 
-class NetmikoCitrixNetscaler(ApiBaseDispatcher):
+class NetmikoCitrixNetscaler(ApiDefault):
     """Netscaler Controller Dispatcher class."""
 
     @classmethod

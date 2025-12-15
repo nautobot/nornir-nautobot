@@ -12,9 +12,7 @@ if TYPE_CHECKING:
 
 from meraki import DashboardAPI
 
-from nornir_nautobot.plugins.tasks.dispatcher.api_base_dispatcher import (
-    ApiBaseDispatcher,
-)
+from nornir_nautobot.plugins.tasks.dispatcher.default import ApiDefault
 from nornir_nautobot.utils.helpers import (
     add_api_path_to_url,
     resolve_controller_url,
@@ -115,7 +113,7 @@ def _send_remediation_call(
     aggregated_results.append(response)
 
 
-class NetmikoCiscoMeraki(ApiBaseDispatcher):
+class NetmikoCiscoMeraki(ApiDefault):
     """Meraki Controller Dispatcher class."""
 
     controller_type = "meraki"

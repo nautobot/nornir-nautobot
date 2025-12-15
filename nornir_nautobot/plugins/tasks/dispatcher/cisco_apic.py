@@ -1,4 +1,4 @@
-"""Netmiko dispatcher for cisco vManage controllers."""
+"""API dispatcher for cisco APIC controllers."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from nornir_nautobot.utils.helpers import (
 )
 
 
-class NetmikoCiscoApic(ApiDefault):
+class ApiCiscoApic(ApiDefault):
     """APIC Controller Dispatcher class."""
 
     controller_type: str = "apic"

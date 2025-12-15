@@ -1,9 +1,9 @@
-"""Netmiko dispatcher for Meraki managed devices."""
+"""API dispatcher for Meraki managed devices."""
 
 from nornir_nautobot.plugins.tasks.dispatcher.cisco_meraki import (
-    NetmikoCiscoMeraki,
+    ApiCiscoMeraki,
 )
 
 
-class NetmikoMerakiManaged(NetmikoCiscoMeraki):
+class ApiMerakiManaged(ApiCiscoMeraki):
     """Meraki managed dispatcher class."""

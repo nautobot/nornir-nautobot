@@ -1,4 +1,4 @@
-"""Netmiko dispatcher for Citrix Netscaler controllers."""
+"""API dispatcher for Citrix Netscaler controllers."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def use_snip_hostname(hostname: str) -> str:
     return hostname
 
 
-class NetmikoCitrixNetscaler(ApiDefault):
+class ApiCitrixNetscaler(ApiDefault):
     """Netscaler Controller Dispatcher class."""
 
     @classmethod

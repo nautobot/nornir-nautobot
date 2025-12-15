@@ -1,4 +1,4 @@
-"""Netmiko dispatcher for cisco Meraki controllers."""
+"""API dispatcher for cisco Meraki controllers."""
 
 from __future__ import annotations
 
@@ -113,7 +113,7 @@ def _send_remediation_call(
     aggregated_results.append(response)
 
 
-class NetmikoCiscoMeraki(ApiDefault):
+class ApiCiscoMeraki(ApiDefault):
     """Meraki Controller Dispatcher class."""
 
     controller_type = "meraki"

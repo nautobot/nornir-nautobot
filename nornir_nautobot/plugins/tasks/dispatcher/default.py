@@ -31,7 +31,6 @@ from nornir_netmiko.tasks import (
     netmiko_send_config,
 )
 from nornir_scrapli.tasks import send_command as scrapli_send_command
-from remote_pdb import RemotePdb
 
 from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
 from nornir_nautobot.exceptions import NornirNautobotException
@@ -1170,7 +1169,6 @@ class ApiDefault(DispatcherMixin, ConnectionMixin, ABC):
         Raises:
             ValueError: If controller endpoints cannot be found in the config context.
         """
-        RemotePdb(host="localhost", port=4444).set_trace()
         cfg_cntx: OrderedDict[Any, Any] = obj.get_config_context()
         authenticated_obj: Any = cls.authenticate(
             logger=logger,

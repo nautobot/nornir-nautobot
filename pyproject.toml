@@ -41,6 +41,7 @@ napalm = ">=5.0.0,<6.0.0"
 scrapli = ">=2024.01.30"
 jinja2 = "^3.1.6"
 meraki = "^2.0.3"
+remote-pdb = "^2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 requests_mock = "*"

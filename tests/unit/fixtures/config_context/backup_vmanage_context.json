@@ -1,0 +1,18 @@
+{
+  "backup_endpoints": ["ntp_backup"],
+  "ntp_backup": [
+    {
+      "endpoint": "dataservice/template/feature",
+      "method": "GET",
+      "query": [],
+      "parameters": [],
+      "jmespath": {
+        "templateName": "data[0].templateName",
+        "templateId": "data[0].templateId",
+        "templateDescription": "data[0].templateDescription",
+        "templateType": "data[0].templateType",
+        "deviceType": "data[0].deviceType"
+      }
+    }
+  ]
+}

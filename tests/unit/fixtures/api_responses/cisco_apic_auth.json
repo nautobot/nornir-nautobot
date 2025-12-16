@@ -1,0 +1,11 @@
+{
+  "imdata": [
+    {
+      "aaaLogin": {
+        "attributes": {
+          "token": "mock_token"
+        }
+      }
+    }
+  ]
+}

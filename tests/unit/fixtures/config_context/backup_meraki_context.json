@@ -1,0 +1,19 @@
+{
+  "organization_id": "1278859",
+  "network_id": "123",
+  "backup_endpoints": ["ntp_backup"],
+  "ntp_backup": [
+    {
+      "endpoint": "organizations.getOrganization",
+      "method": "GET",
+      "query": [],
+      "parameters": ["organizationId"],
+      "jmespath": {
+        "name": "name",
+        "api": "api",
+        "management": "management",
+        "id": "id"
+      }
+    }
+  ]
+}

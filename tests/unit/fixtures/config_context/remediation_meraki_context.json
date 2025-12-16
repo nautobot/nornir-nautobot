@@ -1,0 +1,13 @@
+{
+  "ntp_remediation": [
+    {
+      "endpoint": "organizations.updateOrganization",
+      "method": "PUT",
+      "query": [],
+      "parameters": {
+        "non_optional": ["organizationId"],
+        "optional": ["name", "management", "api"]
+      }
+    }
+  ]
+}

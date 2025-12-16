@@ -1,0 +1,11 @@
+{
+  "snmpaccess": [
+    {
+      "eth0": {
+        "name": "eth0",
+        "ip": "244.178.44.111",
+        "community": "public"
+      }
+    }
+  ]
+}

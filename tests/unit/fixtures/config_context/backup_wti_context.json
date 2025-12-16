@@ -1,0 +1,14 @@
+{
+  "backup_endpoints": ["snmp_backup"],
+  "snmp_backup": [
+    {
+      "endpoint": "/api/v2/config/snmpaccess",
+      "method": "GET",
+      "query": [],
+      "parameters": [],
+      "jmespath": {
+        "templateName": "snmpaccess"
+      }
+    }
+  ]
+}

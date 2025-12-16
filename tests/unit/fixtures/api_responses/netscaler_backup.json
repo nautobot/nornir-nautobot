@@ -1,0 +1,10 @@
+[
+  {
+    "preferred": "NO",
+    "ntp_server": "ntp1"
+  },
+  {
+    "preferred": "NO",
+    "ntp_server": "ntp2"
+  }
+]

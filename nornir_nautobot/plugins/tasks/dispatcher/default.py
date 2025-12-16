@@ -755,7 +755,7 @@ class NetmikoDefault(DispatcherMixin):
 
         try:
             logger.info(f"Reading command output from: {command_file_path}")
-            with pathlib.Path(command_file_path).open("r", encoding="utf-8") as file:
+            with pathlib.Path(command_file_path).open(mode="r", encoding="utf-8") as file:
                 command_output_raw = file.read()
         except OSError as exc:
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc), "E1031")

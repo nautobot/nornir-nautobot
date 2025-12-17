@@ -150,7 +150,7 @@ class TestCitrixNetscalerDispatcher(unittest.TestCase):
             feature_name="ntp_backup",
         )
         expected_response: dict[str, Any] = get_json_fixture(
-            folder="api_responses",
+            folder="backup_response",
             file_name="netscaler_backup.json",
         )
 

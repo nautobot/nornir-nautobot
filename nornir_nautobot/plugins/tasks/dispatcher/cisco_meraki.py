@@ -38,7 +38,7 @@ class ApiCiscoMeraki(ApiDefault):
         cls.session: Session = cls.configure_session()
         password = task.host.password
         cls.get_headers = {
-            "Authorization": f"Bearer {password}",
+            "X-Cisco-Meraki-API-Key": password,
             "Accept": "application/json",
             "Content-Type": "application/json",
         }

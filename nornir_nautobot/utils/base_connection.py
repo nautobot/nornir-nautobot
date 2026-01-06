@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import requests
@@ -62,6 +63,8 @@ class ConnectionMixin:
         Returns:
             Optional[Response]: API Response object.
         """
+        if method in ["POST", "PUT"] and isinstance(body, dict):
+            body = json.dumps(body)
         with session as ses:
             try:
                 response: Optional[requests.Response] = ses.request(

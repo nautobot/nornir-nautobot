@@ -1,1 +1,1 @@
-"""Used to initialize the facts_crafter plugin."""
+"""Used to initialize the facts_crafter Nornir task plugin."""

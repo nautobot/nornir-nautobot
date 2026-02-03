@@ -15,6 +15,7 @@ from nornir_nautobot.plugins.tasks.facts_crafter.helpers import (
     _parse_command_result,
     _validate_platform_parsing_info,
 )
+from nornir_nautobot.utils.helpers import get_error_message
 
 
 @dataclass
@@ -59,7 +60,6 @@ def get_device_facts(
         "sync_driver": {
             "platform": task.host.platform,
             "manufacturer": task.host.platform.split("_")[0].title() if task.host.platform else "",
-            "network_driver": task.host.platform,
         }
     }
 
@@ -81,10 +81,11 @@ def get_device_facts(
                 obj=task.host.data["obj"],
                 framework=framework,
                 command_list=[command["command"] for command in commands],
-            )[1].result["output"]  # :/ Hi nornir!
+            )[1].result["output"]
         except NornirNautobotException as exc:
-            logger.error("Failed during get_commands execution.")
-            return Result(host=task.host, result="Failed during get_commands execution.", failed=True, exception=exc)
+            error_msg = get_error_message("E1037", hostname=task.host.name)
+            logger.error(error_msg)
+            return Result(host=task.host, result=error_msg, failed=True, exception=exc)
 
         # pylint: disable=broad-exception-caught
         try:
@@ -100,8 +101,9 @@ def get_device_facts(
                 for cmd in commands
             }
         except Exception as exc:
-            logger.error(f"Failed to parse commands. Error: {exc}.")
-            return Result(host=task.host, result="Failed to parse commands.", failed=True, exception=exc)
+            error_msg = get_error_message("E1038", hostname=task.host.name, exception=exc)
+            logger.error(error_msg)
+            return Result(host=task.host, result=error_msg, failed=True, exception=exc)
 
         # pylint: disable=broad-exception-caught
         try:
@@ -113,15 +115,17 @@ def get_device_facts(
                 skip_list=section.exclude,
             )
         except Exception as exc:
-            logger.error(f"Failed to extract data. Error: {exc}.")
-            return Result(host=task.host, result="Failed to extract data.", failed=True, exception=exc)
+            error_msg = get_error_message("E1039", hostname=task.host.name, exception=exc)
+            logger.error(error_msg)
+            return Result(host=task.host, result=error_msg, failed=True, exception=exc)
 
         # ---- 3. Schema Validation  -----------------------------------------------
         try:
             validate_jsonschema(host_facts, section.schema)
         except ValidationError as exc:
-            logger.error(f"Schema validation failed for {task.host.name}. Error: {exc}.")
-            return Result(host=task.host, result="Schema validation failed.", failed=True)
+            error_msg = get_error_message("E1040", hostname=task.host.name, exception=exc)
+            logger.error(error_msg)
+            return Result(host=task.host, result=error_msg, failed=True)
 
         logger.debug(
             f"Facts getter completed ({section.name})- commands collected, parsed and formatted successfully: {task.host.name} {host_facts}"

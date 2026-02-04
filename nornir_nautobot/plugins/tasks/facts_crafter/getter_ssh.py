@@ -39,7 +39,7 @@ def get_device_facts(
     parsing_kwargs,
     *args,
     **kwargs,
-):  # pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments,unused-argument,too-many-locals
     """Run platform-specific commands with parsing and logging.
 
     Args:

@@ -162,7 +162,7 @@ def _parse_command_result(network_driver, command, raw_output, parser_type, logg
     """Parse and store results based on parser type."""
     logger.debug("Result of '%s' command:\n\n%s", command, raw_output)
 
-    if parser_type in list(PARSERS.keys()):
+    if parser_type in list(PARSERS.keys()):  # pylint: disable=consider-iterating-dictionary
         parsed = _parse_command_output(network_driver, command, raw_output, parser_type, logger, parsing_kwargs)
     else:
         parsed = _handle_raw_or_none(raw_output, parser_type)

@@ -30,7 +30,11 @@ from nornir_netmiko.tasks import (
 )
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
-from nornir_nautobot.constants import EXCEPTION_TO_ERROR_MAPPER
+from nornir_nautobot.constants import (
+    ERROR_MATCHES_BAD_COMMAND,
+    ERROR_MATCHES_NO_AUTHORIZATION,
+    EXCEPTION_TO_ERROR_MAPPER,
+)
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.template_file import template_file
 from nornir_nautobot.utils.helpers import (
@@ -272,16 +276,14 @@ class DispatcherMixin:
             iosvl2-0>show ip
             % Incomplete command.
         """
-        if "% Invalid input detected at" in result_output:
-            return True, get_error_message("E1019")
-        if "% Incomplete command" in result_output:
-            return True, get_error_message("E1028")
-        if "% Ambiguous command" in result_output:
-            return True, get_error_message("E1029")
-        if "% Permission denied for the role" in result_output:
-            return True, get_error_message("E1030")
-        if "% Authentication failed" in result_output:
-            return True, get_error_message("E1035")
+        for error_str in ERROR_MATCHES_NO_AUTHORIZATION:
+            if error_str in result_output:
+                command_list = "\n".join(ERROR_MATCHES_NO_AUTHORIZATION)
+                return True, get_error_message("E1017", command_list=command_list)
+        for error_str in ERROR_MATCHES_BAD_COMMAND:
+            if error_str in result_output:
+                command_list = "\n".join(ERROR_MATCHES_BAD_COMMAND)
+                return True, get_error_message("E1030", command_list=command_list)
         return False, ""
 
     @classmethod

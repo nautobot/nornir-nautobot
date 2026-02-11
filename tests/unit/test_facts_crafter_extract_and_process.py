@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import yaml
 from nornir.core.inventory import ConnectionOptions, Host
 
-from nornir_nautobot.plugins.tasks.facts_crafter.formatter import extract_and_post_process
+from nornir_nautobot.utils.formatter import extract_and_post_process
 
 MOCK_DIR = os.path.join("tests", "unit", "facts_crafter_mocks")
 

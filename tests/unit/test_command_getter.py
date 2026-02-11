@@ -5,7 +5,7 @@ import unittest
 
 import yaml
 
-from nornir_nautobot.plugins.tasks.facts_crafter.getter_ssh import _get_elements_to_run
+from nornir_nautobot.utils.helpers import _get_elements_to_run
 
 MOCK_DIR = os.path.join("tests", "unit", "facts_crafter_mocks")
 

@@ -9,13 +9,13 @@ from nornir.core.task import Result, Task
 
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.dispatcher import dispatcher
-from nornir_nautobot.plugins.tasks.facts_crafter.formatter import perform_data_extraction
-from nornir_nautobot.plugins.tasks.facts_crafter.helpers import (
+from nornir_nautobot.utils.formatter import perform_data_extraction
+from nornir_nautobot.utils.helpers import (
     _get_elements_to_run,
     _parse_command_result,
     _validate_platform_parsing_info,
+    get_error_message,
 )
-from nornir_nautobot.utils.helpers import get_error_message
 
 
 @dataclass

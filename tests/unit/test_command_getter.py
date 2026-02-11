@@ -7,7 +7,7 @@ import yaml
 
 from nornir_nautobot.utils.helpers import _get_elements_to_run
 
-MOCK_DIR = os.path.join("tests", "unit", "facts_crafter_mocks")
+MOCK_DIR = os.path.join("tests", "unit", "get_device_facts_mocks")
 
 
 class TestGetCommandsToRun(unittest.TestCase):

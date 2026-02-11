@@ -1,4 +1,4 @@
-"""Test for formatter in facts_crafter nornir play."""
+"""Test for formatter in get_device_facts nornir play."""
 
 import json
 import os
@@ -13,7 +13,7 @@ from nornir_nautobot.utils.formatter import (
     normalize_processed_data,
 )
 
-MOCK_DIR = os.path.join("tests", "unit", "facts_crafter_mocks")
+MOCK_DIR = os.path.join("tests", "unit", "get_device_facts_mocks")
 SYNC_DEVICES_ONLY = ["cisco_wlc", "hp_comware", "paloalto_panos", "f5_tmsh", "aruba_aoscx"]
 
 

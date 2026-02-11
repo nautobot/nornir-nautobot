@@ -10,7 +10,7 @@ from nornir.core.inventory import ConnectionOptions, Host
 
 from nornir_nautobot.utils.formatter import extract_and_post_process
 
-MOCK_DIR = os.path.join("tests", "unit", "facts_crafter_mocks")
+MOCK_DIR = os.path.join("tests", "unit", "get_device_facts_mocks")
 
 
 class TestSingleCommandFormatterExtractAndProcess(unittest.TestCase):

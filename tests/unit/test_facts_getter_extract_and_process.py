@@ -6,6 +6,8 @@ import unittest
 from unittest.mock import MagicMock
 
 import yaml
+from jinja2 import StrictUndefined
+from jinja2.sandbox import SandboxedEnvironment
 from nornir.core.inventory import ConnectionOptions, Host
 
 from nornir_nautobot.utils.formatter import extract_and_post_process
@@ -36,6 +38,12 @@ class TestSingleCommandFormatterExtractAndProcess(unittest.TestCase):
             # defaults=Defaults(data={"sync_vlans": False, "sync_vrfs": False, "sync_cables": False}),
         )
         self.logger = MagicMock()
+        jinja_env_params = {
+            "undefined": StrictUndefined,
+            "trim_blocks": True,
+            "lstrip_blocks": False,
+        }
+        self.jinja_env = SandboxedEnvironment(**jinja_env_params)
 
     def test_extract_and_process_from_directory(self):
         test_dir = f"{MOCK_DIR}/extract_and_process/"
@@ -55,6 +63,7 @@ class TestSingleCommandFormatterExtractAndProcess(unittest.TestCase):
                     _, postpro_result = extract_and_post_process(
                         command_outputs,
                         platform_parsing_info,
+                        self.jinja_env,
                         {"obj": self.host.name, "original_host": self.host.name},
                         None,
                         logger=self.logger,

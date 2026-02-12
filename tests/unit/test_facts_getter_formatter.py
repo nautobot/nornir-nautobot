@@ -6,6 +6,8 @@ import unittest
 from unittest.mock import MagicMock
 
 import yaml
+from jinja2 import StrictUndefined
+from jinja2.sandbox import SandboxedEnvironment
 from nornir.core.inventory import ConnectionOptions, Host
 
 from nornir_nautobot.utils.formatter import (
@@ -117,6 +119,12 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
             "software_version",
             "vlan_map",
         ]
+        jinja_env_params = {
+            "undefined": StrictUndefined,
+            "trim_blocks": True,
+            "lstrip_blocks": False,
+        }
+        self.jinja_env = SandboxedEnvironment(**jinja_env_params)
 
     def test_perform_data_extraction_simple_host_values(self):
         self.assertEqual("198.51.100.1", self.host.name)
@@ -126,6 +134,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -138,6 +147,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -150,6 +160,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -162,6 +173,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "str",
             self.logger,
@@ -174,6 +186,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "dict",
             self.logger,
@@ -186,6 +199,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "dict",
             self.logger,
@@ -198,6 +212,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
         actual_result = extract_and_post_process(
             parsed_command_output,
             self.platform_parsing_info["sync_devices"]["serial"]["commands"][0],
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -214,6 +229,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -230,6 +246,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -246,6 +263,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -262,6 +280,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "dict",
             self.logger,
@@ -278,6 +297,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "[*].foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "dict",
             self.logger,
@@ -294,6 +314,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "[*]",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "str",
             self.logger,
@@ -310,6 +331,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "[*].foo",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             None,
             self.logger,
@@ -342,6 +364,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "jpath": "[?interface=='{{ current_key | abbreviated_interface_name }}'].{admin_mode: admin_mode, mode: mode, access_vlan: access_vlan, trunking_vlans: trunking_vlans, native_vlan: native_vlan}",
                 "post_processor": "{{ obj | get_vlan_data(vlan_map, 'tagged') | tojson }}",
             },
+            self.jinja_env,
             {
                 "obj": "1.1.1.1",
                 "original_host": "1.1.1.1",
@@ -395,6 +418,7 @@ class TestFormatterExtractAndProcess(unittest.TestCase):
                 "parser": "textfsm",
                 "jpath": "[*].serial[]",
             },
+            self.jinja_env,
             {"obj": "1.1.1.1", "original_host": "1.1.1.1"},
             "str",
             self.logger,

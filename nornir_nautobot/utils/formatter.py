@@ -5,15 +5,6 @@ from json.decoder import JSONDecodeError
 
 import jinja2
 from jdiff import extract_data_from_json
-from jinja2 import StrictUndefined
-from jinja2.sandbox import SandboxedEnvironment
-
-JINJA_ENV_PARAMS = {
-    "undefined": StrictUndefined,
-    "trim_blocks": True,
-    "lstrip_blocks": False,
-}
-JINJA_ENV = SandboxedEnvironment(**JINJA_ENV_PARAMS)
 
 
 def process_empty_result(iterable_type):
@@ -57,12 +48,14 @@ def normalize_processed_data(processed_data, iterable_type):  # pylint: disable=
     return post_processed_data
 
 
-def extract_and_post_process(parsed_command_output, yaml_command_element, j2_data_context, iter_type, logger):
+def extract_and_post_process(
+    parsed_command_output, yaml_command_element, jinja_env, j2_data_context, iter_type, logger
+):  # pylint: disable=too-many-arguments,too-many-positional-arguments
     """Helper to extract and apply post_processing on a single element."""
     # if parsed_command_output is an empty data structure, no need to go through all the processing.
     if not parsed_command_output:
         return parsed_command_output, normalize_processed_data(parsed_command_output, iter_type)
-    j2_env = JINJA_ENV
+    j2_env = jinja_env
     # This just renders the jpath itself if any interpolation is needed.
     jpath_template = j2_env.from_string(yaml_command_element["jpath"])
     j2_rendered_jpath = jpath_template.render(**j2_data_context)
@@ -97,7 +90,7 @@ def extract_and_post_process(parsed_command_output, yaml_command_element, j2_dat
     return pre_processed_extracted, post_processed_data
 
 
-def perform_data_extraction(host, command_info_dict, command_outputs_dict, logger, skip_list=None):  # pylint: disable=too-many-locals,too-many-branches
+def perform_data_extraction(host, command_info_dict, command_outputs_dict, jinja_env, logger, skip_list=None):  # pylint: disable=too-many-locals,too-many-branches,too-many-positional-arguments,too-many-arguments
     """Extract, process data."""
     result_dict = {}
 
@@ -120,6 +113,7 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, logge
             _, current_field_post = extract_and_post_process(
                 command_outputs_dict[show_command_dict.get("command") or show_command_dict.get("oid")],
                 show_command_dict,
+                jinja_env,
                 {"obj": host.name, "original_host": host.name},
                 final_iterable_type,
                 logger,
@@ -149,6 +143,7 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, logge
                 root_key_pre, root_key_post = extract_and_post_process(  # pylint: disable=unused-variable
                     command_outputs_dict[show_command_dict.get("command") or show_command_dict.get("oid")],
                     show_command_dict,
+                    jinja_env,
                     merged_context,
                     final_iterable_type,
                     logger,
@@ -170,6 +165,7 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, logge
                         _, current_key_post = extract_and_post_process(
                             command_outputs_dict[show_command_dict.get("command") or show_command_dict.get("oid")],
                             show_command_dict,
+                            jinja_env,
                             merged_context,
                             final_iterable_type,
                             logger,
@@ -181,6 +177,7 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, logge
                     _, current_field_post = extract_and_post_process(
                         command_outputs_dict[show_command_dict.get("command") or show_command_dict.get("oid")],
                         show_command_dict,
+                        jinja_env,
                         merged_context,
                         final_iterable_type,
                         logger,

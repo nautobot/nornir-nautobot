@@ -34,6 +34,7 @@ def get_device_facts(
     task: Task,
     command_specifications: Dict,
     section_instructions: List[Section],
+    jinja_env,
     logger,
     framework,
     parsing_kwargs,
@@ -46,6 +47,7 @@ def get_device_facts(
         task: Nornir Task object.
         command_specifications: Dictionary of command specifications. (All YAML files content.)
         section_instructions: List of Section instances. (Specify what to include, exclude and schema for validation)
+        jinja_env: A fully configured jinja2 environment
         logger: Logger object to use for logging.
         framework: The framework to use for the dispatcher E.g. "netmiko".
         parsing_kwargs: Dictionary with parsing information (attributes).
@@ -111,6 +113,7 @@ def get_device_facts(
                 task.host,
                 command_specifications[task.host.platform][section.name],
                 preformatted_facts,
+                jinja_env=jinja_env,
                 logger=logger,
                 skip_list=section.exclude,
             )

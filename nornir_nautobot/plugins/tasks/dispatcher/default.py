@@ -709,6 +709,10 @@ class NetmikoDefault(DispatcherMixin):
             bool:
                 - True or False if the key exists in any of the sources and is explicitly set.
         """
+        # Early return if obj is not the expected type or lacks required attributes
+        if not hasattr(obj, "cf") or not hasattr(obj, "get_config_context"):
+            return cls.offline_commands
+
         custom_field = obj.cf.get("offline_commands")
         if isinstance(custom_field, bool):
             return custom_field

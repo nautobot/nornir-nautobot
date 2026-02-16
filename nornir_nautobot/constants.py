@@ -263,6 +263,30 @@ ERROR_CODES = {
         error_message="No prompt matched for ```\n{last_output}\n```",
         recommendation="Verify that all expected prompts are defined in the prompts dictionary.",
     ),
+    "E1037": ErrorCode(
+        troubleshooting="Analyse dispatcher logs for more details.",
+        description="Facts getter failed during get_commands dispatcher execution on `{hostname}`.",
+        error_message="Facts getter failed during get_commands dispatcher execution on `{hostname}`.",
+        recommendation="Verify that device is reachable and commands are valid.",
+    ),
+    "E1038": ErrorCode(
+        troubleshooting="Ensure correct filtering and parsing configuration is used.",
+        description="Facts getter failed during parse_command_result on `{hostname}`.",
+        error_message="Facts getter failed during parse_command_result on `{hostname}`: `{exception}`.",
+        recommendation="Verify that Jinja2 filters are available and correct JPath is used.",
+    ),
+    "E1039": ErrorCode(
+        troubleshooting="Ensure correct filtering and parsing configuration is used.",
+        description="Facts getter failed during data extraction on `{hostname}`.",
+        error_message="Facts getter failed during data extraction on `{hostname}`: `{exception}`.",
+        recommendation="Verify that Jinja2 filters are available and correct JPath is used.",
+    ),
+    "E1040": ErrorCode(
+        troubleshooting="Ensure correct schema is used.",
+        description="Facts getter failed during schema validation on `{hostname}`.",
+        error_message="Facts getter failed during schema validation on `{hostname}`: `{exception}`.",
+        recommendation="Verify that formatted data and details match the schema used.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

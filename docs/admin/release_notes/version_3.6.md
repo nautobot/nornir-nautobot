@@ -5,9 +5,10 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
-- Changes to compatibility with Nautobot and/or other apps, libraries etc.
+-  Created a facts getter task.
 
 ## [v3.6.0 (2026-02-16)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.6.0)
 
-No significant changes.
+### Add
+
+- [#256](https://github.com/nautobot/nornir-nautobot/issues/256) - Created a facts getter task.

@@ -1,6 +1,7 @@
 """Pytest of Nautobot Inventory."""
 
 # Standard Library Imports
+import pathlib
 from os import path
 
 import pynautobot
@@ -85,7 +86,7 @@ def load_api_calls(mock):
         mock (Request Mock): Requests Mock instance
     """
     for api_call in API_CALLS:
-        with open(api_call["fixture_path"], "r", encoding="utf-8") as _file:
+        with pathlib.Path(api_call["fixture_path"]).open("r", encoding="utf-8") as _file:
             api_call["text"] = _file.read()
 
         mock.request(method=api_call["method"], url=api_call["url"], text=api_call["text"], complete_qs=True)

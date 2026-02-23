@@ -1,0 +1,24 @@
+{
+  "ntpserver": [
+    {
+      "serverip": "1.1.1.1",
+      "servername": "ntp1",
+      "minpoll": 4,
+      "maxpoll": 10,
+      "preferredntpserver": "NO",
+      "autokey": false,
+      "key": 1,
+      "_nextgenapiresource": "ntpserver"
+    },
+    {
+      "serverip": "2.2.2.2",
+      "servername": "ntp2",
+      "minpoll": 4,
+      "maxpoll": 10,
+      "preferredntpserver": "NO",
+      "autokey": false,
+      "key": 1,
+      "_nextgenapiresource": "ntpserver"
+    }
+  ]
+}

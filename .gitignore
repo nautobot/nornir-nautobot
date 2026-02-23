@@ -115,6 +115,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.undodir/
 
 # Spyder project settings
 .spyderproject

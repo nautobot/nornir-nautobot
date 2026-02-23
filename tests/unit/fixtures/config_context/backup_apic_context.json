@@ -1,0 +1,15 @@
+{
+  "backup_endpoints": ["ntp_backup"],
+  "ntp_backup": [
+    {
+      "endpoint": "api/class/fvTenant.json",
+      "method": "GET",
+      "query": [],
+      "parameters": [],
+      "jmespath": {
+        "name": "imdata[0].fvTenant.attributes.name",
+        "annotation": "imdata[0].fvTenant.attributes.annotation"
+      }
+    }
+  ]
+}

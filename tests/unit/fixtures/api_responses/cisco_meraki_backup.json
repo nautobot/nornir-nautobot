@@ -1,0 +1,22 @@
+{
+  "id": "1278859",
+  "name": "ntc-test",
+  "url": "https://n565.meraki.com/o/U2lY4c/manage/organization/overview",
+  "api": {
+    "enabled": true
+  },
+  "licensing": {
+    "model": "co-term"
+  },
+  "cloud": {
+    "region": {
+      "name": "North America",
+      "host": {
+        "name": "United States"
+      }
+    }
+  },
+  "management": {
+    "details": []
+  }
+}

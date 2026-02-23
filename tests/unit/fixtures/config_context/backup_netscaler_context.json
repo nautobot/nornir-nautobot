@@ -1,0 +1,15 @@
+{
+  "backup_endpoints": ["ntp_backup"],
+  "ntp_backup": [
+    {
+      "endpoint": "/nitro/v1/config/ntpserver",
+      "method": "GET",
+      "query": [],
+      "parameters": [],
+      "jmespath": {
+        "ntp_server": "ntpserver[*].servername",
+        "preferred": "ntpserver[*].preferredntpserver"
+      }
+    }
+  ]
+}

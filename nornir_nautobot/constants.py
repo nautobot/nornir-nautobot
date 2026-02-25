@@ -7,6 +7,33 @@ from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
 
+# E1030
+ERROR_MATCHES_BAD_COMMAND = [
+    "% Ambiguous command",
+    "% Incomplete command",
+    "% Invalid input detected at",
+    "% Too many parameters found at",
+    "% Unrecognized command found at",
+    "% Wrong parameter found at",
+    "Cannot execute command. Command not allowed.",
+    "Cannot execute command. Could not connect to any TACACS+ servers.",
+    "Error: Ambiguous command found at",
+    "Error: Too many parameters found at",
+    "Error: Unrecognized command found at",
+    "Error: Wrong parameter found at",
+    "Error: command found at",
+    "Error:Too many parameters found at",
+]
+
+# E1017
+ERROR_MATCHES_NO_AUTHORIZATION = [
+    "% Authentication failed",
+    "% Permission denied for the role",
+    "Error: Failed to pass the authorization.",
+    "Error: No permission to run the command.",
+    "Error: You do not have permission to run the command or the command is incomplete.",
+]
+
 JINJA_ERRORS = dedent("""\
     Error rendering template `{template}` at `{filename}:{line_number}`\n
     Line:\n
@@ -138,10 +165,10 @@ ERROR_CODES = {
         recommendation="The method `config_saved` failed with an unexpected issue: `{exc.result.exception}`",
     ),
     "E1017": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Check that the authentication credentials are correct.",
+        description="Netmiko failed to authenticate to the device with the provided credentials.",
         error_message="Failed with an authentication issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        recommendation="Check that the authentication credentials are correct such as verifying the username and password in Nautobot secrets is what you expect",
     ),
     "E1018": ErrorCode(
         troubleshooting="Standard network troubleshooting steps apply.",
@@ -156,10 +183,10 @@ ERROR_CODES = {
         """),
     ),
     "E1019": ErrorCode(
-        troubleshooting="This messages has come from the vendor. Check the worker logs for which exact command was ran.",
-        description="The vendor returned a message that the command that was sent was not valid on the system.",
-        error_message="Discovered `% Invalid input detected at` in the output",
-        recommendation="Review the command that was sent to the device, and ensure it is valid for the device. This is generally seen on Cisco devices, but can be seen on others as well.",
+        troubleshooting="See E1030 for more details.",
+        description="See E1030 for more details.",
+        error_message="Converted to E1030 see for more details.",
+        recommendation="See E1030 for more details.",
     ),
     "E1020": ErrorCode(
         troubleshooting="There is a dependency that is not installed in this environment as described in the error message.",
@@ -168,28 +195,28 @@ ERROR_CODES = {
         recommendation="Ensure that the required dependency is installed in the Nautobot web server and worker.",
     ),
     "E1021": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="The method `get_config` failed with an unexpected issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="This failed during initial API connection.",
+        error_message="The method `get_config` method for mikrotik failed with an unexpected issue: `{exc.result.exception}`",
+        recommendation="The error was unexpected, review the exception message for more details.",
     ),
     "E1022": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="The method `get_config` failed with an unexpected issue: `{exc.result.exception}`",
-        recommendation="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="This failed during an API call after connection was established for a specific endpoint, resource, or command.",
+        error_message="The method `get_config` method for mikrotik failed with an unexpected issue: `{exc.result.exception}`",
+        recommendation="The error was unexpected, review the exception message for more details.",
     ),
     "E1023": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="The `_api_auth` method failed with an unexpected issue: HTTP Error `{response.status_code}`",
-        recommendation="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="Review the exception message for more details.",
+        error_message="The `_api_auth` method for a Ruckus Smartzone failed when it did not receive an HTTP 200 with an unexpected issue: HTTP Error `{response.status_code}` and message `{response.text}`",
+        recommendation="Review the exception message for more details.",
     ),
     "E1024": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="The `{uri}` endpoint failed with code: HTTP Error `{response.status_code}`",
-        recommendation="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="Review the exception message for more details.",
+        error_message="The `{uri}` endpoint for a Ruckus Smartzone failed with code: HTTP Error `{response.status_code}` and message `{response.text}`",
+        recommendation="Review the exception message for more details.",
     ),
     "E1025": ErrorCode(
         troubleshooting="Coming soon....",
@@ -198,34 +225,46 @@ ERROR_CODES = {
         recommendation="Coming soon....",
     ),
     "E1026": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="result: {push_result[0].result}",
-        recommendation="Coming soon....",
+        troubleshooting="Check that the authentication credentials are correct.",
+        description="Netmiko failed to authenticate to the device with the provided credentials.",
+        error_message="A Ruckus Smartzone failed with an authentication issue: `{push_result[0].result}`",
+        recommendation="Check that the authentication credentials are correct such as verifying the username and password in Nautobot secrets is what you expect",
     ),
     "E1027": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
+        troubleshooting="Review the exception message for more details.",
+        description="Netmiko failed to save the configuration after merging it.",
         error_message="The method `config_merged`, but failed to save: {exc.result.exception}",
-        recommendation="Coming soon....",
+        recommendation="Review the exception message for more details.",
     ),
     "E1028": ErrorCode(
-        troubleshooting="Coming soon....",
-        description="Coming soon....",
-        error_message="Discovered `% Incomplete command` in the output",
-        recommendation="Coming soon....",
+        troubleshooting="The command that was sent to the device is not valid for the device, as evidenced by the error message from the device. Ensure the network_driver is correct for the device, and that the command being sent is valid for the device by testing it manually outside of Nautobot. Common issues include syntax errors in the command, or using a command that is not valid for the device or OS.",
+        description="The command is not valid for the device.",
+        error_message="Discovered one of the following in the output: \n```{command_list}```\n",
+        recommendation=dedent("""\
+        Validated the following:
+
+        - Ensure the network_driver is correct for the device.
+        - Ensure the command being sent is valid for the device by testing it manually outside of Nautobot.
+        - Review the command for syntax errors or if it is not valid for the device or OS.
+        """),
     ),
     "E1029": ErrorCode(
-        troubleshooting="This messages has come from the vendor. Check the worker logs for which exact command was ran.",
-        description="The vendor returned a message that the command that was sent was not valid on the system.",
-        error_message="Discovered `% Ambiguous command` in the output",
-        recommendation="Review the command that was sent to the device, and ensure it is valid for the device. This is generally seen on Cisco devices, but can be seen on others as well.",
+        troubleshooting="See E1030 for more details.",
+        description="See E1030 for more details.",
+        error_message="Converted to E1030 see for more details.",
+        recommendation="See E1030 for more details.",
     ),
     "E1030": ErrorCode(
-        troubleshooting="This is generally seen on Cisco NXOS devices. Ensure user is allowed to run the command that is being requested.",
-        description="Common permission issue, primarily (and potentially exclusively) seen on Cisco NXOS.",
-        error_message="Discovered `% Permission denied for the role` in the output",
-        recommendation="Ensure that the actual command that is ran, is allowed for the user making the connection. As an example, if `show run` is allowed, but `show running-config` is not, would need to address that.",
+        troubleshooting="Validate user can run the command.",
+        description="The user is not authorized to run the command.",
+        error_message="Discovered one of the following in the output: \n```{command_list}```\n",
+        recommendation=dedent("""\
+        Validated the following:
+
+        - Ensure your authentication credentials are correct such as verifying the username and password in Nautobot secrets is what you expect.
+        - Ensure that the user has the correct permission level to run the command on the device.
+        - Ensure that user has access to run the command being requested by manually running the command on the device outside of Nautobot with the same user.
+        """),
     ),
     "E1031": ErrorCode(
         troubleshooting="Verify that the file for the command `{command}` exists and is accessible in the expected Git path. Check for permission issues or problems with the Git working tree.",
@@ -252,10 +291,10 @@ ERROR_CODES = {
         recommendation="Use a valid jinja filter, common reasons this error occurs include typos or jinja filter is not loaded into the Nautobot worker or web server.",
     ),
     "E1035": ErrorCode(
-        troubleshooting="Verify that the username and password are correct.",
-        description="The authentication credentials were not accepted.",
-        error_message="Discovered `% Authentication failed` in the output",
-        recommendation="Ensure that the username and password are correct.",
+        troubleshooting="See E1030 for more details.",
+        description="See E1030 for more details.",
+        error_message="Converted to E1030 see for more details.",
+        recommendation="See E1030 for more details.",
     ),
     "E1036": ErrorCode(
         troubleshooting="Verify that all expected prompts are defined in the prompts dictionary.",

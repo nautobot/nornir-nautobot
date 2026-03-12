@@ -7,7 +7,7 @@ from netmiko import NetmikoAuthenticationException, NetmikoTimeoutException
 
 ErrorCode = namedtuple("ErrorCode", ["troubleshooting", "description", "error_message", "recommendation"])
 
-# E1030
+# E1028
 ERROR_MATCHES_BAD_COMMAND = [
     "% Ambiguous command",
     "% Incomplete command",
@@ -25,7 +25,7 @@ ERROR_MATCHES_BAD_COMMAND = [
     "Error:Too many parameters found at",
 ]
 
-# E1017
+# E1030
 ERROR_MATCHES_NO_AUTHORIZATION = [
     "% Authentication failed",
     "% Permission denied for the role",
@@ -307,5 +307,4 @@ ERROR_CODES = {
 EXCEPTION_TO_ERROR_MAPPER = {
     NetmikoAuthenticationException: "E1017",
     NetmikoTimeoutException: "E1018",
-    OSError: "E1031",
 }

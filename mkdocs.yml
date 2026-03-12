@@ -173,6 +173,7 @@ nav:
       - Uninstall: "admin/uninstall.md"
       - Release Notes:
           - "admin/release_notes/index.md"
+          - v4.1: "admin/release_notes/version_4.1.md"
           - v4.0: "admin/release_notes/version_4.0.md"
           - v3.5: "admin/release_notes/version_3.5.md"
           - v3.4: "admin/release_notes/version_3.4.md"

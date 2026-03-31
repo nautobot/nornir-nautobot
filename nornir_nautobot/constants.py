@@ -12,6 +12,7 @@ ERROR_MATCHES_BAD_COMMAND = [
     "% Ambiguous command",
     "% Incomplete command",
     "% Invalid input detected at",
+    "% This is an unconverted command",
     "% Too many parameters found at",
     "% Unrecognized command found at",
     "% Wrong parameter found at",

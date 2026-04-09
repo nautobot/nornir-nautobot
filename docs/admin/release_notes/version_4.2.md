@@ -5,8 +5,7 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
-- Changes to compatibility with Nautobot and/or other apps, libraries etc.
+- Added `get facts` capabilities.
 
 ## [v4.2.0 (2026-04-08)](https://github.com/networktocode/nornir-nautobot/releases/tag/v4.2.0)
 

@@ -4,7 +4,7 @@
 
 The development environment can be used in two ways:
 
-1. `Recommended` All services are spun up using Docker and a local mount so you can develop locally, but Nornir-Nautobot is spun up within the Docker container.
+1. `Recommended` All services are spun up using Docker and a local mount so you can develop locally, but nornir-nautobot is spun up within the Docker container.
 2. With a local poetry environment if you wish to develop outside of Docker.
 
 This is a quick reference guide if you're already familiar with the development environment provided, which you can read more about later in this document.
@@ -15,7 +15,7 @@ The [Invoke](http://www.pyinvoke.org/) library is used to provide some helper co
 
 - `local`: a boolean flag indicating if invoke tasks should be run on the host or inside the docker containers (default: False, commands will be run in docker containers)
 
-Using **Invoke** these configuration options can be overridden using [several methods](https://docs.pyinvoke.org/en/stable/concepts/configuration.html). Perhaps the simplest is setting an environment variable `INVOKE_NORNIR_NAUTOBOT_VARIABLE_NAME` where `VARIABLE_NAME` is the variable you are trying to override. There is an example `invoke.yml` (`invoke.example.yml`) in this directory which can be used as a starting point.
+Using **Invoke** these configuration options can be overridden using [several methods](https://docs.pyinvoke.org/en/stable/concepts/configuration.html). Perhaps the simplest is setting an environment variable `INVOKE_NORNIR-NAUTOBOT_VARIABLE_NAME` where `VARIABLE_NAME` is the variable you are trying to override. There is an example `invoke.yml` (`invoke.example.yml`) in this directory which can be used as a starting point.
 
 ### Docker Development Environment
 
@@ -45,7 +45,7 @@ To either stop or destroy the development environment use the following options.
 
 ## Poetry
 
-Poetry is used in lieu of the "virtualenv" commands and is leveraged in both environments. The virtual environment will provide all of the Python packages required to manage the development environment such as **Invoke**. See the [Local Development Environment](#full-docker-development-environment) section to see how to install Nornir-Nautobot if you're going to be developing locally (i.e. not using the Docker container).
+Poetry is used in lieu of the "virtualenv" commands and is leveraged in both environments. The virtual environment will provide all of the Python packages required to manage the development environment such as **Invoke**. See the [Local Development Environment](#full-docker-development-environment) section to see how to install nornir-nautobot if you're going to be developing locally (i.e. not using the Docker container).
 
 The `pyproject.toml` file outlines all of the relevant dependencies for the project:
 
@@ -82,7 +82,7 @@ Each command can be executed with `invoke <command>`. Each command also has its 
 
 ```
   cli                       Enter the image to perform troubleshooting or dev work.
-  clean                     Remove stopped containers that source for image `Nornir-Nautobot:`
+  clean                     Remove stopped containers that source for image `nornir-nautobot:`
   generate-release-notes    Generate Release Notes using Towncrier.
 ```
 

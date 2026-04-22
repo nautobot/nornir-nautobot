@@ -3,5 +3,5 @@
 Upgrade from PyPI.
 
 ```bash
-$ pip install nornir-nautobot --upgrade
+pip install nornir-nautobot --upgrade
 ```

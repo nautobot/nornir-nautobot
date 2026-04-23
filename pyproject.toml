@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nornir-nautobot"
 version = "4.2.1a0"
-description = "Nornir Library for Nautobot providing centralized inventory and tasks."
+description = "Nornir Plugin for Nautobot providing centralized inventory and tasks."
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
 license = "Apache-2.0"
@@ -85,9 +85,6 @@ mkdocstrings = "0.27.0"
 # Python-specific extension to mkdocstrings
 mkdocstrings-python = "1.13.0"
 griffe = "1.1.1"
-
-[tool.poetry.scripts]
-nornir_nautobot = 'nornir_nautobot.cli:main'
 
 [tool.poetry.extras]
 mikrotik_driver = ["routeros-api"]

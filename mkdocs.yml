@@ -14,10 +14,11 @@ theme:
     - "python"
     - "yaml"
   features:
-    - "content.code.annotate"
+    - "content.action.edit"
+    - "content.action.view"
     - "content.code.copy"
-    - "content.tabs.link"
     - "navigation.footer"
+    - "navigation.indexes"
     - "navigation.tabs"
     - "navigation.tabs.sticky"
     - "navigation.tracking"
@@ -42,13 +43,6 @@ theme:
       toggle:
         icon: "material/weather-night"
         name: "Switch to light mode"
-
-validation:
-  absolute_links: "warn"
-  anchors: "warn"
-  omitted_files: "warn"
-  unrecognized_links: "warn"
-
 extra_css:
   - "assets/extra.css"
 
@@ -78,9 +72,9 @@ markdown_extensions:
   - "toc":
       permalink: true
   - "attr_list"
+  - "md_in_html"
   - "markdown_data_tables":
       base_path: "docs"
-  - "md_in_html"
   - "pymdownx.details"
   # Need pymdownx.emoji for Grid icon search
   - pymdownx.emoji:
@@ -101,8 +95,11 @@ markdown_extensions:
 
 plugins:
   - "search"
+  - "gen-files":
+      scripts:
+        - "docs/generate_code_reference_pages.py"
   - "glightbox":
-      manual: true # See https://blueswen.github.io/mkdocs-glightbox/flexibility/enable-by-image-or-page/
+      manual: true  # See https://blueswen.github.io/mkdocs-glightbox/flexibility/enable-by-image-or-page/
   - "section-index"
   - "mkdocstrings":
       default_handler: "python"
@@ -114,6 +111,12 @@ plugins:
             show_root_heading: true
             show_root_members_full_path: true
             show_source: false
+
+validation:
+  absolute_links: "warn"
+  anchors: "warn"
+  omitted_files: "warn"
+  unrecognized_links: "warn"
 
 nav:
   - Overview: "index.md"
@@ -188,7 +191,7 @@ nav:
           - v0.0: "admin/release_notes/version_0.0.md"
   - Developer Guide:
       - Extending the Library: "dev/extending.md"
-      - Contributing to the Library: "dev/CONTRIBUTING.md"
+      - Contributing to the Library: "dev/contributing.md"
       - Development Environment: "dev/dev_environment.md"
       - Release Checklist: "dev/release_checklist.md"
       - Architecture Design Records: "dev/arch_decision.md"

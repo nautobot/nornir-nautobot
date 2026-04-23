@@ -12,7 +12,6 @@ on:  # yamllint disable-line rule:truthy rule:comments
 
 env:
   INVOKE_NORNIR_NAUTOBOT_IMAGE_NAME: "nornir-nautobot"
-  INVOKE_NORNIR_NAUTOBOT_IMAGE_NAME: "nornir-nautobot"
   INVOKE_NORNIR_NAUTOBOT_IMAGE_VER: "latest"
 
 jobs:

@@ -166,7 +166,7 @@ testpaths = [
 addopts = "-vv --doctest-modules -p no:warnings --ignore-glob='*mock*'"
 
 [tool.towncrier]
-package = "nornir-nautobot"
+package = "nornir_nautobot"
 directory = "changes"
 filename = "docs/admin/release_notes/version_X.Y.md"
 template = "towncrier_template.j2"

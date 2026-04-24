@@ -1,5 +1,6 @@
 """Tasks for use with Invoke."""
 
+import os
 import re
 from pathlib import Path
 
@@ -10,8 +11,7 @@ from invoke import task as invoke_task
 def is_truthy(arg):
     """Convert "truthy" strings into Booleans.
 
-    Examples
-    --------
+    Examples:
         >>> is_truthy('yes')
         True
     Args:
@@ -35,12 +35,12 @@ namespace = Collection("nornir_nautobot")
 namespace.configure(
     {
         "nornir_nautobot": {
-            "project_name": "nornir-nautobot",
-            "python_ver": "3.12",
-            "local": False,
+            "project_name": "nornir_nautobot",
+            "python_ver": "3.10",
+            "local": is_truthy(os.getenv("INVOKE_NORNIR_NAUTOBOT_LOCAL", "false")),
             "image_name": "nornir_nautobot",
-            "image_ver": "latest",
-            "pwd": ".",
+            "image_ver": os.getenv("INVOKE_NORNIR_NAUTOBOT_IMAGE_VER", "latest"),
+            "pwd": Path(__file__).parent,
         }
     }
 )
@@ -66,13 +66,14 @@ def task(function=None, *args, **kwargs):
     return task_wrapper
 
 
-def run_command(context, exec_cmd, port=None):
+def run_command(context, exec_cmd, port=None, rm=True):
     """Wrapper to run the invoke task commands.
 
     Args:
         context ([invoke.task]): Invoke task object.
         exec_cmd ([str]): Command to run.
         port (int): Used to serve local docs.
+        rm (bool): Whether to remove the container after running the command.
 
     Returns:
         result (obj): Contains Invoke result from running task.
@@ -86,18 +87,21 @@ def run_command(context, exec_cmd, port=None):
         )
         if port:
             result = context.run(
-                f"docker run -it -p {port} -v {context.nornir_nautobot.pwd}:/local {context.nornir_nautobot.image_name}:{context.nornir_nautobot.image_ver} sh -c '{exec_cmd}'",
+                f"docker run -it {'--rm' if rm else ''} -p {port} -v {context.nornir_nautobot.pwd}:/local {context.nornir_nautobot.image_name}:{context.nornir_nautobot.image_ver} sh -c '{exec_cmd}'",
                 pty=True,
             )
         else:
             result = context.run(
-                f"docker run -it -v {context.nornir_nautobot.pwd}:/local {context.nornir_nautobot.image_name}:{context.nornir_nautobot.image_ver} sh -c '{exec_cmd}'",
+                f"docker run -it {'--rm' if rm else ''} -v {context.nornir_nautobot.pwd}:/local {context.nornir_nautobot.image_name}:{context.nornir_nautobot.image_ver} sh -c '{exec_cmd}'",
                 pty=True,
             )
 
     return result
 
 
+# ------------------------------------------------------------------------------
+# BUILD
+# ------------------------------------------------------------------------------
 @task(
     help={
         "cache": "Whether to use Docker's cache when building images (default enabled)",
@@ -123,6 +127,26 @@ def build(context, cache=True, force_rm=False, hide=False):
 
 
 @task
+def generate_packages(context):
+    """Generate all Python packages inside docker and copy the file locally under dist/."""
+    command = "poetry build"
+    run_command(context, command)
+
+
+@task(
+    help={
+        "check": (
+            "If enabled, check for outdated dependencies in the poetry.lock file, "
+            "instead of generating a new one. (default: disabled)"
+        )
+    }
+)
+def lock(context, check=False):
+    """Generate poetry.lock inside the library container."""
+    run_command(context, f"poetry {'check' if check else 'lock --no-update'}")
+
+
+@task
 def clean(context):
     """Remove the project specific image."""
     print(
@@ -140,9 +164,34 @@ def rebuild(context):
 
 
 @task
-def pytest(context, args=""):
+def coverage(context):
+    """Run the coverage report against pytest."""
+    exec_cmd = "coverage run --source=nornir_nautobot -m pytest"
+    run_command(context, exec_cmd)
+    run_command(context, "coverage report")
+    run_command(context, "coverage html")
+
+
+@task(
+    help={
+        "pattern": "Only run tests which match the given substring. Can be used multiple times.",
+        "label": "Module path to run (e.g., tests/unit/test_foo.py). Can be used multiple times.",
+    },
+    iterable=["pattern", "label"],
+)
+def pytest(context, pattern=None, label=None):
     """Run pytest test cases."""
-    exec_cmd = f"pytest {args}"
+    exec_cmd = "pytest -vv --doctest-modules nornir_nautobot/ && coverage run --source=nornir_nautobot -m pytest && coverage report"
+    run_command(context, exec_cmd)
+
+    doc_test_cmd = "pytest -vv --doctest-modules nornir_nautobot/"
+    pytest_cmd = "coverage run --source=nornir_nautobot -m pytest"
+    if pattern:
+        pytest_cmd += "".join([f" -k {_pattern}" for _pattern in pattern])
+    if label:
+        pytest_cmd += "".join([f" {_label}" for _label in label])
+    coverage_cmd = "coverage report"
+    exec_cmd = " && ".join([doc_test_cmd, pytest_cmd, coverage_cmd])
     run_command(context, exec_cmd)
 
 
@@ -191,18 +240,6 @@ def ruff(context, action=None, target=None, fix=False, output_format="concise"):
         raise Exit(code=exit_code)
 
 
-# @task
-# def mypy(context):
-#     """Run mypy to validate typing-hints.
-
-#     Args:
-#         context (obj): Used to run specific commands
-#         local (bool): Define as `True` to execute locally
-#     """
-#     exec_cmd = "mypy ./nornir_nautobot"
-#     run_command(context, exec_cmd)
-
-
 @task
 def pylint(context):
     """Run pylint for the specified name and Python version.
@@ -236,25 +273,39 @@ def cli(context):
     context.run(f"{dev}", pty=True)
 
 
-@task
-def tests(context):
+@task(
+    help={
+        "lint-only": "Only run linters; unit tests will be excluded. (default: False)",
+    }
+)
+def tests(context, lint_only=False):
     """Run all tests for the specified name and Python version.
 
     Args:
         context (obj): Used to run specific commands
+        lint_only (bool): If True, only run linters and skip unit tests.
     """
+    # If we are not running locally, start the docker containers so we don't have to for each test
+    # Sorted loosely from fastest to slowest
+    print("Running ruff...")
     ruff(context)
-    pylint(context)
+    print("Running yamllint...")
     yamllint(context)
-    # mypy(context)
-    pytest(context)
-
+    print("Running poetry check...")
+    lock(context, check=True)
+    print("Running pylint...")
+    pylint(context)
+    print("Running mkdocs...")
+    build_and_check_docs(context)
+    if not lint_only:
+        print("Running unit tests...")
+        pytest(context)
     print("All tests have passed!")
 
 
 @task
 def build_and_check_docs(context):
-    """Build documentation to be available within Nautobot."""
+    """Build documentation and test the configuration."""
     command = "mkdocs build --no-directory-urls --strict"
     run_command(context, command)
 
@@ -273,21 +324,26 @@ def build_and_check_docs(context):
 @task
 def docs(context):
     """Build and serve docs locally for development."""
-    exec_cmd = "mkdocs serve -v --dev-addr=0.0.0.0:8001"
+    exec_cmd = "mkdocs serve -v"
     run_command(context, exec_cmd, port="8001:8001")
 
 
 @task(
     help={
         "version": "Version of nornir_nautobot to generate the release notes for.",
+        "date": "Date of the release (default: today).",
     }
 )
-def generate_release_notes(context, version=""):
+def generate_release_notes(context, version="", date=""):
     """Generate Release Notes using Towncrier."""
-    command = "poetry run towncrier build"
-    if version:
-        command += f" --version {version}"
-    else:
-        command += " --version `poetry version -s`"
+    if not version:
+        version = context.run("poetry version --short", hide=True).stdout.strip()
+
+    version_major_minor = ".".join(version.split(".")[:2])
+    context.run(f"poetry run python bin/ensure_release_notes.py --version {version_major_minor}")
+
+    command = f"poetry run towncrier build --version {version} --yes"
+    if date:
+        command += f" --date {date}"
     # Due to issues with git repo ownership in the containers, this must always run locally.
     context.run(command)

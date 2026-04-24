@@ -1,11 +1,11 @@
 ---
 name: 🐛 Bug Report
-about: Report a reproducible bug in the current release of Nornir Nauotbot
+about: Report a reproducible bug in the current release of nornir-nautobot
 ---
 
 ### Environment
-* Python version:  <!-- Example: 3.11.2 -->
-* nornir_nautobot version:  <!-- Example: 3.3.0 -->
+* Python version:  <!-- Example: 3.10 -->
+* nornir-nautobot version:  <!-- Example: 1.0.0 -->
 
 <!-- What did you expect to happen? -->
 ### Expected Behavior

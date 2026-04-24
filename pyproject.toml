@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nornir-nautobot"
-version = "4.2.0"
-description = "Nornir Nautobot"
+version = "4.2.1"
+description = "Nornir Plugin for Nautobot providing centralized inventory and tasks."
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
 license = "Apache-2.0"
@@ -47,20 +47,21 @@ ntc-templates = ">=7.9.0"
 ttp = "^0.9.0"
 
 [tool.poetry.group.dev.dependencies]
+coverage = "*"
 requests_mock = "*"
 pytest = "*"
 mock = "*"
-griffe = "1.1.1"
 pyyaml = "^6.0.1"
 pylint = "^3.1.0"
-# mypy = "*"
 yamllint = "^1.35.1"
 invoke = "^2.2.0"
 toml = "^0.10.2"
 attrs = "^23.2.0"
-towncrier = "^24.8.0"
+towncrier = ">=23.6.0,<=24.8.0"
 ruff = "*"
 Markdown = "*"
+
+[tool.poetry.group.docs.dependencies]
 # Rendering docs to HTML
 mkdocs = "1.6.1"
 # Embedding YAML files into Markdown documents as tables
@@ -83,6 +84,7 @@ mkdocs-section-index = "0.3.10"
 mkdocstrings = "0.27.0"
 # Python-specific extension to mkdocstrings
 mkdocstrings-python = "1.13.0"
+griffe = "1.1.1"
 
 [tool.poetry.extras]
 mikrotik_driver = ["routeros-api"]
@@ -92,7 +94,7 @@ mikrotik_driver = ["routeros-api"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -135,13 +137,14 @@ ignore=[".venv", "tests"]
 
 [tool.pylint.basic]
 # No docstrings required for private methods (Pylint default), or for test_ functions, or for inner Meta classes.
-no-docstring-rgx = "^(_|test_)"
+no-docstring-rgx = "^(_|test_|Meta$)"
 
 
 [tool.pylint.messages_control]
 disable = [
     "line-too-long",
     "duplicate-code",
+    "cyclic-import",
     ]
 
 [tool.pylint.miscellaneous]
@@ -152,7 +155,7 @@ notes = """,
     """
 
 [build-system]
-requires = ["poetry_core>=1.0.0"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
@@ -165,10 +168,15 @@ addopts = "-vv --doctest-modules -p no:warnings --ignore-glob='*mock*'"
 [tool.towncrier]
 package = "nornir_nautobot"
 directory = "changes"
-filename = "docs/admin/release_notes/version_X.Y.md"
+filename = "docs/admin/release_notes/version_4.2.md"
 template = "towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/nautobot/nornir-nautobot/issues/{issue})"
+
+[[tool.towncrier.type]]
+directory = "breaking"
+name = "Breaking Changes"
+showcontent = true
 
 [[tool.towncrier.type]]
 directory = "security"

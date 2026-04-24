@@ -3,5 +3,5 @@
 Uninstall from environment.
 
 ```bash
-$ pip uninstall nornir-nautobot
+pip uninstall nornir-nautobot
 ```

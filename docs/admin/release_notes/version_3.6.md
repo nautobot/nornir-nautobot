@@ -7,6 +7,8 @@ This document describes all new features and changes in the release. The format 
 
 -  Created a facts getter task.
 
+<!-- towncrier release notes start -->
+
 ## [v3.6.0 (2026-02-16)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.6.0)
 
 ### Add

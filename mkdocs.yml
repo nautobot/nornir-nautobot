@@ -170,6 +170,10 @@ nav:
               - E1034: "user/troubleshooting/E1034.md"
               - E1035: "user/troubleshooting/E1035.md"
               - E1036: "user/troubleshooting/E1036.md"
+              - E1037: "user/troubleshooting/E1037.md"
+              - E1038: "user/troubleshooting/E1038.md"
+              - E1039: "user/troubleshooting/E1039.md"
+              - E1040: "user/troubleshooting/E1040.md"
   - Administrator Guide:
       - Install and Configure: "admin/install.md"
       - Upgrade: "admin/upgrade.md"

@@ -1,5 +1,5 @@
 ---
-"nornir_nautobot":
+nornir_nautobot:
   python_ver: "3.10"
   local: false
   # image_name: "nornir_nautobot"

@@ -104,7 +104,6 @@ This guide uses `1.4.2` as the new version in its examples, so change it to matc
 First, create a release branch off of `develop` (`git switch -c release-1.4.2 develop`).
 
 > You will need to have the project's poetry environment built at this stage, as the towncrier command runs **locally only**. If you don't have it, run `poetry install` first.
-
 Generate release notes with `invoke generate-release-notes --version 1.4.2` and answer `yes` to the prompt `Is it okay if I remove those files? [Y/n]:`. This will update the release notes in `docs/admin/release_notes/version_X.Y.md`, stage that file in git, and `git rm` all the fragments that have now been incorporated into the release notes.
 
 There are two possibilities:
@@ -173,12 +172,9 @@ For example, if you just released `v1.4.2`:
 ```no-highlight
 > git switch -c release-1.4.2-to-develop main
 Switched to a new branch 'release-1.4.2-to-develop'
-
 > poetry version prepatch
 Bumping version from 1.4.2 to 1.4.3a1
-
 > git add pyproject.toml && git commit -m "Bump version"
-
 > git push
 ```
 

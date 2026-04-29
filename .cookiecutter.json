@@ -1,0 +1,30 @@
+{
+    "cookiecutter": {
+        "codeowner_github_usernames": "@jvanderaa @jmcgill298 @itdependsnetworks @jeffkala",
+        "full_name": "Network to Code, LLC",
+        "email": "opensource@networktocode.com",
+        "github_org": "nautobot",
+        "description": "Nornir Library for Nautobot providing centralized inventory and tasks.",
+        "project_name": "Nornir Nautobot",
+        "project_slug": "nornir-nautobot",
+        "repo_url": "https://github.com/nautobot/nornir-nautobot",
+        "base_url": "nornir-nautobot",
+        "project_python_name": "nornir_nautobot",
+        "project_python_base_version": "3.10",
+        "project_with_config_settings": "no",
+        "generate_docs": "yes",
+        "version": "3.6.0",
+        "original_publish_year": "2021",
+        "_drift_manager": {
+            "template": "https://github.com/networktocode-llc/cookiecutter-ntc.git",
+            "template_dir": "python",
+            "template_ref": "main",
+            "cookie_dir": "",
+            "pull_request_strategy": "create",
+            "post_actions": [],
+            "draft": false,
+            "baked_commit_ref": "",
+            "drift_managed_branch": "develop"
+        }
+    }
+}

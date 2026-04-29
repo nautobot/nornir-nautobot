@@ -84,16 +84,16 @@ class ApiMikrotikRouteros(DispatcherMixin):
         config_data = {}
         try:
             api = connection.get_api()
-        except Exception as error:
-            error_msg = get_error_message("E1021", error=error)
+        except Exception as exc:
+            error_msg = get_error_message("E1021", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         for endpoint in cls.config_command:
             try:
                 resource = api.get_resource(endpoint)
                 config_data[endpoint] = resource.get()
-            except Exception as error:
-                error_msg = get_error_message("E1022", error=error)
+            except Exception as exc:
+                error_msg = get_error_message("E1022", exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
 
@@ -217,7 +217,8 @@ class NetmikoMikrotikRouteros(NetmikoDefault):
                 "Config merged with errors, please check full info log below.",
                 extra={"object": obj},
             )
-            error_msg = get_error_message("E1028", push_result=push_result)
+            command_list = ",\n".join(NETMIKO_FAIL_MSG)
+            error_msg = get_error_message("E1028", command_list=command_list)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
         logger.info("Config merged successfully.", extra={"object": obj})

@@ -59,6 +59,8 @@ attrs = "^23.2.0"
 towncrier = ">=23.6.0,<=24.8.0"
 ruff = "*"
 Markdown = "*"
+# Remove once Python 3.10 is removed
+exceptiongroup = {version = ">=1.0.0", python = "<3.11"}
 
 [tool.poetry.group.docs.dependencies]
 # Rendering docs to HTML

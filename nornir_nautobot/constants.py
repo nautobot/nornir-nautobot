@@ -327,6 +327,12 @@ ERROR_CODES = {
         error_message="Facts getter failed during schema validation on `{hostname}`: `{exception}`.",
         recommendation="Verify that formatted data and details match the schema used.",
     ),
+    "E1041": ErrorCode(
+        troubleshooting="Verify that the offline NAPALM command output file contains valid JSON matching the getter's structure.",
+        description="While using offline command outputs through Git, the NAPALM getter output file could not be parsed as JSON.",
+        error_message="The offline NAPALM command output could not be parsed as JSON: `{exc}`.",
+        recommendation="Ensure the stored NAPALM getter output is valid JSON (the serialized getter result) and was committed correctly to the Git repository.",
+    ),
 }
 
 EXCEPTION_TO_ERROR_MAPPER = {

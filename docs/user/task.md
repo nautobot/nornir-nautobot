@@ -135,13 +135,22 @@ Here is the implementation:
 
 Raw command outputs stored in a Git repository can be used in scenarios where Nautobot is not able to connect directly to the network devices. This is useful for disconnected or air-gapped environments, lab setups, or testing purposes.
 
-The feature is integrated into the `NetmikoDefault` dispatcher and is controlled by the `offline_commands` setting with the following precedence:
+The feature is integrated into the `NetmikoDefault`, `NapalmDefault`, and `ScrapliDefault` dispatchers (the shared logic lives on `DispatcherMixin`, so platform-specific subclasses inherit it) and is controlled by the `offline_commands` setting with the following precedence:
 
 1. `obj.cf["offline_commands"]` — if it exists and is a valid boolean value.
 2. `obj.get_config_context()["offline_commands"]` — if it exists and is a valid boolean value.
-3. `cls.offline_commands` — the default class attribute defined in `NetmikoDefault`, which defaults to `False`.
+3. `cls.offline_commands` — the default class attribute defined on `DispatcherMixin`, which defaults to `False`.
 
 When enabled, the dispatcher attempts to read the expected command output from the filesystem (via the keyword argument command_file_path) instead of executing the command on a live device. This requires the output files to be named in a filesystem-safe format.
+
+The gate is per-device: when it is enabled and an expected output file is missing, the dispatcher raises [`E1032`](troubleshooting/E1032.md) — there is no fallback to a live device.
+
+### Driver output formats
+
+Because the live dispatchers return different data types, their stored offline files differ:
+
+- **Netmiko** and **Scrapli** store the **raw command text** exactly as the device would return it.
+- **NAPALM** getters return structured data, so each NAPALM offline file must contain the **JSON** serialization of that getter's output (for example, the `config` getter file holds `{"running": "...", "candidate": "", "startup": ""}`). Malformed JSON raises [`E1041`](troubleshooting/E1041.md).
 
 The utility function `nornir_nautobot.utils.helpers.command_to_filename` is provided to help convert a command string into a valid filename. Here's how it works:
 

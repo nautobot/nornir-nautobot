@@ -454,7 +454,9 @@ class NapalmDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    def get_command(cls, task: Task, logger, obj, command, command_file_path: str = None, **kwargs):  # pylint: disable=too-many-positional-arguments
+    def get_command(
+        cls, task: Task, logger, obj, command, command_file_path: str = None, force_offline: bool = False, **kwargs
+    ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the commands from a device.
 
         Args:
@@ -463,11 +465,13 @@ class NapalmDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A Napalm getter to execute.
             command_file_path (str): The path to the command output file located in the Git repository.
+            force_offline (bool): When True, read the output from ``command_file_path`` without consulting the
+                device's ``offline_commands`` config context or custom field. Defaults to False.
             kwargs: Additional arguments to pass to the napalm_get task.
         """
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
-        if cls._offline_commands(obj):
+        if force_offline or cls._offline_commands(obj):
             try:
                 result = task.run(
                     task=cls.get_git_command,
@@ -845,8 +849,9 @@ class NetmikoDefault(DispatcherMixin):
         obj,
         command: str,
         command_file_path: str = None,
+        force_offline: bool = False,
         **kwargs,
-    ):  # pylint: disable=too-many-positional-arguments
+    ):  # pylint: disable=too-many-positional-arguments,too-many-locals
         """A tasks to get the commands from a device.
 
         Args:
@@ -855,12 +860,15 @@ class NetmikoDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
             command_file_path (str): The path to the command output file located in the Git repository.
+            force_offline (bool): When True, read the output from ``command_file_path`` without consulting the
+                device's ``offline_commands`` config context or custom field. Defaults to False.
             kwargs: Additional arguments to pass to the netmiko_send_command task.
         """
         logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
+        use_offline = force_offline or cls._offline_commands(obj)
 
         try:
-            if cls._offline_commands(obj):
+            if use_offline:
                 result = task.run(
                     task=cls.get_git_command,
                     logger=logger,
@@ -895,7 +903,7 @@ class NetmikoDefault(DispatcherMixin):
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 
-        if cls._offline_commands(obj):
+        if use_offline:
             return Result(host=task.host, result={"output": {command: cls._parse_offline_output(result[0].result)}})
         return Result(host=task.host, result={"output": {command: result[0].result}})
 
@@ -1060,7 +1068,9 @@ class ScrapliDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
-    def get_command(cls, task: Task, logger, obj, command, command_file_path: str = None, **kwargs):  # pylint: disable=too-many-positional-arguments
+    def get_command(
+        cls, task: Task, logger, obj, command, command_file_path: str = None, force_offline: bool = False, **kwargs
+    ):  # pylint: disable=too-many-positional-arguments
         """A tasks to get the commands from a device.
 
         Args:
@@ -1069,11 +1079,13 @@ class ScrapliDefault(DispatcherMixin):
             obj (Device): A Nautobot Device Django ORM object instance.
             command: A command to execute.
             command_file_path (str): The path to the command output file located in the Git repository.
+            force_offline (bool): When True, read the output from ``command_file_path`` without consulting the
+                device's ``offline_commands`` config context or custom field. Defaults to False.
             kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
 
-        if cls._offline_commands(obj):
+        if force_offline or cls._offline_commands(obj):
             try:
                 result = task.run(
                     task=cls.get_git_command,

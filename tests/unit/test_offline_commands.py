@@ -163,3 +163,61 @@ def test_scrapli_get_commands_offline_returns_text():
     command_list = [("show version", "/repo/show_version.txt"), ("show run", "/repo/show_run.txt")]
     result = ScrapliDefault.get_commands(task, MagicMock(), obj, command_list)
     assert result.result == {"output": {"show version": "ver-output", "show run": "run-output"}}
+
+
+# --- force_offline: caller-driven offline without the offline_commands SoT lookup (NAPPS-1235) ---
+
+
+def test_netmiko_get_command_force_offline_reads_git_with_empty_obj():
+    # Empty cf/config_context -> _offline_commands is False; force_offline alone must drive the offline path.
+    obj = _make_obj()
+    task = MagicMock()
+    task.run.return_value = [MagicMock(result="hostname router1")]
+    result = NetmikoDefault.get_command(
+        task, MagicMock(), obj, "show run", command_file_path="/repo/show_run.txt", force_offline=True
+    )
+    assert result.result == {"output": {"show run": "hostname router1"}}
+    assert task.run.call_args.kwargs["task"] == NetmikoDefault.get_git_command
+
+
+def test_netmiko_get_command_force_offline_false_uses_live_path():
+    obj = _make_obj()
+    task = MagicMock()
+    task.run.return_value = [MagicMock(result="hostname router1")]
+    NetmikoDefault.get_command(task, MagicMock(), obj, "show run", force_offline=False)
+    # Live path routes through netmiko_send_command, not the Git reader.
+    assert task.run.call_args.kwargs["task"] != NetmikoDefault.get_git_command
+
+
+def test_netmiko_get_command_force_offline_overrides_explicit_false_offline_commands():
+    # Device explicitly opts out of offline, but the caller forces it.
+    obj = _make_obj(custom_fields={"offline_commands": False})
+    task = MagicMock()
+    task.run.return_value = [MagicMock(result="hostname router1")]
+    result = NetmikoDefault.get_command(
+        task, MagicMock(), obj, "show run", command_file_path="/repo/show_run.txt", force_offline=True
+    )
+    assert result.result == {"output": {"show run": "hostname router1"}}
+    assert task.run.call_args.kwargs["task"] == NetmikoDefault.get_git_command
+
+
+def test_napalm_get_command_force_offline_parses_json_with_empty_obj():
+    obj = _make_obj()
+    task = MagicMock()
+    task.run.return_value = [MagicMock(result=json.dumps({"hostname": "r1"}))]
+    result = NapalmDefault.get_command(
+        task, MagicMock(), obj, "get_facts", command_file_path="/repo/get_facts.json", force_offline=True
+    )
+    assert result.result == {"output": {"get_facts": {"hostname": "r1"}}}
+    assert task.run.call_args.kwargs["task"] == NapalmDefault.get_git_command
+
+
+def test_scrapli_get_command_force_offline_reads_git_with_empty_obj():
+    obj = _make_obj()
+    task = MagicMock()
+    task.run.return_value = [MagicMock(result="hostname router1")]
+    result = ScrapliDefault.get_command(
+        task, MagicMock(), obj, "show run", command_file_path="/repo/show_run.txt", force_offline=True
+    )
+    assert result.result == {"output": {"show run": "hostname router1"}}
+    assert task.run.call_args.kwargs["task"] == ScrapliDefault.get_git_command

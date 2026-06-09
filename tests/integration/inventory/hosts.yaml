@@ -1,16 +1,16 @@
 ---
-c3650:
+ios-device:
   hostname: "192.0.2.1"
   platform: "cisco_ios"
-wee-eos-01:
+eos-device:
   hostname: "192.0.2.2"
   platform: "arista_eos"
-ncs5011-lab:
+iosxr-device:
   hostname: "192.0.2.3"
   platform: "cisco_xr"
-nyc-leaf-01:
+nxos-device:
   hostname: "192.0.2.4"
   platform: "cisco_nxos"
-srx320:
+junos-device:
   hostname: "192.0.2.5"
   platform: "juniper_junos"

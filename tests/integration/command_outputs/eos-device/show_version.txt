@@ -1,4 +1,3 @@
-wee-eos-01#sh ver
 Arista DCS-7050TX-64-R
 Hardware version:    01.01
 Serial number:       JPE14371635
@@ -12,5 +11,3 @@ Internal build ID:      7283eb89-892f-4bf2-bd00-0b166041bdc0
 Uptime:                 6 days, 5 hours and 33 minutes
 Total memory:           3844356 kB
 Free memory:            354932 kB
-
-wee-eos-01#

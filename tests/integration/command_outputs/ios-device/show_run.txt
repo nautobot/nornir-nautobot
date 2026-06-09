@@ -6,7 +6,7 @@ version 16.12
 service timestamps debug datetime msec
 service timestamps log datetime msec
 !
-hostname C3650
+hostname ios-device
 !
 no ip domain lookup
 ip domain name example.com

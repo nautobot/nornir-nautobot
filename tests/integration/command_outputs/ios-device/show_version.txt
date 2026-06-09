@@ -1,4 +1,3 @@
-C3650#sh ver
 Cisco IOS XE Software, Version 16.12.14
 Cisco IOS Software [Gibraltar], Catalyst L3 Switch Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.12.14, RELEASE SOFTWARE (fc1)
 Technical Support: http://www.cisco.com/techsupport
@@ -20,7 +19,7 @@ software.
 ROM: IOS-XE ROMMON
 BOOTLDR: CAT3K_CAA Boot Loader (CAT3K_CAA-HBOOT-M) Version 6.06, RELEASE SOFTWARE (P)
 
-C3650 uptime is 1 week, 4 days, 8 hours, 42 minutes
+ios-device uptime is 1 week, 4 days, 8 hours, 42 minutes
 Uptime for this control processor is 1 week, 4 days, 8 hours, 44 minutes
 System returned to ROM by Reload Command
 System image file is "flash:cat3k_caa-universalk9.16.12.14.SPA.bin"
@@ -82,5 +81,3 @@ Switch Ports Model              SW Version        SW Image              Mode
 
 
 Configuration register is 0x102
-
-C3650#

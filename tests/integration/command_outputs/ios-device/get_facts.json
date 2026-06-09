@@ -1,6 +1,6 @@
 {
-  "hostname": "C3650",
-  "fqdn": "C3650",
+  "hostname": "ios-device",
+  "fqdn": "ios-device",
   "vendor": "Cisco",
   "model": "WS-C3650-48PQ",
   "serial_number": "FDO1738Q02K",

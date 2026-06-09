@@ -1,4 +1,3 @@
-nyc-leaf-01# sh ver
 Cisco Nexus Operating System (NX-OS) Software
 TAC support: http://www.cisco.com/tac
 Copyright (C) 2002-2017, Cisco and/or its affiliates.
@@ -35,7 +34,7 @@ Hardware
   Intel(R) Core(TM) i3- CPU @ 2.50GHz with 16401328 kB of memory.
   Processor Board ID SAL190694KH
 
-  Device name: nyc-leaf-01
+  Device name: nxos-device
   bootflash:   51496280 kB
 Kernel uptime is 17 day(s), 9 hour(s), 7 minute(s), 50 second(s)
 
@@ -48,5 +47,3 @@ plugin
   Core Plugin, Ethernet Plugin
 
 Active Package(s):
-
-nyc-leaf-01#

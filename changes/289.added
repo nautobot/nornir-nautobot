@@ -1,0 +1,2 @@
+Added Git-sourced offline command output support to the NAPALM and Scrapli dispatchers.
+Added a force_offline kwarg to get_command on the Netmiko, NAPALM, and Scrapli dispatchers to force reading command output from a Git file, bypassing the offline_commands config context.

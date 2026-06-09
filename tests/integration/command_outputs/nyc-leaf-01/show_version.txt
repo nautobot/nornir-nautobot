@@ -1,0 +1,52 @@
+nyc-leaf-01# sh ver
+Cisco Nexus Operating System (NX-OS) Software
+TAC support: http://www.cisco.com/tac
+Copyright (C) 2002-2017, Cisco and/or its affiliates.
+All rights reserved.
+The copyrights to certain works contained in this software are
+owned by other third parties and used and distributed under their own
+licenses, such as open source.  This software is provided "as is," and
+ unless
+otherwise stated, there is no warranty, express or implied, including
+but not
+limited to warranties of merchantability and fitness for a particular
+purpose.
+Certain components of this software are licensed under
+the GNU General Public License (GPL) version 2.0 or
+GNU General Public License (GPL) version 3.0  or the GNU
+Lesser General Public License (LGPL) Version 2.1 or
+Lesser General Public License (LGPL) Version 2.0.
+A copy of each such license is available at
+http://www.opensource.org/licenses/gpl-2.0.php and
+http://opensource.org/licenses/gpl-3.0.html and
+http://www.opensource.org/licenses/lgpl-2.1.php and
+http://www.gnu.org/licenses/old-licenses/library.txt.
+
+Software
+  BIOS: version 07.59
+  NXOS: version 7.0(3)I5(2)
+  BIOS compile time:  08/26/2016
+  NXOS image file is: bootflash:///nxos.7.0.3.I5.2.bin
+  NXOS compile time:  2/16/2017 8:00:00 [02/16/2017 17:03:27]
+
+
+Hardware
+  cisco Nexus9000 C9372TX chassis
+  Intel(R) Core(TM) i3- CPU @ 2.50GHz with 16401328 kB of memory.
+  Processor Board ID SAL190694KH
+
+  Device name: nyc-leaf-01
+  bootflash:   51496280 kB
+Kernel uptime is 17 day(s), 9 hour(s), 7 minute(s), 50 second(s)
+
+Last reset
+  Reason: Unknown
+  System version: 7.0(3)I5(2)
+  Service:
+
+plugin
+  Core Plugin, Ethernet Plugin
+
+Active Package(s):
+
+nyc-leaf-01#

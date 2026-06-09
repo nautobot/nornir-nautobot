@@ -1,0 +1,15 @@
+{
+  "hostname": "C3650",
+  "fqdn": "C3650",
+  "vendor": "Cisco",
+  "model": "WS-C3650-48PQ",
+  "serial_number": "FDO1738Q02K",
+  "os_version": "16.12.14",
+  "uptime": 981720,
+  "interface_list": [
+    "Vlan1",
+    "GigabitEthernet1/0/1",
+    "GigabitEthernet1/0/2",
+    "TenGigabitEthernet1/1/1"
+  ]
+}

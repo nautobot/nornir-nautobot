@@ -154,7 +154,7 @@ Because the live dispatchers return different data types, their stored offline f
 
 ### Forcing offline per call
 
-`get_command()` on the `NetmikoDefault`, `NapalmDefault`, and `ScrapliDefault` dispatchers accepts a `force_offline` keyword argument (defaults to `False`). When `force_offline=True`, the dispatcher reads the output from `command_file_path` and **bypasses the `offline_commands` precedence entirely** — the device's custom field, config context, and class attribute are not consulted. This lets a caller that owns the offline-vs-live decision itself drive the offline path explicitly, without depending on per-device source-of-truth values. As with the `offline_commands` gate, there is no fallback to a live device: a missing output file raises [`E1032`](troubleshooting/E1032.md).
+`get_command()` on the `NetmikoDefault`, `NapalmDefault`, and `ScrapliDefault` dispatchers accepts a `force_offline` keyword argument (defaults to `False`). When `force_offline=True`, the dispatcher reads the output from `command_file_path` and **bypasses the `offline_commands` precedence entirely** — the device's custom field, config context, and class attribute are not consulted. This lets a caller that owns the offline-vs-live decision itself drive the offline path explicitly, without depending on per-device source-of-truth values. As with the `offline_commands` gate, there is no fallback to a live device; a missing output file raises [`E1032`](troubleshooting/E1032.md).
 
 `force_offline` applies to `get_command()` only; `get_commands()` and `get_config()` continue to use the `offline_commands` precedence above.
 

@@ -1083,7 +1083,7 @@ class ScrapliDefault(DispatcherMixin):
                 device's ``offline_commands`` config context or custom field. Defaults to False.
             kwargs: Additional arguments to pass to the scrapli_send_command task.
         """
-        logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
+        logger.debug(f"Executing get_command for {task.host.name} on {task.host.platform}")
 
         if force_offline or cls._offline_commands(obj):
             try:

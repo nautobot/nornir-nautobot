@@ -70,6 +70,14 @@ def test_get_git_command_missing_file_raises(tmp_path):
         DispatcherMixin.get_git_command(task, MagicMock(), "show version", str(tmp_path / "missing.txt"))
 
 
+def test_get_git_command_none_path_raises_e1032():
+    # A None command_file_path must raise E1032, not a TypeError from os.path.exists(None).
+    task = MagicMock()
+    with pytest.raises(FileNotFoundError) as exc_info:
+        DispatcherMixin.get_git_command(task, MagicMock(), "show version", None)
+    assert "E1032" in str(exc_info.value)
+
+
 def test_get_git_command_read_error_raises_ioerror(tmp_path):
     command_file = tmp_path / "show_version.txt"
     command_file.write_text("data", encoding="utf-8")

@@ -132,7 +132,7 @@ class DispatcherMixin:
             f"Executing get_git_command to retrieve the command output from Git for {task.host.name} on {task.host.platform}."
         )
 
-        if not os.path.exists(command_file_path):
+        if not command_file_path or not os.path.exists(command_file_path):
             error_msg = get_error_message("E1032", command=command)
             raise FileNotFoundError(error_msg)
 
@@ -1094,7 +1094,7 @@ class ScrapliDefault(DispatcherMixin):
                     command_file_path=command_file_path,
                 )
             except NornirSubTaskError as exc:
-                error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+                error_msg = get_error_message("E1015", method="get_command", exc=exc)
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
             return Result(host=task.host, result={"output": {command: cls._parse_offline_output(result[0].result)}})
@@ -1111,7 +1111,7 @@ class ScrapliDefault(DispatcherMixin):
                 logger.error(error_msg, extra={"object": obj})
                 raise NornirNautobotException(error_msg)
         except NornirSubTaskError as exc:
-            error_msg = f"`E1015:` `get_command` method failed with an unexpected issue: `{exc.result.exception}`"
+            error_msg = get_error_message("E1015", method="get_command", exc=exc)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg)
 

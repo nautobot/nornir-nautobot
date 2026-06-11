@@ -35,17 +35,16 @@ class NetmikoNokiaSros(NetmikoDefault):
     setup_command = "environment no more"
 
     @classmethod
-    def get_command(
+    def get_command(  # pylint: disable=too-many-positional-arguments,too-many-locals,too-many-arguments  # noqa: PLR0913, PLR0917
         cls,
         task: Task,
         logger: Logger,
         obj,
         command: str,
-        *,
         command_file_path: str | None = None,
         force_offline: bool = False,
         **kwargs: dict[str, object],
-    ) -> Result:  # pylint: disable=too-many-positional-arguments,too-many-locals
+    ) -> Result:
         """A tasks to get the commands from a device.
 
         Args:
@@ -126,14 +125,14 @@ class NetmikoNokiaSros(NetmikoDefault):
         return Result(host=task.host, result={"output": {command: result[0].result}})
 
     @classmethod
-    def get_commands(
+    def get_commands(  # pylint: disable=too-many-positional-arguments, too-many-locals
         cls,
         task: Task,
         logger: Logger,
         obj,
         command_list: list[str] | list[tuple[str, str]],
         **kwargs: dict[str, object],
-    ) -> Result:  # pylint: disable=too-many-positional-arguments, too-many-locals
+    ) -> Result:
         """A tasks to get the commands from a device.
 
         Args:

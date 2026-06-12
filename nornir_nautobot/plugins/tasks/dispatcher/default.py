@@ -834,8 +834,10 @@ class NetmikoDefault(DispatcherMixin):
             except (NotImplementedError, AttributeError, NornirExecutionError):
                 nr_without_processors.run(task=netmiko_commit)
         except NornirSubTaskError as exc:
-            get_error_message("E1016", exc=exc)
+            error_msg = get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
+        else:
+            logger.info("Config save ended", extra={"object": obj})
         return Result(
             host=task.host,
             result={"changed": push_result[0].changed, "result": push_result[0].result},

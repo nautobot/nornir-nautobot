@@ -1,0 +1,1 @@
+Fixed the save step in the Netmiko `merge_config` logging a discarded error message on failure, and added a log message confirming when the configuration save has completed.

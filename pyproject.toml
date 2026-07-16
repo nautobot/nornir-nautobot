@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir-nautobot"
-version = "4.3.0"
+version = "4.3.1a0"
 description = "Nornir Plugin for Nautobot providing centralized inventory and tasks."
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"

@@ -170,12 +170,14 @@ nav:
               - E1034: "user/troubleshooting/E1034.md"
               - E1035: "user/troubleshooting/E1035.md"
               - E1036: "user/troubleshooting/E1036.md"
+              - E1041: "user/troubleshooting/E1041.md"
   - Administrator Guide:
       - Install and Configure: "admin/install.md"
       - Upgrade: "admin/upgrade.md"
       - Uninstall: "admin/uninstall.md"
       - Release Notes:
           - "admin/release_notes/index.md"
+          - v4.3: "admin/release_notes/version_4.3.md"
           - v4.2: "admin/release_notes/version_4.2.md"
           - v4.1: "admin/release_notes/version_4.1.md"
           - v4.0: "admin/release_notes/version_4.0.md"

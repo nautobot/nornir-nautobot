@@ -1,0 +1,4 @@
+Hostname: junos-device
+Model: srx320
+Junos: 22.4R2-S2.6
+JUNOS Software Release [22.4R2-S2.6]

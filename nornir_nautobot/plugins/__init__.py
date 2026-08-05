@@ -1,0 +1,1 @@
+"""Nornir nautobot inventory."""

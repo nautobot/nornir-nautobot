@@ -1,0 +1,12 @@
+{
+    "circuits": "http://localhost:8000/api/circuits/",
+    "dcim": "http://localhost:8000/api/dcim/",
+    "extras": "http://localhost:8000/api/extras/",
+    "graphql": "http://localhost:8000/api/graphql/",
+    "ipam": "http://localhost:8000/api/ipam/",
+    "plugins": "http://localhost:8000/api/plugins/",
+    "status": "http://localhost:8000/api/status/",
+    "tenancy": "http://localhost:8000/api/tenancy/",
+    "users": "http://localhost:8000/api/users/",
+    "virtualization": "http://localhost:8000/api/virtualization/"
+}

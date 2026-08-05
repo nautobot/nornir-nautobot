@@ -1,4 +1,0 @@
----
-command: "show version"
-parser: "textfsm"
-jpath: "[*].hostname"

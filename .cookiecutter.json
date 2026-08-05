@@ -20,10 +20,10 @@
             "template_dir": "python",
             "template_ref": "main",
             "cookie_dir": "",
-            "pull_request_strategy": "create",
+            "pull_request_strategy": "update-or-create",
             "post_actions": [],
             "draft": false,
-            "baked_commit_ref": "",
+            "baked_commit_ref": "61ef8fc65e05eb5e11c14e1da521cdf7c46baace",
             "drift_managed_branch": "develop"
         }
     }

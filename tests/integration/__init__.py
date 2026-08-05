@@ -1,1 +1,1 @@
-"""Integration tests for nornir-nautobot dispatchers."""
+"""Integration tests package."""

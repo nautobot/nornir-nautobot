@@ -1,16 +1,8 @@
 # Library Overview
 
-This document provides an overview of the library including critical information and important considerations.
+Nornir Nautobot is a set of utilities to help interact with Nautobot via Nornir. The Nornir Nautobot project intends to solve two primary use cases.
 
-## Description
+* Providing a Nornir inventory that leverages Nautobot's API.
+* A set of opinionated Nornir plugins.
 
-
-## Audience (User Personas) - Who should use this Library?
-
-!!! warning "Developer Note - Remove Me!"
-    Who is this meant for/ who is the common user of this library?
-
-## Authors and Maintainers
-
-!!! warning "Developer Note - Remove Me!"
-    Add the team and/or the main individuals maintaining this project. Include historical maintainers as well.
+The set of plugins intend to provide mechanisms to include common networking workflows that will help enable network automation. As an example, there are method to get configurations or test network connectivity. Over time this will include functions to perform actions such as get vlans, neighbors, protocols, etc.

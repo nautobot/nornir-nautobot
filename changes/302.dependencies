@@ -1,0 +1,1 @@
+Pinning httpx package to ">=0.23.0,<1" to make nornir-nautobot compatible with nautobot-mcp-server.

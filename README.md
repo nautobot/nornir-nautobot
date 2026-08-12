@@ -1,7 +1,11 @@
 # Nornir Nautobot
 
 <p align="center">
+<<<<<<< HEAD
   <img src="https://raw.githubusercontent.com/nautobot/nornir-nautobot/develop/docs/images/nautobot_logo.svg" class="logo" height="200px">
+=======
+  <img src="https://raw.githubusercontent.com/nautobot/nornir-nautobot/develop/docs/images/icon-nornir-nautobot.png" class="logo" height="200px">
+>>>>>>> 787aade (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
   <br>
   <a href="https://github.com/nautobot/nornir-nautobot/actions"><img src="https://github.com/nautobot/nornir-nautobot/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://nornir-nautobot.readthedocs.io/en/latest"><img src="https://readthedocs.org/projects/nornir-nautobot/badge/"></a>

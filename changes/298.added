@@ -1,1 +1,0 @@
-Added support for Jinja template rendering with `substitute_lines` in the `get_config` task.

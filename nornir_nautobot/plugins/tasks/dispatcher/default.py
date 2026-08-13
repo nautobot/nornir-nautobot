@@ -13,7 +13,7 @@ from typing import Optional
 
 import jinja2
 import netmiko
-from netutils.config.clean import clean_config, sanitize_config
+from netutils.config.clean import clean_config, sanitize_config, sanitize_config_jinja
 from netutils.config.compliance import compliance
 from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
@@ -313,6 +313,8 @@ class DispatcherMixin:
         if not substitute_lines:
             return _running_config
         logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
+        if any("{{" in item.get("replace", "") for item in substitute_lines):
+            return sanitize_config_jinja(_running_config, substitute_lines)
         return sanitize_config(_running_config, substitute_lines)
 
     @classmethod

@@ -1036,6 +1036,18 @@ class ScrapliDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
+    def _get_config_command(cls, obj) -> str:
+        custom_field = obj.cf.get("config_command")
+        if custom_field and isinstance(custom_field, str):
+            return custom_field
+        config_context = obj.get_config_context().get("config_command")
+        if config_context and isinstance(config_context, str):
+            return config_context
+        if cls.config_command:
+            return cls.config_command
+        return "show run"
+
+    @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
@@ -1062,7 +1074,7 @@ class ScrapliDefault(DispatcherMixin):
                 { "config: <running configuration> }
         """
         logger.debug(f"Executing get_config for {task.host.name} on {task.host.platform}")
-        command = cls.config_command
+        command = cls._get_config_command(obj)
         if cls._offline_commands(obj):
             getter_result = cls.get_command(task, logger, obj, command, command_file_path=command_file_path)
         else:

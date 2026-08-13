@@ -4,18 +4,10 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
+- Added support for Jinja template rendering with `substitute_lines` in the `get_config` task.
+- Updated multiple dependencies to support newer versions.
 
 <!-- towncrier release notes start -->
-
-# v4.4 Release Notes
-
-This document describes all new features and changes in the release. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## Release Overview
-
-- Major features or milestones
-- Changes to compatibility with Nautobot and/or other apps, libraries etc.
 
 ## [v4.4.0 (2026-08-13)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.0)
 

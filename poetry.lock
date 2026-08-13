@@ -1637,18 +1637,18 @@ textfsm = ">=1.1.3"
 
 [[package]]
 name = "netutils"
-version = "1.17.3"
+version = "1.18.0"
 description = "Common helper functions useful in network automation."
 optional = false
 python-versions = "<3.15,>=3.10"
 groups = ["main"]
 files = [
-    {file = "netutils-1.17.3-py3-none-any.whl", hash = "sha256:2d96faab35a02450b304bc24af7f0547682e044f541100e9bed8087f538c2b48"},
-    {file = "netutils-1.17.3.tar.gz", hash = "sha256:d1b94b2f5ff899824237141eec76b9f75fac44fcf8c0f871520336b8938d2eb4"},
+    {file = "netutils-1.18.0-py3-none-any.whl", hash = "sha256:769bf33695605fc7c9f5ebf5990f3cb4de098fd64185775669c23623008886cd"},
+    {file = "netutils-1.18.0.tar.gz", hash = "sha256:dd584b856f3b454bb8ab00b415c6ca2c11ba254382db9444944e67d71e8bff19"},
 ]
 
 [package.extras]
-optionals = ["jsonschema (>=4.17.3,<5.0.0)", "legacycrypt (==0.3)", "napalm (>=4.1.0,<5.0.0) ; python_version >= \"3.10\" and python_version < \"3.14\"", "napalm (>=5.0.0,<6.0.0) ; python_version >= \"3.14\"", "rpds-py (>=0.28.0)"]
+optionals = ["jinja2 (>=3.1.6,<4.0.0)", "jsonschema (>=4.17.3,<5.0.0)", "legacycrypt (==0.3)", "napalm (>=4.1.0,<5.0.0) ; python_version >= \"3.10\" and python_version < \"3.14\"", "napalm (>=5.0.0,<6.0.0) ; python_version >= \"3.14\"", "rpds-py (>=0.28.0)"]
 
 [[package]]
 name = "nornir"
@@ -3171,4 +3171,4 @@ mikrotik-driver = ["routeros-api"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "672efd42e64ebae385641720c7cb9919c5ea1353f8f4ecb161e7d2124ed2186a"
+content-hash = "de06fc26ed28ea5ed1572ef6cd19276c5bcf84368ed1d21287a9daaf2af2d7cf"

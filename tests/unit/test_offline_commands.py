@@ -253,3 +253,35 @@ def test_scrapli_get_command_force_offline_overrides_explicit_false_offline_comm
     )
     assert result.result == {"output": {"show run": "hostname router1"}}
     assert task.run.call_args.kwargs["task"] == ScrapliDefault.get_git_command
+
+
+# --- ScrapliDefault dynamic config_command resolution ---
+
+
+def test_scrapli_get_config_command_uses_custom_field():
+    obj = _make_obj(
+        custom_fields={"config_command": "show running-config"}, config_context={"config_command": "show run"}
+    )
+    assert ScrapliDefault._get_config_command(obj) == "show running-config"
+
+
+def test_scrapli_get_config_command_uses_config_context_when_cf_absent():
+    obj = _make_obj(config_context={"config_command": "show configuration | display set"})
+    assert ScrapliDefault._get_config_command(obj) == "show configuration | display set"
+
+
+def test_scrapli_get_config_command_uses_class_default():
+    assert ScrapliDefault._get_config_command(_make_obj()) == "show run"
+
+
+def test_scrapli_get_config_command_ignores_non_string_values():
+    obj = _make_obj(
+        custom_fields={"config_command": ["show run"]},
+        config_context={"config_command": 42},
+    )
+    assert ScrapliDefault._get_config_command(obj) == "show run"
+
+
+def test_scrapli_get_config_command_non_string_cf_falls_through_to_context():
+    obj = _make_obj(custom_fields={"config_command": 42}, config_context={"config_command": "show running-config"})
+    assert ScrapliDefault._get_config_command(obj) == "show running-config"

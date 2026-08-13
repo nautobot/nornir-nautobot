@@ -13,7 +13,7 @@
         "project_python_base_version": "3.10",
         "project_with_config_settings": "no",
         "generate_docs": "yes",
-        "version": "4.2.1",
+        "version": "4.3.1a0",
         "original_publish_year": "2021",
         "_drift_manager": {
             "template": "https://github.com/networktocode-llc/cookiecutter-ntc.git",
@@ -23,7 +23,7 @@
             "pull_request_strategy": "update-or-create",
             "post_actions": [],
             "draft": false,
-            "baked_commit_ref": "61ef8fc65e05eb5e11c14e1da521cdf7c46baace",
+            "baked_commit_ref": "7ca9a6f93439a8c92d1964b3ea7043475e872d65",
             "drift_managed_branch": "develop"
         }
     }

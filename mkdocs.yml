@@ -131,7 +131,7 @@ nav:
       - Task Plugin:
           - Task Overview: "user/task.md"
           - Troubleshooting:
-              - "user/troubleshooting/index.md"
+              - Troubleshooting: "user/troubleshooting/index.md"
               - E1XXX: "user/troubleshooting/E1XXX.md"
               - E1000: "user/troubleshooting/E1000.md"
               - E1001: "user/troubleshooting/E1001.md"
@@ -176,7 +176,8 @@ nav:
       - Upgrade: "admin/upgrade.md"
       - Uninstall: "admin/uninstall.md"
       - Release Notes:
-          - "admin/release_notes/index.md"
+          - Release Notes: "admin/release_notes/index.md"
+          - v4.4: "admin/release_notes/version_4.4.md"
           - v4.3: "admin/release_notes/version_4.3.md"
           - v4.2: "admin/release_notes/version_4.2.md"
           - v4.1: "admin/release_notes/version_4.1.md"

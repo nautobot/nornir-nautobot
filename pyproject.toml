@@ -1,7 +1,15 @@
 [tool.poetry]
 name = "nornir-nautobot"
+<<<<<<< HEAD
+<<<<<<< HEAD
 version = "4.4.1a0"
 description = "Nornir Plugin for Nautobot providing centralized inventory and tasks."
+=======
+=======
+>>>>>>> 76bf84f (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
+version = "0.1.0a0"
+description = "Nornir Library for Nautobot providing centralized inventory and tasks."
+>>>>>>> 7a205b8 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 readme = "README.md"
 license = "Apache-2.0"
@@ -21,8 +29,8 @@ classifiers = [
 ]
 
 include = [
-    "LICENSE",
-    "README.md",
+    # Poetry by default will exclude files that are in .gitignore
+    { path = "nornir-nautobot/static/nornir-nautobot/docs/**/*", format = ["sdist", "wheel"] }
 ]
 
 packages = [
@@ -31,6 +39,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.15"
+<<<<<<< HEAD
+<<<<<<< HEAD
 nornir = "^3.3.0"
 requests = "^2.30.1"
 nornir-utils = "^0"
@@ -49,6 +59,11 @@ jdiff = "^1.0.1"
 jsonschema = ">=4.0.0,<5.0"
 ntc-templates = ">=7.9.0"
 ttp = "^0.10.0"
+=======
+=======
+>>>>>>> 76bf84f (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
+click = "*"
+>>>>>>> 7a205b8 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -171,8 +186,18 @@ addopts = "-vv --doctest-modules -p no:warnings --ignore-glob='*mock*'"
 [tool.towncrier]
 package = "nornir_nautobot"
 directory = "changes"
+<<<<<<< HEAD
+<<<<<<< HEAD
 filename = "docs/admin/release_notes/version_4.4.md"
 template = "towncrier_template.j2"
+=======
+filename = "docs/admin/release_notes/version_X.Y.md"
+template = "development/towncrier_template.j2"
+>>>>>>> 7a205b8 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
+=======
+filename = "docs/admin/release_notes/version_X.Y.md"
+template = "development/towncrier_template.j2"
+>>>>>>> 76bf84f (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/nautobot/nornir-nautobot/issues/{issue})"
 

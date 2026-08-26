@@ -92,10 +92,14 @@ jobs:
       fail-fast: true
       matrix:
 <<<<<<< HEAD
+<<<<<<< HEAD
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 =======
         python-version: ["3.10"]
 >>>>>>> 7a205b8 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
+=======
+        python-version: ["3.10"]
+>>>>>>> 76bf84f (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
     env:
       INVOKE_NORNIR_NAUTOBOT_PYTHON_VER: "${{ matrix.python-version }}"
     steps:
@@ -132,10 +136,14 @@ jobs:
       fail-fast: true
       matrix:
 <<<<<<< HEAD
+<<<<<<< HEAD
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
 =======
         python-version: ["3.10", "3.14"]
 >>>>>>> 7a205b8 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
+=======
+        python-version: ["3.10", "3.14"]
+>>>>>>> 76bf84f (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
     runs-on: "ubuntu-latest"
     env:
       INVOKE_NORNIR_NAUTOBOT_PYTHON_VER: "${{ matrix.python-version }}"

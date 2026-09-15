@@ -1,0 +1,1 @@
+Fixed file descriptor exhaustion on large plays by clearing the frames of exceptions stored on a task result, allowing tracebacks from failed connections to be garbage collected before the play ends.

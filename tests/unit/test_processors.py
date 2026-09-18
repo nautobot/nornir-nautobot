@@ -2,6 +2,8 @@
 
 import gc
 import logging
+import os
+import threading
 import traceback
 import weakref
 from unittest.mock import MagicMock
@@ -11,9 +13,12 @@ from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import MultiResult, Result
 
 from nornir_nautobot.plugins.processors import (
+    SELECT_FD_SETSIZE,
     BaseLoggingProcessor,
     BaseProcessor,
     clear_result_exception_frames,
+    fd_ceiling,
+    open_fd_count,
 )
 
 
@@ -226,3 +231,141 @@ def test_clearing_is_stateless_across_calls(processor_class):
         exception, sentinel_ref = _pinning_exception()
         _run_processor(processor, _multi_result(_result_for(exception)))
         assert _is_released(sentinel_ref)
+
+
+def _passing_result():
+    """A MultiResult with no stored exception, as a successful task instance produces."""
+    return _multi_result(Result(MagicMock(), result="config text", failed=False))
+
+
+def _reset_gc_state():
+    """Zero the process-wide collection state so the interval tests are independent."""
+    with BaseProcessor._gc_lock:  # pylint: disable=protected-access
+        BaseProcessor._completed_count = 0  # pylint: disable=protected-access
+        BaseProcessor._cooldown_until = 0  # pylint: disable=protected-access
+
+
+@pytest.fixture(name="collect_calls")
+def _collect_calls(monkeypatch):
+    """Record gc.collect() calls made by the processor, without actually collecting."""
+    _reset_gc_state()
+    calls = []
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.gc.collect", lambda: calls.append(1))
+    return calls
+
+
+@pytest.mark.parametrize("processor_class", [BaseProcessor, BaseLoggingProcessor])
+def test_no_collection_while_descriptors_are_low(processor_class, collect_calls, monkeypatch):
+    """A play whose driver leaks nothing must never pay for a collection."""
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: 100)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: 1000)
+
+    processor = processor_class()
+    for _ in range(500):
+        _run_processor(processor, _passing_result())
+
+    assert collect_calls == []
+
+
+def test_collection_when_descriptors_pass_the_high_water_mark(collect_calls, monkeypatch):
+    freed = {"done": False}
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: 1000)
+    monkeypatch.setattr(
+        "nornir_nautobot.plugins.processors.open_fd_count",
+        lambda: 100 if freed["done"] else 800,
+    )
+    monkeypatch.setattr(
+        "nornir_nautobot.plugins.processors.gc.collect",
+        lambda: (collect_calls.append(1), freed.__setitem__("done", True)),
+    )
+
+    _run_processor(BaseProcessor(), _passing_result())
+    assert len(collect_calls) == 1
+
+
+def test_cooldown_when_collection_does_not_free_descriptors(collect_calls, monkeypatch):
+    """Descriptors that are genuinely in use must not trigger a collection on every task."""
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: 1000)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: 900)
+    monkeypatch.setattr(BaseProcessor, "gc_cooldown", 50, raising=False)
+
+    processor = BaseProcessor()
+    for _ in range(120):
+        _run_processor(processor, _passing_result())
+
+    # One collection at the first task, then a 50-task cooldown before each further attempt.
+    assert len(collect_calls) == 3
+
+
+def test_descriptor_check_can_be_disabled(collect_calls, monkeypatch):
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: 1000)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: 999)
+    monkeypatch.setattr(BaseProcessor, "gc_fd_high_water", 0, raising=False)
+
+    processor = BaseProcessor()
+    for _ in range(50):
+        _run_processor(processor, _passing_result())
+
+    assert collect_calls == []
+
+
+def test_fixed_interval_fallback(collect_calls, monkeypatch):
+    """Platforms that cannot report a descriptor count fall back to the interval."""
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
+    monkeypatch.setattr(BaseProcessor, "gc_collect_interval", 5, raising=False)
+
+    processor = BaseProcessor()
+    for completed in range(1, 16):
+        _run_processor(processor, _passing_result())
+        assert len(collect_calls) == completed // 5
+
+
+def test_unavailable_fd_count_is_a_noop_without_the_interval(collect_calls, monkeypatch):
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
+
+    processor = BaseProcessor()
+    for _ in range(50):
+        _run_processor(processor, _passing_result())
+
+    assert collect_calls == []
+
+
+def test_counter_is_threadsafe(collect_calls, monkeypatch):
+    """The threaded runner calls task_instance_completed concurrently on one processor."""
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
+    monkeypatch.setattr(BaseProcessor, "gc_collect_interval", 10, raising=False)
+
+    processor = BaseProcessor()
+
+    def _worker():
+        for _ in range(100):
+            _run_processor(processor, _passing_result())
+
+    threads = [threading.Thread(target=_worker) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    # 8 threads x 100 instances = 800 completions, exactly 80 collections, no lost updates.
+    assert len(collect_calls) == 80
+
+
+def test_fd_ceiling_is_capped_at_select_fd_setsize(monkeypatch):
+    """A large RLIMIT_NOFILE must not raise the ceiling past what select() can wait on."""
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.resource.getrlimit", lambda _which: (65536, 65536))
+    assert fd_ceiling() == SELECT_FD_SETSIZE
+
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.resource.getrlimit", lambda _which: (256, 65536))
+    assert fd_ceiling() == 256
+
+
+def test_open_fd_count_reports_real_descriptors():
+    before = open_fd_count()
+    assert before is not None
+    with open(os.devnull) as handle:  # noqa: F841
+        assert open_fd_count() == before + 1
+    assert open_fd_count() == before

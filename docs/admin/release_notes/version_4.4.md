@@ -13,7 +13,7 @@ This document describes all new features and changes in the release. The format 
 
 ### Fixed
 
-- [#313](https://github.com/nautobot/nornir-nautobot/issues/313) - Fixed file descriptor exhaustion during long plays by clearing exception frames and triggering garbage collection when open descriptors near the process limit.
+- [#313](https://github.com/nautobot/nornir-nautobot/issues/313) - Fixed file descriptor exhaustion during long-running plays.
 
 ### Housekeeping
 

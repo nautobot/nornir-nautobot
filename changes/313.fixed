@@ -1,1 +1,0 @@
-Fixed file descriptor exhaustion during long plays by clearing exception frames and triggering garbage collection when open descriptors near the process limit.

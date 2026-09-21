@@ -9,6 +9,17 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v4.4.1 (2026-09-21)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.1)
+
+### Fixed
+
+- [#313](https://github.com/nautobot/nornir-nautobot/issues/313) - Fixed file descriptor exhaustion during long-running plays.
+
+### Housekeeping
+
+- Rebaked from the cookie `main`.
+- Removed @jvanderaa from the repository CODEOWNERS.
+
 ## [v4.4.0 (2026-08-13)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.0)
 
 ### Added

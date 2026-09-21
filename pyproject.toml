@@ -21,8 +21,8 @@ classifiers = [
 ]
 
 include = [
-    "LICENSE",
-    "README.md",
+    # Poetry by default will exclude files that are in .gitignore
+    { path = "nornir-nautobot/static/nornir-nautobot/docs/**/*", format = ["sdist", "wheel"] }
 ]
 
 packages = [
@@ -172,7 +172,7 @@ addopts = "-vv --doctest-modules -p no:warnings --ignore-glob='*mock*'"
 package = "nornir_nautobot"
 directory = "changes"
 filename = "docs/admin/release_notes/version_4.4.md"
-template = "towncrier_template.j2"
+template = "development/towncrier_template.j2"
 start_string = "<!-- towncrier release notes start -->"
 issue_format = "[#{issue}](https://github.com/nautobot/nornir-nautobot/issues/{issue})"
 

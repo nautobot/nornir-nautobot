@@ -9,6 +9,12 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v4.4.2 (2026-09-21)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.2)
+
+### Housekeeping
+
+- Remove build documentation step from release workflow
+
 ## [v4.4.1 (2026-09-21)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.1)
 
 ### Fixed

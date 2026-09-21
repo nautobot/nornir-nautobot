@@ -106,16 +106,13 @@ class BaseProcessor:
     #: Without this, a play whose descriptors are legitimately in use would collect on every task.
     gc_cooldown = 50
 
-    #: Optional fixed-interval collection, for platforms that cannot report a descriptor count.
-    #: 0 leaves the descriptor-driven check above as the only trigger.
-    gc_collect_interval = 0
-
     _completed_count = 0
     _cooldown_until = 0
+    _fd_count_warned = False
     _gc_lock = threading.Lock()
 
     def _collect_if_due(self) -> None:
-        """Run a full garbage collection if descriptor pressure, or the fixed interval, calls for it.
+        """Run a full garbage collection if the open descriptor count calls for it.
 
         Held under a lock so that concurrent task instances cannot trigger overlapping collections.
         """
@@ -125,15 +122,18 @@ class BaseProcessor:
             if completed < BaseProcessor._cooldown_until:
                 return
 
-            if self.gc_collect_interval and completed % self.gc_collect_interval == 0:
-                gc.collect()
-                return
-
             if not self.gc_fd_high_water:
                 return
             ceiling = fd_ceiling()
             open_fds = open_fd_count()
             if ceiling is None or open_fds is None:
+                if not BaseProcessor._fd_count_warned:
+                    BaseProcessor._fd_count_warned = True
+                    LOGGER.warning(
+                        "Cannot read this process's open file count, so descriptor-driven garbage "
+                        "collection is disabled. A driver that holds resources in reference cycles "
+                        "may exhaust the open file limit on a long play."
+                    )
                 return
             high_water = ceiling * self.gc_fd_high_water
             if open_fds < high_water:

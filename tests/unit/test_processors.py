@@ -309,34 +309,26 @@ def test_descriptor_check_can_be_disabled(collect_calls, monkeypatch):
     assert collect_calls == []
 
 
-def test_fixed_interval_fallback(collect_calls, monkeypatch):
-    """Platforms that cannot report a descriptor count fall back to the interval."""
+def test_unavailable_fd_count_warns_once_and_does_not_collect(collect_calls, monkeypatch, caplog):
+    """A platform that cannot report the count must say so rather than silently skip the guard."""
     monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
     monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
-    monkeypatch.setattr(BaseProcessor, "gc_collect_interval", 5, raising=False)
+    monkeypatch.setattr(BaseProcessor, "_fd_count_warned", False, raising=False)
 
     processor = BaseProcessor()
-    for completed in range(1, 16):
-        _run_processor(processor, _passing_result())
-        assert len(collect_calls) == completed // 5
-
-
-def test_unavailable_fd_count_is_a_noop_without_the_interval(collect_calls, monkeypatch):
-    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
-    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
-
-    processor = BaseProcessor()
-    for _ in range(50):
-        _run_processor(processor, _passing_result())
+    with caplog.at_level(logging.WARNING, logger="nornir_nautobot.plugins.processors"):
+        for _ in range(50):
+            _run_processor(processor, _passing_result())
 
     assert collect_calls == []
+    assert caplog.text.count("Cannot read this process's open file count") == 1
 
 
-def test_counter_is_threadsafe(collect_calls, monkeypatch):
+def test_collection_counter_is_threadsafe(collect_calls, monkeypatch):
     """The threaded runner calls task_instance_completed concurrently on one processor."""
-    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: None)
-    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: None)
-    monkeypatch.setattr(BaseProcessor, "gc_collect_interval", 10, raising=False)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.fd_ceiling", lambda: 1000)
+    monkeypatch.setattr("nornir_nautobot.plugins.processors.open_fd_count", lambda: 900)
+    monkeypatch.setattr(BaseProcessor, "gc_cooldown", 50, raising=False)
 
     processor = BaseProcessor()
 
@@ -350,8 +342,8 @@ def test_counter_is_threadsafe(collect_calls, monkeypatch):
     for thread in threads:
         thread.join()
 
-    # 8 threads x 100 instances = 800 completions, exactly 80 collections, no lost updates.
-    assert len(collect_calls) == 80
+    # 800 completions with a 50-instance cooldown: collections at 1, 51, 101 ... 751.
+    assert len(collect_calls) == 16
 
 
 def test_fd_ceiling_is_capped_at_select_fd_setsize(monkeypatch):

@@ -9,6 +9,16 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v4.4.3 (2026-09-23)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.3)
+
+### Fixed
+
+- [#322](https://github.com/nautobot/nornir-nautobot/issues/322) - Fixed `substitute_lines` rendering a `replace` value as a Jinja template whenever it contained `{{`, which broke Golden Config post-processing placeholders. Jinja rendering is now opt-in per filter with `"render_jinja": True`.
+
+### Dependencies
+
+- [#322](https://github.com/nautobot/nornir-nautobot/issues/322) - Updated the minimum version of `netutils` to 1.19.2.
+
 ## [v4.4.2 (2026-09-21)](https://github.com/nautobot/nornir-nautobot/releases/tag/v4.4.2)
 
 ### Housekeeping

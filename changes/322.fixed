@@ -1,1 +1,0 @@
-Fixed `substitute_lines` rendering a `replace` value as a Jinja template whenever it contained `{{`, which broke Golden Config post-processing placeholders. Jinja rendering is now opt-in per filter with `"render_jinja": True`.

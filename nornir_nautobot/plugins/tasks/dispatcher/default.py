@@ -305,7 +305,9 @@ class DispatcherMixin:
         Args:
             logger (logging.Logger): Logger that may be a Nautobot Jobs or Python logger.
             _running_config (str): a device running configuration.
-            substitute_lines (list): A list of dictionaries with to remove and replace lines.
+            substitute_lines (list): A list of dictionaries with to remove and replace lines. A dictionary
+                that sets `render_jinja` to `True` has its `replace` value rendered as a Jinja template;
+                every other one is substituted literally.
 
         Returns:
             Result: running configuration with substitutions.
@@ -313,7 +315,7 @@ class DispatcherMixin:
         if not substitute_lines:
             return _running_config
         logger.debug("Substitute lines from configuration based on `substitute_lines` definition")
-        if any("{{" in item.get("replace", "") for item in substitute_lines):
+        if any(item.get("render_jinja", False) for item in substitute_lines):
             return sanitize_config_jinja(_running_config, substitute_lines)
         return sanitize_config(_running_config, substitute_lines)
 

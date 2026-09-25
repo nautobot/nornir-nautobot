@@ -1,0 +1,81 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 100,
+            "url": "http://nautobot-demo.com/api/virtualization/virtual-machines/100/",
+            "name": "vm-app01",
+            "display": "vm-app01",
+            "cluster": {
+                "id": 1,
+                "url": "http://nautobot-demo.com/api/virtualization/clusters/1/",
+                "name": "cluster-1"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 10,
+                "url": "http://nautobot-demo.com/api/dcim/platforms/10/",
+                "name": "Linux",
+                "network_driver": "linux"
+            },
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "role": null,
+            "primary_ip4": {
+                "id": 100,
+                "url": "http://nautobot-demo.com/api/ipam/ip-addresses/100/",
+                "family": 4,
+                "address": "10.50.0.10/32"
+            },
+            "primary_ip6": null,
+            "comments": "",
+            "local_config_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2020-12-06",
+            "last_updated": "2020-12-13T20:33:30.187336Z"
+        },
+        {
+            "id": 101,
+            "url": "http://nautobot-demo.com/api/virtualization/virtual-machines/101/",
+            "name": "vm-db01",
+            "display": "vm-db01",
+            "cluster": {
+                "id": 1,
+                "url": "http://nautobot-demo.com/api/virtualization/clusters/1/",
+                "name": "cluster-1"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 10,
+                "url": "http://nautobot-demo.com/api/dcim/platforms/10/",
+                "name": "Linux",
+                "network_driver": "linux"
+            },
+            "status": {
+                "value": "active",
+                "label": "Active"
+            },
+            "role": null,
+            "primary_ip4": {
+                "id": 101,
+                "url": "http://nautobot-demo.com/api/ipam/ip-addresses/101/",
+                "family": 4,
+                "address": "10.50.0.11/32"
+            },
+            "primary_ip6": null,
+            "comments": "",
+            "local_config_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2020-12-06",
+            "last_updated": "2020-12-13T20:33:30.187336Z"
+        }
+    ]
+}

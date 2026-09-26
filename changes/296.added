@@ -1,0 +1,1 @@
+Added dynamic `config_command` support to the Scrapli dispatcher, resolving per-device overrides from the `config_command` custom field or config context before falling back to the dispatcher default.

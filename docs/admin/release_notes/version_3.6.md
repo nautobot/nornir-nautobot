@@ -7,6 +7,20 @@ This document describes all new features and changes in the release. The format 
 
 -  Created a facts getter task.
 
+<!-- towncrier release notes start -->
+
+## [v3.6.2 (2026-09-28)](https://github.com/nautobot/nornir-nautobot/releases/tag/v3.6.2)
+
+### Dependencies
+
+- Changed ntc-templates dependency to >=7.9.0.
+
+## [v3.6.1 (2026-04-29)](https://github.com/nautobot/nornir-nautobot/releases/tag/v3.6.1)
+
+### Fixed
+
+- [#264](https://github.com/nautobot/nornir-nautobot/issues/264) - Fixed issues with error checking function signature mismatches.
+
 ## [v3.6.0 (2026-02-16)](https://github.com/networktocode/nornir-nautobot/releases/tag/v3.6.0)
 
 ### Add

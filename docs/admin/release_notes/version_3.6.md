@@ -9,6 +9,11 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v3.6.2 (2026-09-28)](https://github.com/nautobot/nornir-nautobot/releases/tag/v3.6.2)
+
+### Dependencies
+
+- Changed ntc-templates dependency to >=7.9.0.
 
 ## [v3.6.1 (2026-04-29)](https://github.com/nautobot/nornir-nautobot/releases/tag/v3.6.1)
 

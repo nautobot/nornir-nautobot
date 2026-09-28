@@ -20,31 +20,29 @@ This may seem like a lot, but it essentially can be broken down to:
 For completeness here is the referenced code as of October 2023.
 
 ```python
-    custom_dispatcher = ""
-    if kwargs.get("custom_dispatcher"):
-        custom_dispatcher = kwargs["custom_dispatcher"]
-        del kwargs["custom_dispatcher"]
+custom_dispatcher = ""
+if kwargs.get("custom_dispatcher"):
+    custom_dispatcher = kwargs["custom_dispatcher"]
+    del kwargs["custom_dispatcher"]
 
-    logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform})")
+logger.debug(f"Dispatcher process started for {task.host.name} ({task.host.platform})")
 
-    network_driver = task.host.platform
-    network_driver_title = snake_to_title_case(network_driver)
-    framework_path = (
-        f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
-    )
-    framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework.title()}Default"
+network_driver = task.host.platform
+network_driver_title = snake_to_title_case(network_driver)
+framework_path = f"nornir_nautobot.plugins.tasks.dispatcher.{network_driver}.{framework.title()}{network_driver_title}"
+framework_default_path = f"nornir_nautobot.plugins.tasks.dispatcher.default.{framework.title()}Default"
 
-    if custom_dispatcher:
-        driver_class = import_string(custom_dispatcher)
-        checked_path = [custom_dispatcher]
-    elif import_string(framework_path):
-        driver_class = import_string(framework_path)
-        checked_path = [framework_path]
-    else:
-        driver_class = import_string(framework_default_path)
-        checked_path = [framework_path, framework_default_path]
+if custom_dispatcher:
+    driver_class = import_string(custom_dispatcher)
+    checked_path = [custom_dispatcher]
+elif import_string(framework_path):
+    driver_class = import_string(framework_path)
+    checked_path = [framework_path]
+else:
+    driver_class = import_string(framework_default_path)
+    checked_path = [framework_path, framework_default_path]
 
-    result = task.run(task=driver_task, *args, **kwargs)
+result = task.run(task=driver_task, *args, **kwargs)
 ```
 
 ## Dispatcher Receiver
@@ -90,7 +88,6 @@ In this code you can see how it is set.
 
 ```python
 class DispatcherMixin:
-
     tcp_port = 22
 
     @classmethod
@@ -116,19 +113,20 @@ The Netmiko `show_command` tells Netmiko which command to use to get the config,
 Here is the implementation:
 
 ```python
-    config_command = None
+config_command = None
 
-    @classmethod
-    def _get_config_command(cls, obj) -> str:
-        custom_field = obj.cf.get("config_command")
-        if custom_field and isinstance(custom_field, str):
-            return custom_field
-        config_context = obj.get_config_context().get("config_command")
-        if config_context and isinstance(config_context, str):
-            return config_context
-        if cls.config_command:
-            return cls.config_command
-        return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
+
+@classmethod
+def _get_config_command(cls, obj) -> str:
+    custom_field = obj.cf.get("config_command")
+    if custom_field and isinstance(custom_field, str):
+        return custom_field
+    config_context = obj.get_config_context().get("config_command")
+    if config_context and isinstance(config_context, str):
+        return config_context
+    if cls.config_command:
+        return cls.config_command
+    return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
 ```
 
 ## Get command outputs through git repository

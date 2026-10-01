@@ -45,6 +45,11 @@ API_CALLS = [
         "method": "get",
     },
     {
+        "fixture_path": f"{HERE}/mocks/01_get_devices.json",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1&limit=0",
+        "method": "get",
+    },
+    {
         "fixture_path": f"{HERE}/mocks/02_get_device1.json",
         "url": "http://mock.example.com/api/dcim/devices/?name=den-dist01",
         "method": "get",
@@ -72,6 +77,51 @@ API_CALLS = [
     {
         "fixture_path": f"{HERE}/mocks/07_get_device_msp-rtr02.json",
         "url": "http://mock.example.com/api/dcim/devices/?name=msp-rtr02",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/08_get_virtual_machines.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?depth=1",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/08_get_virtual_machines.json",
+        "url": "https://mock.example.com/api/virtualization/virtual-machines/?depth=1",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/08_get_virtual_machines.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?depth=1&limit=0",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/08_get_virtual_machines.json",
+        "url": "https://mock.example.com/api/virtualization/virtual-machines/?depth=1&limit=0",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/09_get_virtual_machine_vm-app01.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?name=vm-app01",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/10_get_virtual_machine_vm-db01.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?name=vm-db01",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/11_get_virtual_machines_filtered.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?depth=1&name=vm-app01",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/01_get_devices.json",
+        "url": "http://mock.example.com/api/dcim/devices/?depth=1&status=active",
+        "method": "get",
+    },
+    {
+        "fixture_path": f"{HERE}/mocks/08_get_virtual_machines.json",
+        "url": "http://mock.example.com/api/virtualization/virtual-machines/?depth=1&status=active",
         "method": "get",
     },
 ]
@@ -182,6 +232,7 @@ def test_filter_devices():
             expected_devices.append(pynautobot_obj.dcim.devices.get(name=device))
 
         assert test_class.devices == expected_devices
+        assert test_class.virtual_machines == []
 
 
 def test_device_required_properties():
@@ -214,7 +265,7 @@ def test_device_required_properties():
         assert nornir_task_result[task_result].result == "ios"
 
 
-def test_nornir_nautobot_device_count():
+def test_nornir_nautobot_host_count():
     # Import mock requests
     with Mocker() as mock:
         load_api_calls(mock)
@@ -228,8 +279,8 @@ def test_nornir_nautobot_device_count():
             },
         )
 
-    # Verify that the length of the inventory is 3 devices
-    assert len(test_nornir.inventory.hosts) == 3
+    # Verify that the length of the inventory is 3 devices + 2 virtual machines
+    assert len(test_nornir.inventory.hosts) == 5
 
 
 def test_nornir_nautobot_with_defaults():
@@ -356,3 +407,86 @@ def test_no_pynautobot_as_dict(device):
             logging={"enabled": False},
         )
         assert "pynautobot_dictionary" not in list(nornir_no_pynb_dict.inventory.hosts[device].keys())
+
+
+def test_virtual_machines(nornir_nautobot_class):
+    # Import mock requests
+    with Mocker() as mock:
+        load_api_calls(mock)
+        pynautobot_obj = pynautobot.api(url="http://mock.example.com", token="0123456789abcdef01234567890")
+        expected_virtual_machines = []
+        for virtual_machine in ["vm-app01", "vm-db01"]:
+            expected_virtual_machines.append(pynautobot_obj.virtualization.virtual_machines.get(name=virtual_machine))
+
+        assert nornir_nautobot_class.virtual_machines == expected_virtual_machines
+
+
+def test_nornir_nautobot_virtual_machine_hostname():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts["vm-app01"].hostname == "10.50.0.10"
+
+
+def test_nornir_nautobot_is_virtual_metadata():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                },
+            },
+        )
+
+    assert test_nornir.inventory.hosts["den-dist01"]["is_virtual"] is False
+    assert test_nornir.inventory.hosts["vm-app01"]["is_virtual"] is True
+
+
+def test_vm_query_filters_only():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "vm_query_filters": {"name": "vm-app01"},
+                },
+            },
+        )
+
+    assert "vm-app01" in test_nornir.inventory.hosts
+    assert "vm-db01" not in test_nornir.inventory.hosts
+    assert "den-dist01" in test_nornir.inventory.hosts
+    assert "den-dist02" in test_nornir.inventory.hosts
+    assert "den-wan01" in test_nornir.inventory.hosts
+
+
+def test_query_filters_applied_to_devices_and_virtual_machines():
+    with Mocker() as mock:
+        load_api_calls(mock)
+        test_nornir = InitNornir(
+            inventory={
+                "plugin": "NautobotInventory",
+                "options": {
+                    "nautobot_url": "http://mock.example.com",
+                    "nautobot_token": "0123456789abcdef01234567890",
+                    "query_filters": {"status": "active"},
+                },
+            },
+        )
+
+    assert len(test_nornir.inventory.hosts) == 5

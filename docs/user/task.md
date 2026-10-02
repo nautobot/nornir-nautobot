@@ -101,16 +101,16 @@ class DispatcherMixin:
         return cls.tcp_port
 ```
 
-## Netmiko Show Running Config Command
+## Show Running Config Command
 
-The Netmiko `show_command` tells Netmiko which command to use to get the config, generally used to backup the configuration. You can override the default provided based on this logic:
+The `config_command` tells the dispatcher which command to use to get the config, generally used to backup the configuration. Both the Netmiko and Scrapli dispatchers support overriding the default provided based on this logic:
 
 - First prefer `obj.cf["config_command"]` if it is set and a valid string, which is to say if a custom field named `config_command` is present it should be preferred.
 - Second prefer `obj.get_config_context()["config_command"]` if it is set and a valid string, which is to say if a config context is rendered for this device named `config_command` is present it should be preferred.
-- Third prefer the command defined in your Netmiko dispatcher.
-- Finally default to what `RUNNING_CONFIG_MAPPER` (which comes from `netutils`) has in that dictionary or simply default to `show run`
+- Third prefer the command defined in your dispatcher.
+- Finally, for Netmiko, default to what `RUNNING_CONFIG_MAPPER` (which comes from `netutils`) has in that dictionary or simply default to `show run`. For Scrapli, default to `show run`.
 
-Here is the implementation:
+Here is the Netmiko implementation:
 
 ```python
 config_command = None
@@ -128,6 +128,8 @@ def _get_config_command(cls, obj) -> str:
         return cls.config_command
     return RUNNING_CONFIG_MAPPER.get(str(obj.platform), "show run")
 ```
+
+The Scrapli implementation follows the same precedence but always defaults to its class attribute `config_command`, which is `"show run"`.
 
 ## Get command outputs through git repository
 

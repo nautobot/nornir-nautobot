@@ -1910,9 +1910,10 @@ netmiko = ">=4.0.0,<5.0.0"
 name = "nornir-scrapli"
 version = "2025.1.30"
 description = "Scrapli's plugin for Nornir"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"scrapli\""
 files = [
     {file = "nornir_scrapli-2025.1.30-py3-none-any.whl", hash = "sha256:be178b13257ece024a01c97c798973622138bc780fa607fe8bed70d0dbf2914a"},
     {file = "nornir_scrapli-2025.1.30.tar.gz", hash = "sha256:b36bbfcf3678e695d54c0df673f9cf662dbd737d9e13170893cd4ed833c7b410"},
@@ -2989,9 +2990,10 @@ paramiko = "*"
 name = "scrapli"
 version = "2026.2.20"
 description = "Fast, flexible, sync/async, Python 3.7+ screen scraping client specifically for network devices"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"scrapli\""
 files = [
     {file = "scrapli-2026.2.20-py3-none-any.whl", hash = "sha256:abbe6f0d70e9b59166e590a74335781e4b5987a488403e08110ce75321a255af"},
     {file = "scrapli-2026.2.20.tar.gz", hash = "sha256:b6f8492110601c11ca8394d8540814464bb97681b87e92b30bb6853b5213558a"},
@@ -3013,9 +3015,10 @@ ttp = ["ttp (>=0.5.0,<1.0.0)"]
 name = "scrapli-cfg"
 version = "2025.1.30"
 description = "Network device configuration management with scrapli"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"scrapli\""
 files = [
     {file = "scrapli_cfg-2025.1.30-py3-none-any.whl", hash = "sha256:aaf0c5f52ed06ba0ffefa860ab947c96b663c98a96f38b90eac567d46906fdf4"},
     {file = "scrapli_cfg-2025.1.30.tar.gz", hash = "sha256:7ed3b5743116d35d7d65f86d06dd7e74fcc509e1c8df6ddebffdeb7cebed13e8"},
@@ -3036,9 +3039,10 @@ ssh2 = ["ssh2-python (>=0.23.0,<2.0.0) ; python_version < \"3.12\""]
 name = "scrapli-community"
 version = "2025.1.30"
 description = "Easily add support for 'non-core' platforms to scrapli"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"scrapli\""
 files = [
     {file = "scrapli_community-2025.1.30-py3-none-any.whl", hash = "sha256:dc4d02193ec3bb14cec9e04ab0d48fc59d575e1ccedac92fb4b8bbd6f3b6726f"},
     {file = "scrapli_community-2025.1.30.tar.gz", hash = "sha256:5357d1e471879203f648948adf114d8155a69ca1242060504d9b92f54f79d119"},
@@ -3056,9 +3060,10 @@ docs = ["mdx-gh-links (>=0.2,<1.0)", "mkdocs (>=1.2.3,<2.0.0)", "mkdocs-gen-file
 name = "scrapli-netconf"
 version = "2026.1.12"
 description = "Fast, flexible, sync/async, Python 3.7+ NETCONF client built on scrapli"
-optional = false
+optional = true
 python-versions = ">=3.9"
 groups = ["main"]
+markers = "extra == \"scrapli\""
 files = [
     {file = "scrapli_netconf-2026.1.12-py3-none-any.whl", hash = "sha256:ec833aa4f29407af2622391c3afb84721af736869edd7d4b1f4b4e9faf9decda"},
     {file = "scrapli_netconf-2026.1.12.tar.gz", hash = "sha256:6e497d52c986ed8d05504767d84e56487f5887271f1ab59b569fb30e879f8f9b"},
@@ -3511,8 +3516,9 @@ test = ["coverage", "hypothesis", "pytest"]
 
 [extras]
 mikrotik-driver = ["routeros-api"]
+scrapli = ["nornir-scrapli", "scrapli"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.15"
-content-hash = "ea3e6ec62a8e842adb8f1255966b96c83dd6f76767a7a8d47aa41a2bbb86b672"
+content-hash = "6c681580654919ee05906863d3dba7524d74d3aa77ba853693ec41c7437e45c3"

@@ -22,13 +22,12 @@ from netutils.ping import tcp_ping
 from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_commit,
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
-from nornir_scrapli.tasks import send_command as scrapli_send_command
+from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
+
+try:
+    from nornir_scrapli.tasks import send_command as scrapli_send_command
+except ImportError:
+    scrapli_send_command = None
 
 from nornir_nautobot.constants import (
     ERROR_MATCHES_BAD_COMMAND,
@@ -37,12 +36,7 @@ from nornir_nautobot.constants import (
 )
 from nornir_nautobot.exceptions import NornirNautobotException
 from nornir_nautobot.plugins.tasks.template_file import template_file
-from nornir_nautobot.utils.helpers import (
-    get_error_message,
-    get_stack_trace,
-    is_truthy,
-    make_folder,
-)
+from nornir_nautobot.utils.helpers import get_error_message, get_stack_trace, is_truthy, make_folder
 
 _logger = logging.getLogger(__name__)
 
@@ -1038,6 +1032,15 @@ class ScrapliDefault(DispatcherMixin):
     config_command = "show run"
 
     @classmethod
+    def _require_scrapli(cls, logger, obj) -> None:
+        if scrapli_send_command is None:
+            error_msg = get_error_message(
+                "E1020", dependency="nornir_scrapli (install with: pip install 'nornir-nautobot[scrapli]')"
+            )
+            logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg)
+
+    @classmethod
     def get_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
@@ -1106,6 +1109,7 @@ class ScrapliDefault(DispatcherMixin):
             return Result(host=task.host, result={"output": {command: cls._parse_offline_output(result[0].result)}})
 
         try:
+            cls._require_scrapli(logger, obj)
             result = task.run(
                 task=scrapli_send_command,
                 command=command,
@@ -1134,7 +1138,7 @@ class ScrapliDefault(DispatcherMixin):
             command_list:
                 - In online mode, a list of command strings to execute on the device.
                 - In offline mode (Git), a list of (command, file location) tuples
-                  pointing to stored command output files in the Git repo.
+                    pointing to stored command output files in the Git repo.
             kwargs: Additional arguments to pass to the scrapli_send_commands task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")
@@ -1152,6 +1156,7 @@ class ScrapliDefault(DispatcherMixin):
                     )
                     command_results.update({command: cls._parse_offline_output(result[0].result)})
                     continue
+                cls._require_scrapli(logger, obj)
                 result = task.run(
                     task=scrapli_send_command,
                     command=command,

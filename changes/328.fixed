@@ -1,4 +1,1 @@
-Fixed the Netmiko `merge_config` saving the configuration on every host in the Nornir play instead of only the host being configured, which interrupted pushes still in progress on other hosts and exhausted file descriptors on large plays.
-Fixed the Netmiko `merge_config` reporting success when the configuration could not be saved or committed; it now fails with `E1016`.
-Fixed the Netmiko `merge_config` falling back to a commit when the save failed for any reason; it now commits only when the platform does not support saving (Netmiko raises `NotImplementedError`), and otherwise reports the save error.
-Fixed the Netmiko `merge_config` failing with an `UnboundLocalError` instead of `E1016` (or the mapped error) when the configuration push fails.
+Fixed `NetmikoDefault.merge_config` saving every device in the job instead of only the device it pushed the configuration to, which could break concurrent pushes, exhaust file descriptors on large jobs, and could report configurations as saved when they were not.

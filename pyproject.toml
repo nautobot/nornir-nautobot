@@ -40,10 +40,11 @@ pynautobot = ">=3.0.0,<4.0.0"
 netutils = ">=1.19.2,<2.0.0"
 routeros-api = {version = "^0.17.0", optional = true}
 httpx = ">=0.23.0,<0.29.0"
-nornir-scrapli = "^2025.1.30"
+nornir-scrapli = {version = ">=2025.1.30,<2027", optional = true}
 netmiko = ">=4.4.0,<5.0.0"
 napalm = ">=5.0.0,<6.0.0"
-scrapli = ">=2024.01.30"
+# Scrapli 2026.10.x is a ground-up rewrite. scrapli.driver and scrapli.factory modules that nornir-scrapli uses are gone.
+scrapli = {version = ">=2024.01.30,<2026.2.21", optional = true}
 jinja2 = "^3.1.6"
 jdiff = "^1.0.1"
 jsonschema = ">=4.0.0,<5.0"
@@ -91,6 +92,7 @@ mkdocstrings-python = "~2.0.5"
 
 [tool.poetry.extras]
 mikrotik_driver = ["routeros-api"]
+scrapli = ["nornir-scrapli", "scrapli"]
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "NautobotInventory" = "nornir_nautobot.plugins.inventory.nautobot:NautobotInventory"

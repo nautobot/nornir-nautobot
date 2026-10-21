@@ -1138,7 +1138,7 @@ class ScrapliDefault(DispatcherMixin):
             command_list:
                 - In online mode, a list of command strings to execute on the device.
                 - In offline mode (Git), a list of (command, file location) tuples
-                    pointing to stored command output files in the Git repo.
+                  pointing to stored command output files in the Git repo.
             kwargs: Additional arguments to pass to the scrapli_send_commands task.
         """
         logger.debug(f"Executing get_commands for {task.host.name} on {task.host.platform}")

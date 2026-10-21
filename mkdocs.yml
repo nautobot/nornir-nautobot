@@ -199,4 +199,5 @@ nav:
       - Release Checklist: "dev/release_checklist.md"
       - Architecture Design Records: "dev/arch_decision.md"
       - Migrating to v3: "dev/migrating_to_v3.md"
+      - Migrating from v4 to v5: "dev/migrating_v4_to_v5.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

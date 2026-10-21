@@ -43,6 +43,7 @@ httpx = ">=0.23.0,<0.29.0"
 nornir-scrapli = {version = ">=2025.1.30,<2027", optional = true}
 netmiko = ">=4.4.0,<5.0.0"
 napalm = ">=5.0.0,<6.0.0"
+# Scrapli 2026.10.x is a ground-up rewrite. scrapli.driver and scrapli.factory modules that nornir-scrapli uses are gone.
 scrapli = {version = ">=2024.01.30,<2026.2.21", optional = true}
 jinja2 = "^3.1.6"
 jdiff = "^1.0.1"

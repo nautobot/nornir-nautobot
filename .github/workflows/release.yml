@@ -21,11 +21,7 @@ jobs:
         with:
           poetry-version: "${{ env.POETRY_VERSION }}"
           python-version: "${{ env.PYTHON_VERSION }}"
-<<<<<<< HEAD
-          poetry-install-options: "--no-root"
-=======
           poetry-install-options: "--with dev,docs"
->>>>>>> 03c3ab3 (Cookie updated targeting develop by NetworkToCode Cookie Drift Manager Tool)
       - name: "Run Poetry Build"
         run: "poetry build"
 

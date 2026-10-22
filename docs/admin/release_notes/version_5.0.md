@@ -4,7 +4,8 @@ This document describes all new features and changes in the release. The format 
 
 ## Release Overview
 
-- Major features or milestones
+- Change Scrapli and nornir-scrapli to optional dependencies.
+- Change upper bounds of scrapli and nornir-scrapli to include newest releases.
 
 <!-- towncrier release notes start -->
 

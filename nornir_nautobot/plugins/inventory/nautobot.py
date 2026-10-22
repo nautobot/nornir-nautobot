@@ -5,7 +5,7 @@ import ipaddress
 import logging
 import os
 import sys
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Optional, Union
 
 # Other third party imports
 import pynautobot
@@ -23,6 +23,79 @@ from requests import Session
 
 # Create Logger
 logger = logging.getLogger(__name__)
+
+
+QueryFilters = Union[Dict[str, Any], None]
+
+
+def _normalize_query_filters(filters: QueryFilters) -> Optional[Dict[str, List[Any]]]:
+    """Normalize query filters into a dict-of-lists.
+
+    The Nautobot API (via pynautobot) accepts either scalar values or lists of values.
+    This plugin normalizes to a dict-of-lists to keep merge semantics consistent.
+
+    Examples:
+        - {} or None: no filtering
+        - {"name": "name one"}: single filter value
+        - {"name": ["name one", "name two"]}: multiple values for same key
+
+    Returns:
+        dict or None: A dict of query params where each value is a list, or None when empty.
+
+    Raises:
+        TypeError: If filters are not a dict.
+    """
+    if filters is None or filters == {}:
+        return None
+
+    if not isinstance(filters, dict):
+        raise TypeError("query_filters must be a dict")
+
+    normalized: Dict[str, List[Any]] = {}
+    for key, value in filters.items():
+        if isinstance(value, list):
+            normalized[key] = value
+        else:
+            normalized[key] = [value]
+
+    return normalized or None
+
+
+def _merge_query_filters(
+    base: Optional[Dict[str, List[Any]]],
+    extra: Optional[Dict[str, List[Any]]],
+) -> Optional[Dict[str, List[Any]]]:
+    """Merge two dict-of-lists filter dicts.
+
+    When a key exists in both dicts, values are concatenated.
+    """
+    if base is None and extra is None:
+        return None
+    if base is None:
+        return extra or None
+    if extra is None:
+        return base or None
+
+    merged: Dict[str, List[Any]] = {}
+    for key, value in base.items():
+        if not isinstance(value, list):
+            raise TypeError(
+                f"query_filters must be a dict of lists; key '{key}' must be a list (got {type(value).__name__})"
+            )
+        merged[key] = list(value)
+
+    for key, value in extra.items():
+        if not isinstance(value, list):
+            raise TypeError(
+                f"query_filters must be a dict of lists; key '{key}' must be a list (got {type(value).__name__})"
+            )
+
+        if key in merged:
+            merged[key].extend(value)
+        else:
+            merged[key] = list(value)
+
+    return merged or None
 
 
 def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults) -> Host:
@@ -51,6 +124,49 @@ def _set_host(data: Dict[str, Any], name: str, groups, host, defaults: Defaults)
     )
 
 
+def _add_host_to_inventory(
+    hosts: Hosts,
+    defaults: Defaults,
+    nautobot_object,
+    *,
+    is_virtual: bool,
+    pynautobot_dict: Union[bool, None],
+):
+    host: Dict[Any, Any] = {"data": {}}
+
+    # Assign the pynautobot host object to the data key
+    host["data"]["pynautobot_object"] = nautobot_object
+    host["data"]["is_virtual"] = is_virtual
+
+    # Create dictionary object available for filtering
+    if pynautobot_dict:
+        host["data"]["pynautobot_dictionary"] = dict(nautobot_object)
+
+    # Add primary IP address if found
+    # Otherwise use object name as hostname
+    host["hostname"] = (
+        str(ipaddress.IPv4Interface(nautobot_object.primary_ip4.address).ip)
+        if nautobot_object["primary_ip4"]
+        else (
+            str(ipaddress.IPv6Interface(nautobot_object.primary_ip6.address).ip)
+            if nautobot_object["primary_ip6"]
+            else nautobot_object["name"]
+        )
+    )
+    host["name"] = nautobot_object.name or str(nautobot_object.id)
+    host["groups"] = []
+
+    inventory_key = nautobot_object.name or str(nautobot_object.id)
+    # TODO: Devices and VMs can share names; this overwrites (Ansible-like behavior)
+    hosts[inventory_key] = _set_host(  # pylint: disable=unsupported-assignment-operation
+        data=host["data"],
+        name=host["name"],
+        groups=host["groups"],
+        host=host,
+        defaults=defaults,
+    )
+
+
 # Setup connection to Nautobot
 class NautobotInventory:  # pylint: disable=R0902
     """Nautobot Nornir Inventory."""
@@ -63,17 +179,29 @@ class NautobotInventory:  # pylint: disable=R0902
         filter_parameters: Union[Dict[str, Any], None] = None,
         pynautobot_dict: Union[bool, None] = True,
         enable_threading: Union[bool, None] = False,
+        query_filters: QueryFilters = None,
+        device_query_filters: QueryFilters = None,
+        vm_query_filters: QueryFilters = None,
     ) -> None:
         """Nautobot nornir class initialization."""
         self.nautobot_url = nautobot_url or os.getenv("NAUTOBOT_URL")
         self.nautobot_token = nautobot_token or os.getenv("NAUTOBOT_TOKEN")
+
+        # Legacy device-only filters
         self.filter_parameters = filter_parameters
+
+        # New filtering model
+        self.query_filters = query_filters
+        self.device_query_filters = device_query_filters
+        self.vm_query_filters = vm_query_filters
+
         self.ssl_verify = ssl_verify
         self.pynautobot_dict = pynautobot_dict
         self.enable_threading = enable_threading
         self._verify_required()
         self._api_session = None
         self._devices = None
+        self._virtual_machines = None
         self._pynautobot_obj = None
 
     def _verify_required(self) -> bool:
@@ -120,21 +248,57 @@ class NautobotInventory:  # pylint: disable=R0902
 
         return self._pynautobot_obj
 
+    def _query_filters_for_devices(self) -> Optional[Dict[str, Any]]:
+        shared = _normalize_query_filters(self.query_filters)
+        legacy_device_only = _normalize_query_filters(self.filter_parameters)
+        explicit_device_only = _normalize_query_filters(self.device_query_filters)
+
+        merged = _merge_query_filters(shared, legacy_device_only)
+        return _merge_query_filters(merged, explicit_device_only)
+
+    def _query_filters_for_virtual_machines(self) -> Optional[Dict[str, Any]]:
+        shared = _normalize_query_filters(self.query_filters)
+        vm_only = _normalize_query_filters(self.vm_query_filters)
+        return _merge_query_filters(shared, vm_only)
+
     @property
     def devices(self) -> list:
         """Devices information from Nautobot."""
         if self._devices is None:
-            # Check for filters. Cannot pass an empty dictionary to the filter method
-            if self.filter_parameters is None:
+            filters = self._query_filters_for_devices()
+            # Cannot pass an empty dictionary to the filter method
+            if filters is None:
                 self._devices = self.pynautobot_obj.dcim.devices.all()
             else:
                 try:
-                    self._devices = self.pynautobot_obj.dcim.devices.filter(**self.filter_parameters)
+                    self._devices = self.pynautobot_obj.dcim.devices.filter(**filters)
                 except pynautobot.core.query.RequestError as err:
                     print(f"Error in the query filters: {err.error}. Please verify the parameters.")
                     sys.exit(1)
 
         return self._devices
+
+    @property
+    def virtual_machines(self) -> list:
+        """Virtual Machines information from Nautobot."""
+        if self._virtual_machines is None:
+            # Backwards compatibility, filter_parameters applies to Devices only
+            # Do not include VMs unless VM/both filters are set
+            if self.filter_parameters is not None and self.query_filters is None and self.vm_query_filters is None:
+                self._virtual_machines = []
+                return self._virtual_machines
+
+            filters = self._query_filters_for_virtual_machines()
+            if filters is None:
+                self._virtual_machines = self.pynautobot_obj.virtualization.virtual_machines.all()
+            else:
+                try:
+                    self._virtual_machines = self.pynautobot_obj.virtualization.virtual_machines.filter(**filters)
+                except pynautobot.core.query.RequestError as err:
+                    print(f"Error in the query filters: {err.error}. Please verify the parameters.")
+                    sys.exit(1)
+
+        return self._virtual_machines
 
     # Build the inventory
     def load(self) -> Inventory:
@@ -148,37 +312,15 @@ class NautobotInventory:  # pylint: disable=R0902
         defaults = Defaults()
 
         for device in self.devices:
-            # Set the base information for a device
-            host: Dict[Any, Any] = {"data": {}}
+            _add_host_to_inventory(hosts, defaults, device, is_virtual=False, pynautobot_dict=self.pynautobot_dict)
 
-            # Assign the pynautobot host object to the data key
-            host["data"]["pynautobot_object"] = device
-
-            # Create dictionary object available for filtering
-            if self.pynautobot_dict:
-                host["data"]["pynautobot_dictionary"] = dict(device)
-            # TODO: #3 Investigate Nornir compatability with dictionary like object
-
-            # Add Primary IP address, if found. Otherwise add hostname as the device name
-            host["hostname"] = (
-                str(ipaddress.IPv4Interface(device.primary_ip4.address).ip)
-                if device["primary_ip4"]
-                else (
-                    str(ipaddress.IPv6Interface(device.primary_ip6.address).ip)
-                    if device["primary_ip6"]
-                    else device["name"]
-                )
-            )
-            host["name"] = device.name or str(device.id)
-            host["groups"] = []
-
-            # Add host to hosts by name first, ID otherwise - to string
-            hosts[device.name or str(device.id)] = _set_host(  # pylint: disable=unsupported-assignment-operation
-                data=host["data"],
-                name=host["name"],
-                groups=host["groups"],
-                host=host,
-                defaults=defaults,
+        for virtual_machine in self.virtual_machines:
+            _add_host_to_inventory(
+                hosts,
+                defaults,
+                virtual_machine,
+                is_virtual=True,
+                pynautobot_dict=self.pynautobot_dict,
             )
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

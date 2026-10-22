@@ -20,3 +20,15 @@ Option 3: Install from a GitHub branch, such as develop as shown below.
 ```bash
 pip install git+https://github.com/nautobot/nornir-nautobot.git@develop
 ```
+
+Option 4: Install with optional dependencies.
+
+```bash
+pip install "nornir-nautobot[scrapli]"
+```
+
+or with poetry:
+
+```bash
+poetry add "nornir-nautobot[mikrotik_driver,scrapli]"
+```

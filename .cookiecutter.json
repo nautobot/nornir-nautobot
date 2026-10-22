@@ -23,7 +23,7 @@
             "pull_request_strategy": "update-or-create",
             "post_actions": [],
             "draft": false,
-            "baked_commit_ref": "b28e6337e56fe3c52ce883c936af7920428ff61e",
+            "baked_commit_ref": "6bad156f3bedd8ae35d0a8beefcda104251b7a7e",
             "drift_managed_branch": "develop"
         }
     }

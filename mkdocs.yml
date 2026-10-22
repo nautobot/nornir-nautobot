@@ -177,6 +177,7 @@ nav:
       - Uninstall: "admin/uninstall.md"
       - Release Notes:
           - Release Notes: "admin/release_notes/index.md"
+          - v5.0: "admin/release_notes/version_5.0.md"
           - v4.4: "admin/release_notes/version_4.4.md"
           - v4.3: "admin/release_notes/version_4.3.md"
           - v4.2: "admin/release_notes/version_4.2.md"
@@ -199,4 +200,5 @@ nav:
       - Release Checklist: "dev/release_checklist.md"
       - Architecture Design Records: "dev/arch_decision.md"
       - Migrating to v3: "dev/migrating_to_v3.md"
+      - Migrating from v4 to v5: "dev/migrating_v4_to_v5.md"
   - Nautobot Docs Home ↗︎: "https://docs.nautobot.com/"

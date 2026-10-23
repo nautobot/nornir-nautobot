@@ -755,6 +755,36 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
+    def _save_config(cls, task: Task) -> None:
+        """Save the configuration on `task.host`, falling back to a commit where saving is not supported.
+
+        The save runs from a separate Nornir object without processors, so that a save that is replaced
+        by a commit does not leave a failed result behind in this task's results. That object is filtered
+        to `task.host`, because `task.nornir` holds every host in the play. It also selects the host even
+        if it is already marked as failed, so the save is never silently skipped.
+
+        Args:
+            task (Task): Nornir Task.
+
+        Raises:
+            NornirSubTaskError: If the save, or the commit that replaces it, fails on `task.host`. This is
+                the error `task.run()` raises for a failed subtask, so callers handle it the same way.
+        """
+        nr_host = task.nornir.filter(name=task.host.name).with_processors([])
+        try:
+            nr_host.run(task=netmiko_save_config, confirm=True, raise_on_error=True, on_failed=True)
+            return
+        except NornirExecutionError as exc:
+            failed_save = exc.result[task.host.name][0]
+            # Netmiko raises NotImplementedError from `save_config()` on platforms that commit instead.
+            if not isinstance(failed_save.exception, NotImplementedError):
+                raise NornirSubTaskError(task=task, result=failed_save) from exc
+        try:
+            nr_host.run(task=netmiko_commit, raise_on_error=True, on_failed=True)
+        except NornirExecutionError as exc:
+            raise NornirSubTaskError(task=task, result=exc.result[task.host.name][0]) from exc
+
+    @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
@@ -798,6 +828,7 @@ class NetmikoDefault(DispatcherMixin):
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
 
         if push_result[0].failed:
             return push_result
@@ -823,19 +854,12 @@ class NetmikoDefault(DispatcherMixin):
 
         logger.info("Config merge ended", extra={"object": obj})
         try:
-            try:
-                # Now, we want to run the `save` task, but WITHOUT the processor. Otherwise our default processor raises the error.
-                # To do this, we get the current Nornir object from the `task` and create a
-                # new one with an empty list of processors.
-                nr_without_processors = task.nornir.with_processors([])
-                nr_without_processors.run(task=netmiko_save_config, confirm=True, raise_on_error=True)
-            except (NotImplementedError, AttributeError, NornirExecutionError):
-                nr_without_processors.run(task=netmiko_commit)
+            cls._save_config(task)
         except NornirSubTaskError as exc:
             error_msg = get_error_message("E1016", exc=exc)
             logger.error(error_msg, extra={"object": obj})
-        else:
-            logger.info("Config save ended", extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
+        logger.info("Config save ended", extra={"object": obj})
         return Result(
             host=task.host,
             result={"changed": push_result[0].changed, "result": push_result[0].result},

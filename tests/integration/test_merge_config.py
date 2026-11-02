@@ -1,16 +1,17 @@
-"""Tests for the save step of the Netmiko `merge_config` dispatcher method, run through a real Nornir play.
+"""Tests for the save step of `NetmikoDefault.merge_config`, run through a real Nornir play.
 
 These are the regression tests for issue #328 (https://github.com/nautobot/nornir-nautobot/issues/328), in which
 each host's save ran on every host of the play, and for the related bugs found while fixing it.
 
-Only the netmiko tasks are replaced, so `task.nornir`, `filter`, `with_processors`, the shared
-`failed_hosts`, and the threaded runner are all nornir's own. Unlike the other integration tests,
-these run `merge_config` across every host of the play at once, as Golden Config does for a
-deployment, because a save that reaches other hosts only shows up in a multi-host, concurrent play.
+Only the Netmiko push task and each host's Netmiko connection are replaced, so the shared `failed_hosts` and the
+threaded runner are Nornir's own. Unlike the other integration tests, these run `merge_config` across every host of
+the play at once, as Golden Config does for a deployment, because a save that reaches other hosts only shows up in a
+multi-host, concurrent play.
 """
 
 import threading
 from collections import Counter
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -29,7 +30,7 @@ CONFIG = "interface Loopback0\n description merge_config test"
 
 
 class FakeNetmiko:
-    """Stand-in for the netmiko tasks that records which host each call was made for."""
+    """Stand-in for netmiko that records which host each push, save and commit was made for."""
 
     def __init__(self):
         """Start with no recorded calls and no failures."""
@@ -37,43 +38,70 @@ class FakeNetmiko:
         self.pushes = []
         self.saves = []
         self.commits = []
+        self.config_mode_exits = []
         self.push_errors = {}
         self.save_errors = {}
         self.commit_error = None
 
-    def _record(self, calls, task):
+    def record(self, calls, host_name):
+        """Record a call made for `host_name`."""
         with self.lock:
-            calls.append(task.host.name)
+            calls.append(host_name)
 
     def send_config(self, task, **kwargs):  # pylint: disable=unused-argument
         """Replace `netmiko_send_config`; raises the error set for this host, if any."""
-        self._record(self.pushes, task)
+        self.record(self.pushes, task.host.name)
         if task.host.name in self.push_errors:
             raise self.push_errors[task.host.name]
         return Result(host=task.host, result="pushed", changed=True)
 
-    def save_config(self, task, **kwargs):  # pylint: disable=unused-argument
-        """Replace `netmiko_save_config`; raises the error set for this host, if any."""
-        self._record(self.saves, task)
-        if task.host.name in self.save_errors:
-            raise self.save_errors[task.host.name]
-        return Result(host=task.host, result="saved", changed=True)
 
-    def commit(self, task, **kwargs):  # pylint: disable=unused-argument
-        """Replace `netmiko_commit`."""
-        self._record(self.commits, task)
-        if self.commit_error:
-            raise self.commit_error
-        return Result(host=task.host, result="committed", changed=True)
+class FakeConnection:
+    """Stand-in for a host's Netmiko connection, which `_save_config` calls directly."""
+
+    def __init__(self, netmiko, host_name):
+        """Record calls into `netmiko` for `host_name`, starting outside configuration mode."""
+        self.netmiko = netmiko
+        self.host_name = host_name
+        self.in_config_mode = False
+
+    def save_config(self, **kwargs):  # pylint: disable=unused-argument
+        """Replace Netmiko's `save_config()`; raises the error set for this host, if any."""
+        self.netmiko.record(self.netmiko.saves, self.host_name)
+        if self.host_name in self.netmiko.save_errors:
+            raise self.netmiko.save_errors[self.host_name]
+        return "saved"
+
+    def commit(self, **kwargs):  # pylint: disable=unused-argument
+        """Replace Netmiko's `commit()`, which enters configuration mode and stays there, as on Junos and IOS-XR."""
+        self.netmiko.record(self.netmiko.commits, self.host_name)
+        self.in_config_mode = True
+        if self.netmiko.commit_error:
+            raise self.netmiko.commit_error
+        return "committed"
+
+    def check_config_mode(self):
+        """Replace Netmiko's `check_config_mode()`."""
+        return self.in_config_mode
+
+    def exit_config_mode(self):
+        """Replace Netmiko's `exit_config_mode()`."""
+        self.netmiko.record(self.netmiko.config_mode_exits, self.host_name)
+        self.in_config_mode = False
+        return "exited"
 
 
 @pytest.fixture(name="netmiko")
-def fixture_netmiko(monkeypatch):
-    """Patch the netmiko tasks used by `merge_config` with recording fakes."""
+def fixture_netmiko(monkeypatch, nornir):
+    """Patch the netmiko push task with a recording fake, and give each host an open fake netmiko connection.
+
+    The connection is already open when `merge_config` runs, as the push leaves it on the host, so
+    `host.get_connection("netmiko", ...)` returns it instead of connecting to a device.
+    """
     fake = FakeNetmiko()
     monkeypatch.setattr(default, "netmiko_send_config", fake.send_config)
-    monkeypatch.setattr(default, "netmiko_save_config", fake.save_config)
-    monkeypatch.setattr(default, "netmiko_commit", fake.commit)
+    for name, host in nornir.inventory.hosts.items():
+        host.connections["netmiko"] = SimpleNamespace(connection=FakeConnection(fake, name))
     return fake
 
 
@@ -156,6 +184,8 @@ def test_save_not_supported_falls_back_to_commit(nornir, netmiko, run_merge_conf
     assert not result.failed
     # One commit per host, on the host being configured only.
     assert Counter(netmiko.commits) == {name: 1 for name in HOSTS}
+    # Each host leaves the configuration mode that its commit entered, as `netmiko_commit` does.
+    assert Counter(netmiko.config_mode_exits) == {name: 1 for name in HOSTS}
     # The save that failed as "not supported" did not mark any host as failed in the play's shared failed set.
     assert not nornir.data.failed_hosts
 
@@ -222,7 +252,10 @@ def test_failed_commit_fails_the_host(nornir, netmiko, logger, run_merge_config)
     host still logged a successful save.
     """
     netmiko.save_errors = {"sw1": NotImplementedError()}
-    netmiko.commit_error = AttributeError("commit not supported")
+    # The error Netmiko's `commit()` raises on Junos and IOS-XR when the device rejects the commit.
+    netmiko.commit_error = ValueError(
+        "Commit failed with the following errors:\n\nerror: configuration check-out failed"
+    )
 
     result = run_merge_config()
 
@@ -232,47 +265,13 @@ def test_failed_commit_fails_the_host(nornir, netmiko, logger, run_merge_config)
     assert netmiko.commits == ["sw1"]
     # E1016 reports the commit's error, the step that actually failed.
     assert _logged(logger.error, nornir, "sw1") == [
-        "E1016: Saving Config Failed with an unknown issue: `commit not supported`"
+        "E1016: Saving Config Failed with an unknown issue: "
+        "`Commit failed with the following errors:\n\nerror: configuration check-out failed`"
     ]
     # No other host logged an error.
     assert _hosts_logging_errors(nornir, logger) == ["sw1"]
     # Only the hosts that really saved report a successful save.
     assert _hosts_reporting_save(nornir, logger) == ["sw2", "sw3", "sw4"]
-
-
-def test_pushed_config_is_saved_on_a_host_marked_failed(nornir, netmiko, run_merge_config):
-    """A host marked failed while its `merge_config` is running still has its pushed configuration saved.
-
-    Regression test for issue #328. nornir adds hosts whose task failed to `failed_hosts`, a set shared by the
-    whole play. A `.run()` call reads that set once, when it starts, to pick its hosts, and by default skips the
-    marked ones; a host's task that has already started is never stopped by a later mark. Two runs are involved:
-
-    - the outer run, Golden Config's `nr.run(run_deployment)`, picks every host at the start of the job;
-    - the save, which `merge_config` starts after the push as a new `.run()`, picks its hosts again.
-
-    A host marked between those two points was pushed but never saved. With issue #328, this happened on every
-    IOS play where a save failed:
-
-        t0  the outer run starts and picks sw1..sw4, as nothing has failed yet
-        t1  sw1's configuration is pushed
-        t2  sw2's save fails; the fallback commit runs on every host, fails on IOS, and marks every host failed
-        t3  sw1's save starts a new run, which skips sw1 because it is now marked
-        t4  sw1 raises nothing and logs "Config save ended": pushed, not saved, reported as saved
-
-    `_save_config` now saves `task.host` even when it is marked, because the mark can also come from an earlier
-    run that a caller retries with `on_failed=True`. Marking sw1 at t2 from a test would depend on thread timing,
-    so the test marks it first and runs the play with `on_failed=True`, which puts sw1 in the t3 state: pushed
-    while marked failed.
-    """
-    # Mark sw1 failed, then make the play pick it anyway, as the outer run did before the mark at t2.
-    nornir.data.failed_hosts.add("sw1")
-
-    result = run_merge_config(on_failed=True)
-
-    # The host that was already marked failed pushed and saved successfully.
-    assert not result["sw1"].failed
-    # The save really ran on it: sw1 is saved once, like every other host.
-    assert Counter(netmiko.saves) == {name: 1 for name in HOSTS}
 
 
 def test_failed_push_fails_only_that_host_without_saving(nornir, netmiko, logger, run_merge_config):

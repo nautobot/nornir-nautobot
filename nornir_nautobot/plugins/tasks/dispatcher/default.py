@@ -19,15 +19,11 @@ from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
-from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
+from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import (
-    netmiko_commit,
-    netmiko_save_config,
-    netmiko_send_command,
-    netmiko_send_config,
-)
+from nornir_netmiko.connections import CONNECTION_NAME
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 from nornir_scrapli.tasks import send_command as scrapli_send_command
 
 from nornir_nautobot.constants import (
@@ -764,31 +760,25 @@ class NetmikoDefault(DispatcherMixin):
     def _save_config(cls, task: Task) -> None:
         """Save the configuration on `task.host`, falling back to a commit where saving is not supported.
 
-        The save runs from a separate Nornir object without processors, so that a save that is replaced
-        by a commit does not leave a failed result behind in this task's results. That object is filtered
-        to `task.host`, because `task.nornir` holds every host in the play. It also selects the host even
-        if it is already marked as failed, so the save is never silently skipped.
+        The save calls Netmiko directly on the connection that the push opened on `task.host`, in the same
+        thread, instead of running it as a Nornir task. A save that is replaced by a commit therefore leaves
+        no failed result behind for the processors to report.
 
         Args:
             task (Task): Nornir Task.
 
         Raises:
-            NornirSubTaskError: If the save, or the commit that replaces it, fails on `task.host`. This is
-                the error `task.run()` raises for a failed subtask, so callers handle it the same way.
+            Exception: The exception Netmiko raises if the save, or the commit that replaces it, fails.
         """
-        nr_host = task.nornir.filter(name=task.host.name).with_processors([])
+        net_connect = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
         try:
-            nr_host.run(task=netmiko_save_config, confirm=True, raise_on_error=True, on_failed=True)
-            return
-        except NornirExecutionError as exc:
-            failed_save = exc.result[task.host.name][0]
+            net_connect.save_config(confirm=True)
+        except NotImplementedError:
             # Netmiko raises NotImplementedError from `save_config()` on platforms that commit instead.
-            if not isinstance(failed_save.exception, NotImplementedError):
-                raise NornirSubTaskError(task=task, result=failed_save) from exc
-        try:
-            nr_host.run(task=netmiko_commit, raise_on_error=True, on_failed=True)
-        except NornirExecutionError as exc:
-            raise NornirSubTaskError(task=task, result=exc.result[task.host.name][0]) from exc
+            net_connect.commit()
+            # As `netmiko_commit` does, leave the configuration mode that `commit()` may have entered.
+            if net_connect.check_config_mode():
+                net_connect.exit_config_mode()
 
     @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
@@ -861,8 +851,10 @@ class NetmikoDefault(DispatcherMixin):
         logger.info("Config merge ended", extra={"object": obj})
         try:
             cls._save_config(task)
-        except NornirSubTaskError as exc:
-            error_msg = get_error_message("E1016", exc=exc)
+        except Exception as exc:  # pylint: disable=broad-except
+            # E1016's message reads the error from a Nornir subtask error, so wrap Netmiko's exception in one.
+            subtask_error = NornirSubTaskError(task=task, result=Result(host=task.host, failed=True, exception=exc))
+            error_msg = get_error_message("E1016", exc=subtask_error)
             logger.error(error_msg, extra={"object": obj})
             raise NornirNautobotException(error_msg) from exc
         logger.info("Config save ended", extra={"object": obj})

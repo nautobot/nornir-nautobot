@@ -1,0 +1,1 @@
+Fixed `NetmikoDefault.merge_config` saving every device in the job instead of only the device it pushed the configuration to, which could break concurrent pushes, exhaust file descriptors on large jobs, and could report configurations as saved when they were not.

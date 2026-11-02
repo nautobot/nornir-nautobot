@@ -19,10 +19,11 @@ from netutils.dns import is_fqdn_resolvable
 from netutils.ip import is_ip
 from netutils.lib_mapper import RUNNING_CONFIG_MAPPER
 from netutils.ping import tcp_ping
-from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
+from nornir.core.exceptions import NornirSubTaskError
 from nornir.core.task import Result, Task
 from nornir_napalm.plugins.tasks import napalm_configure, napalm_get
-from nornir_netmiko.tasks import netmiko_commit, netmiko_save_config, netmiko_send_command, netmiko_send_config
+from nornir_netmiko.connections import CONNECTION_NAME
+from nornir_netmiko.tasks import netmiko_send_command, netmiko_send_config
 
 try:
     from nornir_scrapli.tasks import send_command as scrapli_send_command
@@ -755,6 +756,30 @@ class NetmikoDefault(DispatcherMixin):
         return Result(host=task.host, result={"config": processed_config})
 
     @classmethod
+    def _save_config(cls, task: Task) -> None:
+        """Save the configuration on `task.host`, falling back to a commit where saving is not supported.
+
+        The save calls Netmiko directly on the connection that the push opened on `task.host`, in the same
+        thread, instead of running it as a Nornir task. A save that is replaced by a commit therefore leaves
+        no failed result behind for the processors to report.
+
+        Args:
+            task (Task): Nornir Task.
+
+        Raises:
+            Exception: The exception Netmiko raises if the save, or the commit that replaces it, fails.
+        """
+        net_connect = task.host.get_connection(CONNECTION_NAME, task.nornir.config)
+        try:
+            net_connect.save_config(confirm=True)
+        except NotImplementedError:
+            # Netmiko raises NotImplementedError from `save_config()` on platforms that commit instead.
+            net_connect.commit()
+            # As `netmiko_commit` does, leave the configuration mode that `commit()` may have entered.
+            if net_connect.check_config_mode():
+                net_connect.exit_config_mode()
+
+    @classmethod
     def merge_config(  # pylint: disable=too-many-positional-arguments
         cls,
         task: Task,
@@ -798,6 +823,7 @@ class NetmikoDefault(DispatcherMixin):
             error_code = EXCEPTION_TO_ERROR_MAPPER.get(type(exc.result.exception), "E1016")
             error_msg = get_error_message(error_code, exc=exc)
             logger.error(error_msg, extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
 
         if push_result[0].failed:
             return push_result
@@ -823,19 +849,14 @@ class NetmikoDefault(DispatcherMixin):
 
         logger.info("Config merge ended", extra={"object": obj})
         try:
-            try:
-                # Now, we want to run the `save` task, but WITHOUT the processor. Otherwise our default processor raises the error.
-                # To do this, we get the current Nornir object from the `task` and create a
-                # new one with an empty list of processors.
-                nr_without_processors = task.nornir.with_processors([])
-                nr_without_processors.run(task=netmiko_save_config, confirm=True, raise_on_error=True)
-            except (NotImplementedError, AttributeError, NornirExecutionError):
-                nr_without_processors.run(task=netmiko_commit)
-        except NornirSubTaskError as exc:
-            error_msg = get_error_message("E1016", exc=exc)
+            cls._save_config(task)
+        except Exception as exc:  # pylint: disable=broad-except
+            # E1016's message reads the error from a Nornir subtask error, so wrap Netmiko's exception in one.
+            subtask_error = NornirSubTaskError(task=task, result=Result(host=task.host, failed=True, exception=exc))
+            error_msg = get_error_message("E1016", exc=subtask_error)
             logger.error(error_msg, extra={"object": obj})
-        else:
-            logger.info("Config save ended", extra={"object": obj})
+            raise NornirNautobotException(error_msg) from exc
+        logger.info("Config save ended", extra={"object": obj})
         return Result(
             host=task.host,
             result={"changed": push_result[0].changed, "result": push_result[0].result},

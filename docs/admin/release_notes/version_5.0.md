@@ -9,6 +9,12 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v5.0.1 (2026-11-10)](https://github.com/nautobot/nornir-nautobot/releases/tag/v5.0.1)
+
+### Fixed
+
+- [#328](https://github.com/nautobot/nornir-nautobot/issues/328) - Fixed `NetmikoDefault.merge_config` saving every device in the job instead of only the device it pushed the configuration to, which could break concurrent pushes, exhaust file descriptors on large jobs, and could report configurations as saved when they were not.
+
 ## [v5.0.0 (2026-10-22)](https://github.com/nautobot/nornir-nautobot/releases/tag/v5.0.0)
 
 ### Breaking Changes
